@@ -94,6 +94,16 @@ const Navigation = () => {
                 Statistiken
               </Link>
               <Link
+                to="/pricing"
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  location.pathname === '/pricing'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Preise
+              </Link>
+              <Link
                 to="/profile"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   location.pathname === '/profile'
@@ -176,6 +186,17 @@ const Navigation = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Statistiken
+              </Link>
+              <Link
+                to="/pricing"
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  location.pathname === '/pricing'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Preise
               </Link>
               <Link
                 to="/profile"
