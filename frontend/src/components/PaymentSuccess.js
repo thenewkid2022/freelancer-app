@@ -20,16 +20,16 @@ const PaymentSuccess = () => {
         extra={[
           <Button 
             type="primary" 
-            onClick={() => navigate('/dashboard')}
-            key="dashboard"
-          >
-            Zum Dashboard
-          </Button>,
-          <Button 
             onClick={() => navigate('/')}
             key="home"
           >
-            Zur Startseite
+            Zur Zeiterfassung
+          </Button>,
+          <Button 
+            onClick={() => navigate('/entries')}
+            key="entries"
+          >
+            Zu den Einträgen
           </Button>,
         ]}
       />
