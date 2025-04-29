@@ -31,6 +31,7 @@ module.exports = {
         'http://localhost:3000',
         'http://localhost:3001',
         'http://localhost:3002',
+        'https://freelancer-app-chi.vercel.app',
         process.env.CLIENT_URL,
         process.env.ADMIN_URL
       ].filter(Boolean);
