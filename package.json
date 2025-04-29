@@ -1,53 +1,10 @@
 {
-  "name": "client",
-  "version": "0.1.0",
+  "name": "freelancer-app",
+  "version": "1.0.0",
   "private": true,
-  "dependencies": {
-    "@react-pdf/renderer": "^4.3.0",
-    "@stripe/react-stripe-js": "^3.6.0",
-    "@stripe/stripe-js": "^7.2.0",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.9.0",
-    "jspdf": "^3.0.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.1",
-    "react-scripts": "5.0.1",
-    "recharts": "^2.15.3",
-    "web-vitals": "^2.1.4",
-    "webln": "^0.3.2"
-  },
   "scripts": {
-    "start": "react-app-rewired start",
-    "build": "CI=false react-app-rewired build",
-    "test": "react-app-rewired test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ],
-    "rules": {
-      "no-unused-vars": "warn"
-    }
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "react-app-rewired": "^2.2.1",
-    "tailwindcss": "^3.4.1"
+    "install": "cd frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm start"
   }
 }
