@@ -19,6 +19,7 @@ import TimeTracker from './components/TimeTracker';
 import TimeEntriesList from './components/TimeEntriesList';
 import EnhancedTimeStatistics from './components/EnhancedTimeStatistics';
 import UserProfile from './components/UserProfile';
+import Pricing from './components/Pricing';
 
 // Geschützte Route
 const ProtectedRoute = ({ children }) => {
@@ -101,6 +102,10 @@ function App() {
                     <UserProfile />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/pricing"
+                element={<Pricing />}
               />
             </Route>
           ),
