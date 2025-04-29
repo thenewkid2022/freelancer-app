@@ -34,7 +34,7 @@ export const paymentService = {
   },
 
   // Bitcoin Lightning Zahlungsabwicklung
-  async processBitcoinPayment(amount, currency = 'eur') {
+  async processBitcoinPayment(amount, currency = 'chf') {
     try {
       // Hole Lightning Invoice vom Backend
       const response = await api.post('/api/payments/create-lightning-invoice', {
@@ -109,14 +109,21 @@ export const paymentService = {
   }
 };
 
+// Stripe Payment Handler
 export const createStripePayment = async (amount, plan) => {
   try {
+    console.log('Starting Stripe payment process...', { amount, plan });
+    
     // Erstelle Stripe Checkout Session
     const response = await api.post('/api/payments/create-stripe-session', {
       amount,
       plan,
-      currency: 'chf'
+      currency: 'chf',
+      success_url: `${window.location.origin}/payment/success`,
+      cancel_url: `${window.location.origin}/payment/cancel`
     });
+
+    console.log('Stripe session created:', response.data);
 
     // Hole Stripe Instance
     const stripe = await stripePromise;
@@ -130,6 +137,7 @@ export const createStripePayment = async (amount, plan) => {
     });
 
     if (error) {
+      console.error('Stripe redirect error:', error);
       throw error;
     }
 

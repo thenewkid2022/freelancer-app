@@ -14,7 +14,6 @@ router.post('/select-plan', authenticateToken, (req, res) => {
       return res.status(400).json({ message: 'Ungültiger Plan ausgewählt' });
     }
 
-    // Hier später: Stripe Integration für die Zahlungsabwicklung
     res.status(200).json({
       message: 'Plan erfolgreich ausgewählt',
       plan: plan
@@ -28,7 +27,8 @@ router.post('/select-plan', authenticateToken, (req, res) => {
 // Stripe Checkout Session erstellen
 router.post('/create-stripe-session', authenticateToken, async (req, res) => {
   try {
-    const { amount, plan, currency = 'chf' } = req.body;
+    console.log('Received Stripe session request:', req.body);
+    const { amount, plan, currency = 'chf', success_url, cancel_url } = req.body;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -38,6 +38,7 @@ router.post('/create-stripe-session', authenticateToken, async (req, res) => {
             currency: currency,
             product_data: {
               name: `Freelancer App ${plan} Plan`,
+              description: `Subscription for ${plan} plan`
             },
             unit_amount: Math.round(amount * 100), // Konvertiere zu Rappen
           },
@@ -45,19 +46,23 @@ router.post('/create-stripe-session', authenticateToken, async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/payment/success`,
-      cancel_url: `${process.env.FRONTEND_URL}/payment/cancel`,
+      success_url: success_url || `${process.env.FRONTEND_URL}/payment/success`,
+      cancel_url: cancel_url || `${process.env.FRONTEND_URL}/payment/cancel`,
     });
 
+    console.log('Stripe session created:', { sessionId: session.id });
     res.json({ sessionId: session.id });
   } catch (error) {
     console.error('Stripe Fehler:', error);
-    res.status(500).json({ error: 'Fehler bei der Zahlungsverarbeitung' });
+    res.status(500).json({ 
+      error: 'Fehler bei der Zahlungsverarbeitung',
+      details: error.message 
+    });
   }
 });
 
 // Handler für Lightning-Zahlungen
-router.post('/lightning-invoice', authenticateToken, (req, res) => {
+router.post('/create-lightning-invoice', authenticateToken, (req, res) => {
   try {
     const { plan } = req.body;
     
@@ -95,7 +100,6 @@ router.post('/confirm-payment', authenticateToken, (req, res) => {
       return res.status(400).json({ message: 'Fehlende Zahlungsinformationen' });
     }
 
-    // Hier später: Aktualisierung des Benutzerstatus basierend auf der Zahlung
     res.status(200).json({
       message: 'Zahlung erfolgreich bestätigt',
       paymentId,
