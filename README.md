@@ -2,6 +2,12 @@
 
 Eine Full-Stack-Anwendung für Freelancer zur Zeiterfassung und Projektverwaltung.
 
+## Live Version
+
+🌐 **Produktiv-Umgebung**
+- Frontend: [https://freelancer-app-chi.vercel.app](https://freelancer-app-chi.vercel.app)
+- Backend: [https://freelancer-app-1g8o.onrender.com](https://freelancer-app-1g8o.onrender.com)
+
 ## Features
 
 - ⏱️ Zeiterfassung mit automatischer Persistenz
@@ -29,17 +35,14 @@ Eine Full-Stack-Anwendung für Freelancer zur Zeiterfassung und Projektverwaltun
 - Mongoose für Datenbankmodellierung
 - Express-Validator für Validierung
 
-### Deployment
-- Frontend: Vercel
-- Backend: Render
-- Datenbank: MongoDB Atlas
+## Entwicklungsumgebung
 
-## Live Demo
+### Voraussetzungen
+- Node.js (v14 oder höher)
+- npm oder yarn
+- Git
 
-- Frontend: [https://freelancer-app-chi.vercel.app](https://freelancer-app-chi.vercel.app)
-- Backend: [https://freelancer-app-1g8o.onrender.com](https://freelancer-app-1g8o.onrender.com)
-
-## Installation
+### Installation
 
 1. Repository klonen:
 ```bash
@@ -59,9 +62,9 @@ cd ../frontend
 npm install
 ```
 
-## Konfiguration
+### Lokale Konfiguration
 
-### Backend (.env)
+#### Backend (.env)
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_uri
@@ -69,34 +72,40 @@ JWT_SECRET=your_jwt_secret
 NODE_ENV=development
 ```
 
-### Frontend (.env)
+#### Frontend (.env)
 ```env
 REACT_APP_API_URL=http://localhost:5000
 ```
 
-## Entwicklung
+### Lokale Entwicklung
 
-### Backend starten:
+1. Backend starten:
 ```bash
 cd server
 npm run dev
 ```
 
-### Frontend starten:
+2. Frontend starten:
 ```bash
 cd frontend
 npm start
 ```
 
-## Deployment
+Die Anwendung ist dann verfügbar unter:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5000
 
-### Frontend (Vercel)
+## Produktionsumgebung
+
+### Deployment-Konfiguration
+
+#### Frontend (Vercel)
 1. Verbinde dein GitHub Repository
 2. Wähle den `frontend` Ordner als Root-Verzeichnis
 3. Setze die Umgebungsvariable:
-   - `REACT_APP_API_URL`: Backend URL (Render)
+   - `REACT_APP_API_URL`: https://freelancer-app-1g8o.onrender.com
 
-### Backend (Render)
+#### Backend (Render)
 1. Erstelle einen neuen Web Service
 2. Verbinde dein GitHub Repository
 3. Setze die Umgebungsvariablen:
