@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -6,28 +6,51 @@ import api from '../services/api';
 const Pricing = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSelectPlan = async (plan) => {
     try {
+      setSelectedPlan(plan);
+      setIsLoading(true);
+
       if (!isAuthenticated) {
-        // Wenn nicht eingeloggt, zur Registrierung weiterleiten
-        navigate('/register');
+        setTimeout(() => {
+          navigate('/register');
+        }, 500);
         return;
       }
 
-      // Plan an Backend senden
       const response = await api.post('/payment/select-plan', { plan });
       
       if (response.status === 200) {
-        // Später hier: Weiterleitung zur Zahlungsseite oder Anzeige des Zahlungsmodals
-        console.log('Plan ausgewählt:', response.data);
-        // Temporär: Erfolgsmeldung
-        alert('Plan erfolgreich ausgewählt! Zahlungsabwicklung folgt in Kürze.');
+        setTimeout(() => {
+          alert('Plan erfolgreich ausgewählt! Zahlungsabwicklung folgt in Kürze.');
+          setIsLoading(false);
+          setSelectedPlan(null);
+        }, 500);
       }
     } catch (error) {
       console.error('Fehler bei der Planauswahl:', error);
       alert('Es gab einen Fehler bei der Planauswahl. Bitte versuchen Sie es später erneut.');
+      setIsLoading(false);
+      setSelectedPlan(null);
     }
+  };
+
+  const getPlanClasses = (plan) => {
+    const baseClasses = 'relative bg-white rounded-2xl shadow-xl p-8 transform transition-all duration-300 hover:scale-105';
+    const selectedClasses = selectedPlan === plan ? 'ring-4 ring-blue-500 scale-105' : '';
+    const loadingClasses = isLoading && selectedPlan === plan ? 'opacity-75' : '';
+    return `${baseClasses} ${selectedClasses} ${loadingClasses}`;
+  };
+
+  const getButtonClasses = (plan) => {
+    const baseClasses = 'mt-8 block w-full font-medium px-6 py-3 rounded-lg transition duration-300';
+    const defaultClasses = 'bg-indigo-600 text-white hover:bg-indigo-700';
+    const selectedClasses = selectedPlan === plan ? 'bg-green-500 hover:bg-green-600' : defaultClasses;
+    const loadingClasses = isLoading && selectedPlan === plan ? 'cursor-wait' : 'cursor-pointer';
+    return `${baseClasses} ${selectedClasses} ${loadingClasses}`;
   };
 
   return (
@@ -44,7 +67,7 @@ const Pricing = () => {
 
         <div className="mt-16 grid gap-8 lg:grid-cols-3 lg:gap-x-8">
           {/* Basic Plan */}
-          <div className="relative bg-white rounded-2xl shadow-xl p-8">
+          <div className={getPlanClasses('basic')}>
             <div className="text-center">
               <h3 className="text-2xl font-medium text-gray-900">Basic</h3>
               <p className="mt-4 text-5xl font-extrabold text-gray-900">
@@ -76,14 +99,23 @@ const Pricing = () => {
             </div>
             <button
               onClick={() => handleSelectPlan('basic')}
-              className="mt-8 block w-full bg-indigo-600 text-white font-medium px-6 py-3 rounded-lg hover:bg-indigo-700 transition duration-150"
+              disabled={isLoading}
+              className={getButtonClasses('basic')}
             >
-              Kostenlos starten
+              {isLoading && selectedPlan === 'basic' ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Wird ausgewählt...
+                </div>
+              ) : 'Kostenlos starten'}
             </button>
           </div>
 
           {/* Pro Plan */}
-          <div className="relative bg-white rounded-2xl shadow-xl p-8 border-2 border-indigo-500">
+          <div className={getPlanClasses('pro')}>
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2">
               <span className="inline-flex rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white">
                 Beliebt
@@ -126,14 +158,23 @@ const Pricing = () => {
             </div>
             <button
               onClick={() => handleSelectPlan('pro')}
-              className="mt-8 block w-full bg-indigo-600 text-white font-medium px-6 py-3 rounded-lg hover:bg-indigo-700 transition duration-150"
+              disabled={isLoading}
+              className={getButtonClasses('pro')}
             >
-              Pro Plan wählen
+              {isLoading && selectedPlan === 'pro' ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Wird ausgewählt...
+                </div>
+              ) : 'Pro Plan wählen'}
             </button>
           </div>
 
           {/* Enterprise Plan */}
-          <div className="relative bg-white rounded-2xl shadow-xl p-8">
+          <div className={getPlanClasses('enterprise')}>
             <div className="text-center">
               <h3 className="text-2xl font-medium text-gray-900">Enterprise</h3>
               <p className="mt-4 text-5xl font-extrabold text-gray-900">
@@ -177,9 +218,18 @@ const Pricing = () => {
             </div>
             <button
               onClick={() => handleSelectPlan('enterprise')}
-              className="mt-8 block w-full bg-indigo-600 text-white font-medium px-6 py-3 rounded-lg hover:bg-indigo-700 transition duration-150"
+              disabled={isLoading}
+              className={getButtonClasses('enterprise')}
             >
-              Enterprise kontaktieren
+              {isLoading && selectedPlan === 'enterprise' ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Wird ausgewählt...
+                </div>
+              ) : 'Enterprise kontaktieren'}
             </button>
           </div>
         </div>
