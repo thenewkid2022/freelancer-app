@@ -6,5 +6,9 @@
     "install": "cd frontend && npm install",
     "build": "cd frontend && npm run build",
     "start": "cd frontend && npm start"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "stripe": "^18.0.0"
   }
 }

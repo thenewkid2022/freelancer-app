@@ -20,6 +20,8 @@ import TimeEntriesList from './components/TimeEntriesList';
 import EnhancedTimeStatistics from './components/EnhancedTimeStatistics';
 import UserProfile from './components/UserProfile';
 import Pricing from './components/Pricing';
+import PaymentSuccess from './components/PaymentSuccess';
+import PaymentCancel from './components/PaymentCancel';
 
 // Geschützte Route
 const ProtectedRoute = ({ children }) => {
@@ -106,6 +108,22 @@ function App() {
               <Route
                 path="/pricing"
                 element={<Pricing />}
+              />
+              <Route
+                path="/payment/success"
+                element={
+                  <ProtectedRoute>
+                    <PaymentSuccess />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment/cancel"
+                element={
+                  <ProtectedRoute>
+                    <PaymentCancel />
+                  </ProtectedRoute>
+                }
               />
             </Route>
           ),

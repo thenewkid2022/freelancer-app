@@ -1,7 +1,13 @@
 import { loadStripe } from '@stripe/stripe-js';
 import api from './api';
 
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+// Stelle sicher, dass der Stripe Public Key aus den Umgebungsvariablen geladen wird
+const STRIPE_PUBLIC_KEY = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
+if (!STRIPE_PUBLIC_KEY) {
+  console.error('Stripe Public Key nicht gefunden! Bitte REACT_APP_STRIPE_PUBLIC_KEY in .env setzen');
+}
+
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 export const paymentService = {
   // Stripe Zahlungsabwicklung
@@ -105,11 +111,30 @@ export const paymentService = {
 
 export const createStripePayment = async (amount, plan) => {
   try {
-    const response = await api.post('/payment/create-stripe-session', {
+    // Erstelle Stripe Checkout Session
+    const response = await api.post('/api/payments/create-stripe-session', {
       amount,
       plan,
-      currency: 'chf'
+      currency: 'chf',
+      success_url: `${window.location.origin}/payment/success`,
+      cancel_url: `${window.location.origin}/payment/cancel`
     });
+
+    // Hole Stripe Instance
+    const stripe = await stripePromise;
+    if (!stripe) {
+      throw new Error('Stripe konnte nicht initialisiert werden');
+    }
+
+    // Redirect zu Stripe Checkout
+    const { error } = await stripe.redirectToCheckout({
+      sessionId: response.data.sessionId
+    });
+
+    if (error) {
+      throw error;
+    }
+
     return response.data;
   } catch (error) {
     console.error('Fehler beim Erstellen der Stripe-Zahlung:', error);
@@ -119,7 +144,7 @@ export const createStripePayment = async (amount, plan) => {
 
 export const createLightningInvoice = async (amount, plan) => {
   try {
-    const response = await api.post('/payment/create-lightning-invoice', {
+    const response = await api.post('/api/payments/create-lightning-invoice', {
       amount,
       plan,
       currency: 'chf'
@@ -133,7 +158,7 @@ export const createLightningInvoice = async (amount, plan) => {
 
 export const checkLightningPayment = async (paymentHash) => {
   try {
-    const response = await api.get(`/payment/check-lightning-payment/${paymentHash}`);
+    const response = await api.get(`/api/payments/check-lightning-payment/${paymentHash}`);
     return response.data;
   } catch (error) {
     console.error('Fehler beim Überprüfen der Lightning-Zahlung:', error);

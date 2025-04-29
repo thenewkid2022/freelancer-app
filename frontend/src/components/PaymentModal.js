@@ -12,6 +12,7 @@ const PaymentModal = ({ visible, onClose, amount, plan }) => {
   const [paymentHash, setPaymentHash] = useState(null);
   const [checkingInterval, setCheckingInterval] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('stripe');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -26,6 +27,7 @@ const PaymentModal = ({ visible, onClose, amount, plan }) => {
     if (!visible) {
       setLightningInvoice(null);
       setPaymentHash(null);
+      setError(null);
       if (checkingInterval) {
         clearInterval(checkingInterval);
       }
@@ -35,11 +37,13 @@ const PaymentModal = ({ visible, onClose, amount, plan }) => {
   const handleStripePayment = async () => {
     try {
       setLoading(true);
-      const response = await createStripePayment(amount, plan);
-      window.location.href = response.url;
+      setError(null);
+      await createStripePayment(amount, plan);
+      // Wenn kein Fehler auftritt, wird der Benutzer zu Stripe weitergeleitet
     } catch (error) {
-      message.error('Fehler bei der Stripe-Zahlung');
       console.error('Stripe Fehler:', error);
+      setError('Es gab einen Fehler bei der Stripe-Zahlung. Bitte versuchen Sie es später erneut.');
+      message.error('Fehler bei der Stripe-Zahlung');
     } finally {
       setLoading(false);
     }
@@ -48,6 +52,7 @@ const PaymentModal = ({ visible, onClose, amount, plan }) => {
   const handleLightningPayment = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await createLightningInvoice(amount, plan);
       setLightningInvoice(response.invoice);
       setPaymentHash(response.paymentHash);
@@ -62,13 +67,15 @@ const PaymentModal = ({ visible, onClose, amount, plan }) => {
           }
         } catch (error) {
           console.error('Fehler beim Überprüfen der Zahlung:', error);
+          setError('Fehler beim Überprüfen der Zahlung. Bitte kontaktieren Sie den Support.');
         }
       }, 2000);
 
       setCheckingInterval(interval);
     } catch (error) {
-      message.error('Fehler beim Erstellen der Lightning-Rechnung');
       console.error('Lightning Fehler:', error);
+      setError('Es gab einen Fehler bei der Lightning-Zahlung. Bitte versuchen Sie es später erneut.');
+      message.error('Fehler beim Erstellen der Lightning-Rechnung');
     } finally {
       setLoading(false);
     }
@@ -96,8 +103,17 @@ const PaymentModal = ({ visible, onClose, amount, plan }) => {
           <p className="amount">CHF {amount}</p>
         </div>
 
+        {error && (
+          <div className="error-message" style={{ marginBottom: '20px', color: '#ff4d4f', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
+
         <Radio.Group
-          onChange={(e) => setPaymentMethod(e.target.value)}
+          onChange={(e) => {
+            setPaymentMethod(e.target.value);
+            setError(null);
+          }}
           value={paymentMethod}
           style={{ width: '100%', marginBottom: '20px' }}
         >
