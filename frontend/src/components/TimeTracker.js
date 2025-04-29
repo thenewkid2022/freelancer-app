@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { timeEntryService } from '../services/timeEntry';
 import { toast, ToastContainer } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
+import PaymentModal from './PaymentModal';
 import 'react-toastify/dist/ReactToastify.css';
 
 const STORAGE_KEY = 'timeTracker';
@@ -11,6 +12,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [projectInfo, setProjectInfo] = useState({
     projectNumber: '',
     projectName: '',
@@ -286,6 +288,25 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
           {loading ? <ClipLoader color="#ffffff" size={20} /> : 'Stop'}
         </button>
       </div>
+
+      {/* Zahlungs-Button */}
+      {!isTracking && elapsedTime > 0 && (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setShowPaymentModal(true)}
+            className="px-6 py-2 rounded-lg text-white font-medium bg-blue-500 hover:bg-blue-600 transition-colors duration-200"
+          >
+            Jetzt bezahlen
+          </button>
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      <PaymentModal
+        visible={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        amount={25.00} // Beispielbetrag - hier können Sie Ihre eigene Logik zur Berechnung des Betrags einbauen
+      />
     </div>
   );
 };
