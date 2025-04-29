@@ -17,6 +17,9 @@ Eine Full-Stack-Anwendung für Freelancer zur Zeiterfassung und Projektverwaltun
 - 📱 Responsive Design
 - 🔒 Sichere Authentifizierung
 - 📑 PDF und CSV Export
+- ⚡ Bitcoin Lightning Zahlungen
+- 💰 Flexible Preispläne (Basic, Pro, Enterprise)
+- 🔄 Automatische Plan-Aktivierung
 
 ## Technologie-Stack
 
@@ -154,6 +157,32 @@ Die Anwendung ist dann verfügbar unter:
 - Sichere Passwortspeicherung
 - CORS-Konfiguration
 - Rate Limiting
+
+### Zahlungen und Pläne
+- POST `/api/payment/select-plan`: Plan auswählen
+- POST `/api/payment/lightning-invoice`: Lightning-Invoice generieren
+
+## Preispläne
+
+### Basic (Kostenlos)
+- Zeiterfassung für 1 Benutzer
+- Basis Statistiken
+- 7 Tage Verlauf
+
+### Pro (29 CHF/Monat)
+- Zeiterfassung für 5 Benutzer
+- Erweiterte Statistiken
+- 30 Tage Verlauf
+- Projektverteilung
+- Lightning-Zahlung möglich
+
+### Enterprise (99 CHF/Monat)
+- Unbegrenzte Benutzer
+- Alle Pro Features
+- Unbegrenzter Verlauf
+- Premium Support
+- API Zugang
+- Lightning-Zahlung möglich
 
 ## API-Endpunkte
 
