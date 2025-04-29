@@ -9,7 +9,6 @@ const app = express();
 app.use(cors({
   origin: [
     'https://freelancer-app-chi.vercel.app',
-    'https://freelancer-39f6z9gzd-christian-von-ows-projects.vercel.app',
     'http://localhost:3000'
   ],
   credentials: true,
