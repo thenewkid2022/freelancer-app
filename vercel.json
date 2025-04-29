@@ -5,39 +5,15 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build",
-        "buildCommand": "cd frontend && DISABLE_ESLINT_PLUGIN=true npm install && npm run build"
+        "distDir": "frontend/build",
+        "buildCommand": "cd frontend && npm install && npm run build"
       }
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/frontend/static/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/frontend/favicon.ico"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/frontend/manifest.json"
-    },
-    {
-      "src": "/logo192.png",
-      "dest": "/frontend/logo192.png"
-    },
-    {
-      "src": "/logo512.png",
-      "dest": "/frontend/logo512.png"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/frontend/index.html"
+      "dest": "/frontend/build/index.html"
     }
-  ],
-  "env": {
-    "CI": "false",
-    "DISABLE_ESLINT_PLUGIN": "true"
-  }
+  ]
 } 
