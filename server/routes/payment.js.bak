@@ -54,25 +54,4 @@ router.post('/lightning-invoice', authenticateToken, (req, res) => {
   }
 });
 
-// Handler für die Zahlungsbestätigung
-router.post('/confirm-payment', authenticateToken, (req, res) => {
-  try {
-    const { paymentId, status } = req.body;
-    
-    if (!paymentId || !status) {
-      return res.status(400).json({ message: 'Fehlende Zahlungsinformationen' });
-    }
-
-    // Hier später: Aktualisierung des Benutzerstatus basierend auf der Zahlung
-    res.status(200).json({
-      message: 'Zahlung erfolgreich bestätigt',
-      paymentId,
-      status
-    });
-  } catch (error) {
-    console.error('Fehler bei der Zahlungsbestätigung:', error);
-    res.status(500).json({ message: 'Fehler bei der Zahlungsbestätigung' });
-  }
-});
-
-module.exports = router;
+module.exports = router; 
