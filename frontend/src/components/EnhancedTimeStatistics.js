@@ -338,21 +338,23 @@ const EnhancedTimeStatistics = ({ refresh }) => {
               <div className="min-w-[300px]">
                 <BarChart 
                   width={window.innerWidth < 768 ? window.innerWidth - 40 : 800}
-                  height={300} 
+                  height={window.innerWidth < 768 ? 200 : 300} 
                   data={chartData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="name" 
-                    tick={{ fill: '#4B5563' }}
+                    tick={{ fill: '#4B5563', fontSize: window.innerWidth < 768 ? 10 : 12 }}
                     angle={-45}
                     textAnchor="end"
                     height={60}
+                    interval={window.innerWidth < 768 ? 1 : 0}
                   />
                   <YAxis 
-                    tick={{ fill: '#4B5563' }}
+                    tick={{ fill: '#4B5563', fontSize: window.innerWidth < 768 ? 10 : 12 }}
                     tickFormatter={(value) => `${value}h`}
+                    width={window.innerWidth < 768 ? 30 : 40}
                   />
                   <Tooltip 
                     formatter={(value, name) => {
@@ -361,19 +363,24 @@ const EnhancedTimeStatistics = ({ refresh }) => {
                       return [value, name];
                     }}
                     labelFormatter={(label) => `Datum: ${label}`}
+                    contentStyle={{ fontSize: window.innerWidth < 768 ? '12px' : '14px' }}
                   />
-                  <Legend />
+                  <Legend 
+                    wrapperStyle={{ fontSize: window.innerWidth < 768 ? '12px' : '14px' }}
+                  />
                   <Bar 
                     dataKey="stunden" 
                     fill="#8884d8" 
                     name="Stunden"
                     radius={[4, 4, 0, 0]}
+                    maxBarSize={window.innerWidth < 768 ? 20 : 40}
                   />
                   <Bar 
                     dataKey="einträge" 
                     fill="#82ca9d" 
                     name="Einträge"
                     radius={[4, 4, 0, 0]}
+                    maxBarSize={window.innerWidth < 768 ? 20 : 40}
                   />
                 </BarChart>
               </div>
@@ -469,21 +476,45 @@ const EnhancedTimeStatistics = ({ refresh }) => {
              filters.groupBy === 'weekly' ? 'Wöchentliche Übersicht' :
              'Monatliche Übersicht'}
           </h2>
-          <div className="overflow-x-auto">
+          
+          {/* Mobile Karten-Ansicht */}
+          <div className="md:hidden">
+            {stats.results.map((period) => (
+              <div key={period.period} className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-semibold text-gray-700">{period.period}</span>
+                  <span className="text-blue-600 font-bold">{period.totalHours.toFixed(1)}h</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                  <div>
+                    <span className="block text-gray-500">Minuten</span>
+                    <span className="font-medium">{period.totalMinutes}</span>
+                  </div>
+                  <div>
+                    <span className="block text-gray-500">Einträge</span>
+                    <span className="font-medium">{period.numberOfEntries}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Tabellen-Ansicht */}
+          <div className="hidden md:block overflow-x-auto">
             <div className="min-w-[600px]">
               <table className="min-w-full">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Zeitraum
                     </th>
-                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Stunden
                     </th>
-                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Minuten
                     </th>
-                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Einträge
                     </th>
                   </tr>
@@ -491,16 +522,16 @@ const EnhancedTimeStatistics = ({ refresh }) => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {stats.results.map((period) => (
                     <tr key={period.period} className="hover:bg-gray-50">
-                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {period.period}
                       </td>
-                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {period.totalHours.toFixed(1)}h
                       </td>
-                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm">
-                        {period.totalMinutes}min
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {period.totalMinutes}
                       </td>
-                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {period.numberOfEntries}
                       </td>
                     </tr>
