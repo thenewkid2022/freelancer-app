@@ -3,7 +3,7 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 
 // Route für die Verarbeitung der Planauswahl
-router.post('/select-plan', async (req, res) => {
+router.post('/select-plan', authenticateToken, async (req, res) => {
   try {
     const { plan } = req.body;
     
