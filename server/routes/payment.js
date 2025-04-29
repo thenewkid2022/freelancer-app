@@ -24,8 +24,8 @@ router.post('/select-plan', authenticateToken, (req, res) => {
   }
 });
 
-// Stripe Checkout Session erstellen
-router.post('/create-stripe-session', authenticateToken, async (req, res) => {
+// Stripe Checkout Session erstellen - Keine Authentifizierung erforderlich
+router.post('/create-stripe-session', async (req, res) => {
   try {
     console.log('Received Stripe session request:', req.body);
     const { amount, plan, currency = 'chf', success_url, cancel_url } = req.body;
@@ -61,8 +61,8 @@ router.post('/create-stripe-session', authenticateToken, async (req, res) => {
   }
 });
 
-// Handler für Lightning-Zahlungen
-router.post('/create-lightning-invoice', authenticateToken, (req, res) => {
+// Handler für Lightning-Zahlungen - Keine Authentifizierung erforderlich
+router.post('/create-lightning-invoice', (req, res) => {
   try {
     const { plan } = req.body;
     
@@ -91,7 +91,7 @@ router.post('/create-lightning-invoice', authenticateToken, (req, res) => {
   }
 });
 
-// Handler für die Zahlungsbestätigung
+// Handler für die Zahlungsbestätigung - Authentifizierung erforderlich
 router.post('/confirm-payment', authenticateToken, (req, res) => {
   try {
     const { paymentId, status } = req.body;
