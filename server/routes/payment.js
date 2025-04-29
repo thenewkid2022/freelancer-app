@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
+const authenticateToken = require('../middleware/auth');
 
 // Handler für die Planauswahl
 router.post('/select-plan', authenticateToken, (req, res) => {
