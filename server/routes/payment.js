@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const authenticateToken = require('../middleware/auth');
 
 // Handler für die Planauswahl
@@ -21,6 +22,37 @@ router.post('/select-plan', authenticateToken, (req, res) => {
   } catch (error) {
     console.error('Fehler bei der Planauswahl:', error);
     res.status(500).json({ message: 'Interner Serverfehler bei der Planauswahl' });
+  }
+});
+
+// Stripe Checkout Session erstellen
+router.post('/create-stripe-session', authenticateToken, async (req, res) => {
+  try {
+    const { amount, plan, currency = 'chf' } = req.body;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: currency,
+            product_data: {
+              name: `Freelancer App ${plan} Plan`,
+            },
+            unit_amount: Math.round(amount * 100), // Konvertiere zu Rappen
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${process.env.FRONTEND_URL}/payment/success`,
+      cancel_url: `${process.env.FRONTEND_URL}/payment/cancel`,
+    });
+
+    res.json({ sessionId: session.id });
+  } catch (error) {
+    console.error('Stripe Fehler:', error);
+    res.status(500).json({ error: 'Fehler bei der Zahlungsverarbeitung' });
   }
 });
 

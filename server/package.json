@@ -29,6 +29,7 @@
     "node-cache": "^5.1.2",
     "nodemailer": "^6.9.12",
     "prom-client": "^15.1.0",
+    "stripe": "^18.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "winston": "^3.11.0"
