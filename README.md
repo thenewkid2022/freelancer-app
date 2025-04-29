@@ -2,24 +2,48 @@
 
 Eine Full-Stack-Anwendung für Freelancer zur Zeiterfassung und Projektverwaltung.
 
+## Features
+
+- ⏱️ Zeiterfassung mit automatischer Persistenz
+- 📊 Detaillierte Statistiken und Visualisierungen
+- 📈 Projektverteilungs-Grafiken
+- 🔄 Automatische Synchronisation
+- 📱 Responsive Design
+- 🔒 Sichere Authentifizierung
+- 📑 PDF und CSV Export
+
 ## Technologie-Stack
 
-- Frontend: React.js
-- Backend: Node.js mit Express
+### Frontend
+- React.js mit Hooks
+- TailwindCSS für Styling
+- Recharts für Visualisierungen
+- Axios für API-Kommunikation
+- React Router für Navigation
+- localStorage für Persistenz
+
+### Backend
+- Node.js mit Express
+- MongoDB Atlas als Datenbank
+- JWT für Authentifizierung
+- Mongoose für Datenbankmodellierung
+- Express-Validator für Validierung
+
+### Deployment
+- Frontend: Vercel
+- Backend: Render
 - Datenbank: MongoDB Atlas
-- Authentication: JWT
 
-## Voraussetzungen
+## Live Demo
 
-- Node.js (v14 oder höher)
-- MongoDB Atlas Konto
-- npm oder yarn
+- Frontend: [https://freelancer-app-chi.vercel.app](https://freelancer-app-chi.vercel.app)
+- Backend: [https://freelancer-app-1g8o.onrender.com](https://freelancer-app-1g8o.onrender.com)
 
 ## Installation
 
 1. Repository klonen:
 ```bash
-git clone [repository-url]
+git clone https://github.com/thenewkid2022/freelancer-app.git
 cd freelancer-app
 ```
 
@@ -31,58 +55,91 @@ npm install
 
 3. Frontend-Abhängigkeiten installieren:
 ```bash
-cd ../client
+cd ../frontend
 npm install
 ```
 
 ## Konfiguration
 
-1. Kopiere die Konfigurationsdatei:
-```bash
-cd server
-cp config/config.js config/config.js
+### Backend (.env)
+```env
+PORT=5000
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+NODE_ENV=development
 ```
 
-2. Konfiguriere die Umgebungsvariablen in `config.js`:
-- `MONGO_URI`: MongoDB Atlas Verbindungs-URL
-- `JWT_SECRET`: Geheimer Schlüssel für JWT
-- `CLIENT_URL`: URL des Frontend-Servers
-- Weitere Konfigurationsoptionen siehe `config.js`
-
-## Starten der Anwendung
-
-1. Backend starten:
-```bash
-cd server
-npm start
+### Frontend (.env)
+```env
+REACT_APP_API_URL=http://localhost:5000
 ```
-
-2. Frontend starten:
-```bash
-cd client
-npm start
-```
-
-## MongoDB Atlas Konfiguration
-
-1. Erstelle ein MongoDB Atlas Konto
-2. Erstelle einen neuen Cluster
-3. Konfiguriere die Netzwerk-Zugriffsregeln
-4. Erstelle einen Datenbankbenutzer
-5. Kopiere die Verbindungs-URL und füge sie in die Konfiguration ein
-
-## Sicherheitshinweise
-
-- Speichere niemals sensible Daten in der Versionskontrolle
-- Verwende starke Passwörter für MongoDB Atlas
-- Aktiviere SSL/TLS für die MongoDB-Verbindung
-- Konfiguriere IP-Whitelisting in MongoDB Atlas
 
 ## Entwicklung
 
-- `npm run dev`: Startet den Entwicklungsserver
-- `npm test`: Führt Tests aus
-- `npm run lint`: Führt Linting durch
+### Backend starten:
+```bash
+cd server
+npm run dev
+```
+
+### Frontend starten:
+```bash
+cd frontend
+npm start
+```
+
+## Deployment
+
+### Frontend (Vercel)
+1. Verbinde dein GitHub Repository
+2. Wähle den `frontend` Ordner als Root-Verzeichnis
+3. Setze die Umgebungsvariable:
+   - `REACT_APP_API_URL`: Backend URL (Render)
+
+### Backend (Render)
+1. Erstelle einen neuen Web Service
+2. Verbinde dein GitHub Repository
+3. Setze die Umgebungsvariablen:
+   - `MONGO_URI`: MongoDB Connection String
+   - `JWT_SECRET`: Sicherer Schlüssel für JWT
+   - `NODE_ENV`: production
+
+## Features im Detail
+
+### Zeiterfassung
+- Start/Stop Funktionalität
+- Automatische Speicherung bei Unterbrechungen
+- Wiederherstellung nach Sitzungsende
+- Projekt- und Beschreibungsfelder
+
+### Statistiken
+- Tägliche, wöchentliche und monatliche Ansichten
+- Projektbasierte Auswertungen
+- Arbeitszeitverteilung
+- Exportfunktionen (PDF, CSV)
+
+### Sicherheit
+- JWT-basierte Authentifizierung
+- Sichere Passwortspeicherung
+- CORS-Konfiguration
+- Rate Limiting
+
+## API-Endpunkte
+
+### Authentifizierung
+- POST `/api/auth/register`: Registrierung
+- POST `/api/auth/login`: Login
+
+### Zeiterfassung
+- GET `/api/time-entries`: Alle Einträge abrufen
+- POST `/api/time-entries`: Neuen Eintrag erstellen
+- PUT `/api/time-entries/:id`: Eintrag aktualisieren
+- DELETE `/api/time-entries/:id`: Eintrag löschen
+
+### Statistiken
+- GET `/api/time-entries/stats/filtered`: Gefilterte Statistiken
+- GET `/api/time-entries/stats/daily`: Tagesstatistiken
+- GET `/api/time-entries/stats/monthly`: Monatsstatistiken
 
 ## Lizenz
 
