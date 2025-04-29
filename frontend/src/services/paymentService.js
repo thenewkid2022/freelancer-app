@@ -115,9 +115,7 @@ export const createStripePayment = async (amount, plan) => {
     const response = await api.post('/api/payments/create-stripe-session', {
       amount,
       plan,
-      currency: 'chf',
-      success_url: `${window.location.origin}/payment/success`,
-      cancel_url: `${window.location.origin}/payment/cancel`
+      currency: 'chf'
     });
 
     // Hole Stripe Instance
