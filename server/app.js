@@ -8,7 +8,9 @@ const app = express();
 // CORS Konfiguration
 app.use(cors({
   origin: [
-    'https://freelancer-app-frontend.vercel.app',
+    'https://freelancer-app-git-main-thenewkid2022.vercel.app',
+    'https://freelancer-app-thenewkid2022.vercel.app',
+    'https://freelancer-app.vercel.app',
     'http://localhost:3000'
   ],
   credentials: true,
