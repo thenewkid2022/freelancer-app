@@ -113,6 +113,28 @@ Die Anwendung ist dann verfügbar unter:
    - `JWT_SECRET`: Sicherer Schlüssel für JWT
    - `NODE_ENV`: production
 
+## Mobile Installation
+
+### iOS Installation
+1. Öffnen Sie Safari und navigieren Sie zu [https://freelancer-app-chi.vercel.app](https://freelancer-app-chi.vercel.app)
+2. Tippen Sie auf das "Teilen"-Symbol (Quadrat mit Pfeil nach oben)
+3. Wählen Sie "Zum Home-Bildschirm"
+4. Bestätigen Sie den Namen und tippen Sie auf "Hinzufügen"
+
+### Android Installation
+1. Öffnen Sie Chrome und navigieren Sie zu [https://freelancer-app-chi.vercel.app](https://freelancer-app-chi.vercel.app)
+2. Tippen Sie auf die drei Punkte (⋮) im Browser-Menü
+3. Wählen Sie "Zum Startbildschirm hinzufügen"
+4. Bestätigen Sie die Installation
+
+### Mobile Features
+- 📱 Optimiert für Touch-Bedienung
+- 🔄 Offline-Funktionalität
+- 📲 Push-Benachrichtigungen (in Entwicklung)
+- 📊 Angepasste mobile Ansichten
+- ⚡ Schnelle Ladezeiten
+- 🔒 Sichere mobile Authentifizierung
+
 ## Features im Detail
 
 ### Zeiterfassung
