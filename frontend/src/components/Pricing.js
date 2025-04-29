@@ -1,13 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { requestProvider } from 'webln';
 
 const Pricing = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [webln, setWebln] = useState(null);
+
+  useEffect(() => {
+    const initWebLN = async () => {
+      try {
+        const provider = await requestProvider();
+        setWebln(provider);
+      } catch (err) {
+        console.log('WebLN nicht verfügbar:', err);
+      }
+    };
+    initWebLN();
+  }, []);
+
+  const handleLightningPayment = async (plan) => {
+    try {
+      // Hier würden wir normalerweise die Invoice vom Backend holen
+      const amount = plan === 'basic' ? 0 : plan === 'pro' ? 2900000 : 9900000; // in Sats
+      if (!webln) {
+        alert('Bitte installieren Sie eine Lightning-Wallet (z.B. Alby) für Bitcoin-Zahlungen.');
+        window.open('https://getalby.com', '_blank');
+        return;
+      }
+
+      // Demo-Invoice für Test-Zwecke
+      const invoice = 'lnbc1000n1pj4d5ekpp5v4w8x50n6xkn0z24w3uhv9zxsj6j38h8gk4pw4hs8spg4f7qhx4qdp8xys9xct5da5kueegcqzpgxqyz5vqsp5usxj4qzwhd6r4858687640npy96nyqy3g5mwgxrsymxdd7k4k4ms9qyyssqy4lgdx5v6659tx68wpxkr7jnc4k95tjdwvj0szs8zlkv2j4r7emg9wksfsjul935ym5h7h89rnhqt9v5gdsg2xnm0wgu6j72jaxt4ycpn4tu0m';
+      
+      await webln.sendPayment(invoice);
+      
+      alert('Lightning-Zahlung erfolgreich! Ihr Plan wird aktiviert.');
+      
+    } catch (error) {
+      console.error('Lightning-Zahlungsfehler:', error);
+      alert('Es gab einen Fehler bei der Lightning-Zahlung. Bitte versuchen Sie es später erneut.');
+    }
+  };
 
   const handleSelectPlan = async (plan) => {
     try {
@@ -21,15 +58,24 @@ const Pricing = () => {
         return;
       }
 
-      const response = await api.post('/payment/select-plan', { plan });
-      
-      if (response.status === 200) {
-        setTimeout(() => {
-          alert('Plan erfolgreich ausgewählt! Zahlungsabwicklung folgt in Kürze.');
-          setIsLoading(false);
-          setSelectedPlan(null);
-        }, 500);
+      // Wenn es der Basic-Plan ist, keine Zahlung erforderlich
+      if (plan === 'basic') {
+        const response = await api.post('/payment/select-plan', { plan });
+        if (response.status === 200) {
+          setTimeout(() => {
+            alert('Basic Plan erfolgreich aktiviert!');
+            setIsLoading(false);
+            setSelectedPlan(null);
+          }, 500);
+        }
+        return;
       }
+
+      // Für Pro und Enterprise Pläne, Lightning-Zahlung starten
+      await handleLightningPayment(plan);
+      setIsLoading(false);
+      setSelectedPlan(null);
+
     } catch (error) {
       console.error('Fehler bei der Planauswahl:', error);
       alert('Es gab einen Fehler bei der Planauswahl. Bitte versuchen Sie es später erneut.');

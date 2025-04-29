@@ -20,4 +20,31 @@ router.post('/select-plan', authenticateToken, async (req, res) => {
   }
 });
 
+// Route für Lightning-Zahlungen
+router.post('/lightning-invoice', authenticateToken, async (req, res) => {
+  try {
+    const { plan } = req.body;
+    
+    // Preise in Satoshis
+    const prices = {
+      pro: 2900000,      // 29 CHF in Sats
+      enterprise: 9900000 // 99 CHF in Sats
+    };
+
+    const amount = prices[plan] || 0;
+
+    // Hier würde normalerweise die Integration mit einem Lightning-Node erfolgen
+    // Für Demo-Zwecke verwenden wir eine Test-Invoice
+    const invoice = {
+      paymentRequest: 'lnbc1000n1pj4d5ekpp5v4w8x50n6xkn0z24w3uhv9zxsj6j38h8gk4pw4hs8spg4f7qhx4qdp8xys9xct5da5kueegcqzpgxqyz5vqsp5usxj4qzwhd6r4858687640npy96nyqy3g5mwgxrsymxdd7k4k4ms9qyyssqy4lgdx5v6659tx68wpxkr7jnc4k95tjdwvj0szs8zlkv2j4r7emg9wksfsjul935ym5h7h89rnhqt9v5gdsg2xnm0wgu6j72jaxt4ycpn4tu0m',
+      amount: amount
+    };
+
+    res.status(200).json(invoice);
+  } catch (error) {
+    console.error('Fehler bei der Lightning-Invoice-Generierung:', error);
+    res.status(500).json({ message: 'Fehler bei der Lightning-Invoice-Generierung' });
+  }
+});
+
 module.exports = router; 
