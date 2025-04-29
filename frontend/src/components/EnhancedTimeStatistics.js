@@ -238,8 +238,8 @@ const EnhancedTimeStatistics = ({ refresh }) => {
   return (
     <div className="space-y-8 p-6">
       {/* Filter-Bereich */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Erweiterte Filter & Export</h2>
+      <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Filter & Export</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -293,7 +293,7 @@ const EnhancedTimeStatistics = ({ refresh }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags (kommagetrennt)
+              Tags
             </label>
             <input
               type="text"
@@ -303,24 +303,24 @@ const EnhancedTimeStatistics = ({ refresh }) => {
               placeholder="Tag1, Tag2, ..."
             />
           </div>
-          <div className="flex items-end space-x-2">
+          <div className="flex flex-col md:flex-row items-end space-y-2 md:space-y-0 md:space-x-2">
             <button
               onClick={() => fetchStats()}
-              className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              className="w-full md:w-auto bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
             >
               Aktualisieren
             </button>
             <button
               onClick={exportToPDF}
-              className="flex-1 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+              className="w-full md:w-auto bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
             >
-              PDF Export
+              PDF
             </button>
             <button
               onClick={exportToCSV}
-              className="flex-1 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+              className="w-full md:w-auto bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
             >
-              CSV Export
+              CSV
             </button>
           </div>
         </div>
@@ -328,91 +328,103 @@ const EnhancedTimeStatistics = ({ refresh }) => {
 
       {/* Diagramme */}
       {chartData && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Visualisierungen</h2>
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Visualisierungen</h2>
           
           {/* Balkendiagramm */}
           <div className="mb-8">
-            <h3 className="text-xl font-semibold text-gray-700 mb-4">Zeitverteilung</h3>
+            <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-4">Zeitverteilung</h3>
             <div className="w-full overflow-x-auto">
-              <BarChart 
-                width={800} 
-                height={300} 
-                data={chartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fill: '#4B5563' }}
-                />
-                <YAxis 
-                  tick={{ fill: '#4B5563' }}
-                  tickFormatter={(value) => `${value}h`}
-                />
-                <Tooltip 
-                  formatter={(value, name) => {
-                    if (name === 'stunden') return [`${value}h`, 'Stunden'];
-                    if (name === 'einträge') return [value, 'Einträge'];
-                    return [value, name];
-                  }}
-                  labelFormatter={(label) => `Datum: ${label}`}
-                />
-                <Legend />
-                <Bar 
-                  dataKey="stunden" 
-                  fill="#8884d8" 
-                  name="Stunden"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  dataKey="einträge" 
-                  fill="#82ca9d" 
-                  name="Einträge"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
+              <div className="min-w-[300px]">
+                <BarChart 
+                  width={window.innerWidth < 768 ? window.innerWidth - 40 : 800}
+                  height={300} 
+                  data={chartData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fill: '#4B5563' }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    tick={{ fill: '#4B5563' }}
+                    tickFormatter={(value) => `${value}h`}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => {
+                      if (name === 'stunden') return [`${value}h`, 'Stunden'];
+                      if (name === 'einträge') return [value, 'Einträge'];
+                      return [value, name];
+                    }}
+                    labelFormatter={(label) => `Datum: ${label}`}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="stunden" 
+                    fill="#8884d8" 
+                    name="Stunden"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="einträge" 
+                    fill="#82ca9d" 
+                    name="Einträge"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </div>
             </div>
           </div>
 
           {/* Projekt-Verteilung */}
           {projectStats && (
             <div className="mb-8">
-              <h3 className="text-xl font-semibold text-gray-700 mb-4">Projektverteilung</h3>
-              <div className="flex flex-col lg:flex-row items-start justify-between gap-4">
-                <div className="w-full lg:w-2/3">
-                  <PieChart width={400} height={300}>
-                    <Pie
-                      data={projectStats}
-                      cx={180}
-                      cy={150}
-                      labelLine={false}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+              <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-4">Projektverteilung</h3>
+              <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-4">
+                <div className="w-full lg:w-2/3 overflow-x-auto">
+                  <div className="min-w-[300px] flex justify-center">
+                    <PieChart 
+                      width={window.innerWidth < 768 ? window.innerWidth - 40 : 400} 
+                      height={300}
                     >
-                      {projectStats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `${value.toFixed(1)}h`} />
-                  </PieChart>
+                      <Pie
+                        data={projectStats}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={window.innerWidth < 768 ? 100 : 120}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      >
+                        {projectStats.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${value.toFixed(1)}h`} />
+                    </PieChart>
+                  </div>
                 </div>
                 <div className="w-full lg:w-1/3 p-4 bg-gray-50 rounded-lg">
                   <h4 className="text-sm font-semibold mb-2">Projekte</h4>
-                  {projectStats.map((entry, index) => (
-                    <div key={`legend-${index}`} className="flex items-center mb-2">
-                      <div 
-                        className="w-4 h-4 rounded-sm mr-2" 
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                      />
-                      <span className="text-sm truncate" title={entry.name}>
-                        {entry.name.length > 20 ? `${entry.name.substring(0, 17)}...` : entry.name}
-                      </span>
-                      <span className="text-sm ml-auto">{entry.value.toFixed(1)}h</span>
-                    </div>
-                  ))}
+                  <div className="max-h-[200px] overflow-y-auto">
+                    {projectStats.map((entry, index) => (
+                      <div key={`legend-${index}`} className="flex items-center mb-2">
+                        <div 
+                          className="w-4 h-4 rounded-sm mr-2 flex-shrink-0" 
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="text-sm truncate flex-grow" title={entry.name}>
+                          {entry.name.length > 20 ? `${entry.name.substring(0, 17)}...` : entry.name}
+                        </span>
+                        <span className="text-sm ml-2 flex-shrink-0">{entry.value.toFixed(1)}h</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -422,28 +434,28 @@ const EnhancedTimeStatistics = ({ refresh }) => {
 
       {/* Gesamtstatistiken */}
       {stats?.totalStats && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Gesamtübersicht</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Gesamtübersicht</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-blue-800">Zeiträume</h3>
-              <p className="text-3xl font-bold text-blue-600">{stats.totalStats.totalPeriods}</p>
+              <h3 className="text-base md:text-lg font-semibold text-blue-800">Zeiträume</h3>
+              <p className="text-2xl md:text-3xl font-bold text-blue-600">{stats.totalStats.totalPeriods}</p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-green-800">Gesamtstunden</h3>
-              <p className="text-3xl font-bold text-green-600">
+              <h3 className="text-base md:text-lg font-semibold text-green-800">Gesamtstunden</h3>
+              <p className="text-2xl md:text-3xl font-bold text-green-600">
                 {stats.totalStats.totalHours.toFixed(1)}h
               </p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-purple-800">Durchschnitt/Zeitraum</h3>
-              <p className="text-3xl font-bold text-purple-600">
+              <h3 className="text-base md:text-lg font-semibold text-purple-800">Durchschnitt</h3>
+              <p className="text-2xl md:text-3xl font-bold text-purple-600">
                 {stats.totalStats.averageHoursPerPeriod}h
               </p>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-yellow-800">Einträge</h3>
-              <p className="text-3xl font-bold text-yellow-600">{stats.totalStats.totalEntries}</p>
+              <h3 className="text-base md:text-lg font-semibold text-yellow-800">Einträge</h3>
+              <p className="text-2xl md:text-3xl font-bold text-yellow-600">{stats.totalStats.totalEntries}</p>
             </div>
           </div>
         </div>
@@ -451,49 +463,51 @@ const EnhancedTimeStatistics = ({ refresh }) => {
 
       {/* Detaillierte Statistiken */}
       {stats?.results && stats.results.length > 0 && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">
             {filters.groupBy === 'daily' ? 'Tägliche Übersicht' :
              filters.groupBy === 'weekly' ? 'Wöchentliche Übersicht' :
              'Monatliche Übersicht'}
           </h2>
           <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Zeitraum
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Gesamtstunden
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Minuten
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Einträge
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {stats.results.map((period) => (
-                  <tr key={period.period}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {period.period}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {period.totalHours.toFixed(1)}h
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {period.totalMinutes}min
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {period.numberOfEntries}
-                    </td>
+            <div className="min-w-[600px]">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Zeitraum
+                    </th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Stunden
+                    </th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Minuten
+                    </th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Einträge
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {stats.results.map((period) => (
+                    <tr key={period.period} className="hover:bg-gray-50">
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm">
+                        {period.period}
+                      </td>
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm">
+                        {period.totalHours.toFixed(1)}h
+                      </td>
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm">
+                        {period.totalMinutes}min
+                      </td>
+                      <td className="px-4 md:px-6 py-3 whitespace-nowrap text-sm">
+                        {period.numberOfEntries}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
