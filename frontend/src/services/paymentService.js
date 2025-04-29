@@ -85,7 +85,7 @@ export const paymentService = {
   // Lightning Invoice erstellen
   createLightningInvoice: async (amount) => {
     try {
-      const response = await api.post('/payments/lightning/invoice', { amount });
+      const response = await api.post('/api/payments/create-lightning-invoice', { amount });
       return response.data;
     } catch (error) {
       throw new Error('Fehler bei der Erstellung der Lightning-Rechnung: ' + error.message);
@@ -95,7 +95,7 @@ export const paymentService = {
   // Lightning Zahlungsstatus prüfen
   checkLightningPayment: async (paymentHash) => {
     try {
-      const response = await api.get(`/payments/lightning/check/${paymentHash}`);
+      const response = await api.get(`/api/payments/check-payment/${paymentHash}`);
       return response.data;
     } catch (error) {
       throw new Error('Fehler beim Überprüfen der Lightning-Zahlung: ' + error.message);
@@ -105,16 +105,25 @@ export const paymentService = {
 
 export const createStripePayment = async (amount) => {
   try {
-    const response = await api.post('/payments/stripe', { amount });
+    const response = await api.post('/api/payments/create-checkout-session', { amount });
     return response.data;
   } catch (error) {
     throw new Error('Fehler bei der Stripe-Zahlung: ' + error.message);
   }
 };
 
+export const createLightningInvoice = async (amount) => {
+  try {
+    const response = await api.post('/api/payments/create-lightning-invoice', { amount });
+    return response.data;
+  } catch (error) {
+    throw new Error('Fehler bei der Erstellung der Lightning-Rechnung: ' + error.message);
+  }
+};
+
 export const checkLightningPayment = async (paymentHash) => {
   try {
-    const response = await api.get(`/payments/lightning/check/${paymentHash}`);
+    const response = await api.get(`/api/payments/check-payment/${paymentHash}`);
     return response.data;
   } catch (error) {
     throw new Error('Fehler beim Überprüfen der Lightning-Zahlung: ' + error.message);
