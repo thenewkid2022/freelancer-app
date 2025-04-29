@@ -19,6 +19,16 @@ const Navigation = () => {
             <div className="text-xl font-bold text-gray-800">Zeiterfassung</div>
             <div className="space-x-4">
               <Link
+                to="/pricing"
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  location.pathname === '/pricing'
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Preise
+              </Link>
+              <Link
                 to="/login"
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   location.pathname === '/login'
