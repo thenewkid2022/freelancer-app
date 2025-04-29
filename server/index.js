@@ -15,20 +15,13 @@ const { logger, logRequest } = require('./utils/logger');
 const { register, requestMetricsMiddleware } = require('./utils/monitoring');
 const { healthCheckMiddleware } = require('./utils/healthCheck');
 const { monitorMetrics } = require('./utils/alerting');
+const paymentRoutes = require('./routes/payment');
 require('dotenv').config();
 
 const app = express();
 
 // CORS muss vor anderen Middleware kommen
-app.use(cors({
-  origin: [
-    'https://freelancer-app-chi.vercel.app',
-    'http://localhost:3000'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors(config.corsOptions));
 
 // Sicherheits-Middleware
 app.use(helmet({
@@ -83,6 +76,7 @@ app.use('/api/v1/time-entries', timeEntriesV1Routes);
 app.use('/api/time-entries', timeEntriesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/time-entries/stats', statsRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Error Handler
 app.use(errorHandler);

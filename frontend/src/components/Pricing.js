@@ -1,13 +1,33 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  const handleSelectPlan = (plan) => {
-    // Hier könnte später die Logik für die Planauswahl implementiert werden
-    console.log(`Selected plan: ${plan}`);
-    navigate('/register');
+  const handleSelectPlan = async (plan) => {
+    try {
+      if (!isAuthenticated) {
+        // Wenn nicht eingeloggt, zur Registrierung weiterleiten
+        navigate('/register');
+        return;
+      }
+
+      // Plan an Backend senden
+      const response = await api.post('/payment/select-plan', { plan });
+      
+      if (response.status === 200) {
+        // Später hier: Weiterleitung zur Zahlungsseite oder Anzeige des Zahlungsmodals
+        console.log('Plan ausgewählt:', response.data);
+        // Temporär: Erfolgsmeldung
+        alert('Plan erfolgreich ausgewählt! Zahlungsabwicklung folgt in Kürze.');
+      }
+    } catch (error) {
+      console.error('Fehler bei der Planauswahl:', error);
+      alert('Es gab einen Fehler bei der Planauswahl. Bitte versuchen Sie es später erneut.');
+    }
   };
 
   return (
