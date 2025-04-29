@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 const Login = () => {
+  console.log('API URL:', process.env.REACT_APP_API_URL);
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
