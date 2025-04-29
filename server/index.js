@@ -19,16 +19,27 @@ require('dotenv').config();
 
 const app = express();
 
+// CORS muss vor anderen Middleware kommen
+app.use(cors({
+  origin: [
+    'https://freelancer-app-chi.vercel.app',
+    'http://localhost:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 // Sicherheits-Middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginOpenerPolicy: false
+}));
 app.use(securityMiddleware);
 
 // Rate Limiting
 app.use('/auth', authLimiter);
 app.use('/api', apiLimiter);
-
-// CORS-Konfiguration
-app.use(cors(config.corsOptions));
 
 // JSON Parser
 app.use(express.json());
