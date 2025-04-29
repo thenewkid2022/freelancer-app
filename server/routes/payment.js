@@ -3,7 +3,7 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 
 // Handler für die Planauswahl
-const handlePlanSelection = async (req, res) => {
+router.post('/select-plan', authenticateToken, (req, res) => {
   try {
     const { plan } = req.body;
     
@@ -22,10 +22,10 @@ const handlePlanSelection = async (req, res) => {
     console.error('Fehler bei der Planauswahl:', error);
     res.status(500).json({ message: 'Interner Serverfehler bei der Planauswahl' });
   }
-};
+});
 
 // Handler für Lightning-Zahlungen
-const handleLightningInvoice = async (req, res) => {
+router.post('/lightning-invoice', authenticateToken, (req, res) => {
   try {
     const { plan } = req.body;
     
@@ -52,10 +52,6 @@ const handleLightningInvoice = async (req, res) => {
     console.error('Fehler bei der Lightning-Invoice-Generierung:', error);
     res.status(500).json({ message: 'Fehler bei der Lightning-Invoice-Generierung' });
   }
-};
-
-// Routen definieren
-router.post('/select-plan', [authenticateToken], handlePlanSelection);
-router.post('/lightning-invoice', [authenticateToken], handleLightningInvoice);
+});
 
 module.exports = router; 
