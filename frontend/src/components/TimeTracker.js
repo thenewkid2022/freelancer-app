@@ -4,6 +4,8 @@ import { toast, ToastContainer } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import 'react-toastify/dist/ReactToastify.css';
 
+const STORAGE_KEY = 'timeTracker';
+
 const TimeTracker = ({ onTimeEntrySaved }) => {
   const [isTracking, setIsTracking] = useState(false);
   const [startTime, setStartTime] = useState(null);
@@ -14,6 +16,38 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     projectName: '',
     description: ''
   });
+
+  // Lade gespeicherte Daten beim Start
+  useEffect(() => {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      setIsTracking(data.isTracking);
+      setStartTime(data.startTime);
+      setElapsedTime(data.elapsedTime);
+      setProjectInfo(data.projectInfo);
+      
+      // Wenn eine Zeitmessung läuft, berechne die verstrichene Zeit
+      if (data.isTracking && data.startTime) {
+        const newElapsedTime = Date.now() - data.startTime;
+        setElapsedTime(newElapsedTime);
+      }
+    }
+  }, []);
+
+  // Speichere Daten bei Änderungen
+  useEffect(() => {
+    if (isTracking || projectInfo.projectNumber || projectInfo.projectName || projectInfo.description) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        isTracking,
+        startTime,
+        elapsedTime,
+        projectInfo
+      }));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, [isTracking, startTime, elapsedTime, projectInfo]);
 
   // Konfiguriere axios mit dem Auth-Token
   const getAuthConfig = () => {
@@ -110,7 +144,6 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     
     console.log('Zeiterfassungsdaten:', requestData);
 
-    // Sende die Daten an das Backend
     try {
       console.log('Sende Daten an das Backend...');
       const response = await timeEntryService.create(requestData);
@@ -134,6 +167,9 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         projectName: '',
         description: ''
       });
+      
+      // Lösche gespeicherte Daten
+      localStorage.removeItem(STORAGE_KEY);
     } catch (error) {
       console.error('Fehler beim Senden der Daten:', {
         status: error.response?.status,
@@ -143,6 +179,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       });
       
       if (error.response?.status === 401) {
+        // Behalte die Daten im localStorage bei einem Authentifizierungsfehler
         toast.error('Bitte melden Sie sich erneut an');
         window.location.href = '/login';
       } else {
