@@ -5,8 +5,14 @@ const nodemailer = require('nodemailer');
 const alertConfig = {
   thresholds: {
     memory: {
-      warning: 70, // 70% Speichernutzung
-      critical: 85 // 85% Speichernutzung
+      startup: {
+        warning: 90, // 90% Speichernutzung während Startup
+        critical: 95 // 95% Speichernutzung während Startup
+      },
+      normal: {
+        warning: 70, // 70% Speichernutzung
+        critical: 85 // 85% Speichernutzung
+      }
     },
     database: {
       warning: 1000, // 1 Sekunde Latenz
@@ -17,6 +23,7 @@ const alertConfig = {
       critical: 10 // 10% Fehlerrate
     }
   },
+  startupDuration: 3600000, // 1 Stunde Startup-Phase
   email: {
     from: process.env.ALERT_EMAIL_FROM || 'alerts@freelancer-app.com',
     to: process.env.ALERT_EMAIL_TO || 'admin@freelancer-app.com',
@@ -39,6 +46,9 @@ const transporter = process.env.NODE_ENV === 'production'
 
 // Alert-Historie
 const alertHistory = new Map();
+
+// Startup-Zeit speichern
+const startupTime = Date.now();
 
 // Alert senden
 const sendAlert = async (type, level, message, details) => {
@@ -83,10 +93,18 @@ const sendAlert = async (type, level, message, details) => {
 // Metriken überwachen
 const monitorMetrics = {
   memory: (usage) => {
-    if (usage >= alertConfig.thresholds.memory.critical) {
-      sendAlert('memory', 'critical', 'Kritische Speichernutzung', { usage });
-    } else if (usage >= alertConfig.thresholds.memory.warning) {
-      sendAlert('memory', 'warning', 'Hohe Speichernutzung', { usage });
+    const isStartupPhase = (Date.now() - startupTime) < alertConfig.startupDuration;
+    const thresholds = isStartupPhase ? alertConfig.thresholds.memory.startup : alertConfig.thresholds.memory.normal;
+
+    if (usage >= thresholds.critical) {
+      sendAlert('memory', 'critical', `Kritische Speichernutzung ${isStartupPhase ? '(Startup-Phase)' : ''}`, { usage });
+      // Garbage Collection vorschlagen
+      if (global.gc) {
+        logger.info('Triggere manuelle Garbage Collection');
+        global.gc();
+      }
+    } else if (usage >= thresholds.warning) {
+      sendAlert('memory', 'warning', `Hohe Speichernutzung ${isStartupPhase ? '(Startup-Phase)' : ''}`, { usage });
     }
   },
 
