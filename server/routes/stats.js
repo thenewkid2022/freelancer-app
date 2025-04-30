@@ -97,13 +97,18 @@ router.get('/filtered', auth, async (req, res) => {
             }
           },
           totalSeconds: { 
-            $sum: { 
-              $function: {
-                body: function(seconds) {
-                  return Math.round(seconds / 60 / 15) * 15 * 60;
+            $sum: {
+              $let: {
+                vars: {
+                  minutes: { $divide: ['$duration', 60] }
                 },
-                args: ["$duration"],
-                lang: "js"
+                in: {
+                  $multiply: [
+                    { $round: { $divide: ['$$minutes', 15] } },
+                    15,
+                    60
+                  ]
+                }
               }
             }
           },
