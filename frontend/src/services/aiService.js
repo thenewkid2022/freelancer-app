@@ -2,7 +2,7 @@ import axios from 'axios';
 
 class AIService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    this.baseURL = process.env.REACT_APP_API_URL || window.location.origin;
     this.axiosInstance = axios.create({
       baseURL: this.baseURL,
       timeout: 10000,
