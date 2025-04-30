@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Navbar from '@components/Navbar';
 import PrivateRoute from '@components/PrivateRoute';
-import Login from '@components/auth/Login';
+import Login from './components/auth/Login';
 import Register from '@components/auth/Register';
 import Dashboard from '@components/Dashboard';
 import TimeTracker from '@components/TimeTracker';
