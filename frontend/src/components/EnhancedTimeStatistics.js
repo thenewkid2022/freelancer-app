@@ -59,18 +59,28 @@ const EnhancedTimeStatistics = ({ refresh }) => {
       // Sammle alle einzigartigen Projekte und ihre Gesamtstunden
       const projectHours = {};
       data.stats.forEach(stat => {
-        stat.projects.forEach(project => {
-          if (!projectHours[project]) {
-            projectHours[project] = 0;
+        // Null-Check für projects
+        const projects = stat.projects || [];
+        if (projects.length === 0) {
+          // Wenn keine Projekte definiert sind, verwende "Allgemein"
+          if (!projectHours['Allgemein']) {
+            projectHours['Allgemein'] = 0;
           }
-          // Teile die Stunden gleichmäßig auf die Projekte des Tages auf
-          projectHours[project] += stat.totalHours / stat.projects.length;
-        });
+          projectHours['Allgemein'] += stat.totalHours;
+        } else {
+          projects.forEach(project => {
+            if (!projectHours[project]) {
+              projectHours[project] = 0;
+            }
+            // Teile die Stunden gleichmäßig auf die Projekte des Tages auf
+            projectHours[project] += stat.totalHours / projects.length;
+          });
+        }
       });
 
       // Konvertiere in das Format für das Kuchendiagramm
       const pieData = Object.entries(projectHours).map(([project, hours]) => ({
-        name: project,
+        name: project || 'Allgemein',
         value: parseFloat(hours.toFixed(2))
       }));
       setProjectStats(pieData);

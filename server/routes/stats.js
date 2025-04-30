@@ -91,7 +91,8 @@ router.get('/filtered', auth, async (req, res) => {
             }
           },
           totalSeconds: { $sum: '$duration' },
-          count: { $sum: 1 }
+          count: { $sum: 1 },
+          projects: { $addToSet: '$project' }
         }
       },
       {
@@ -104,7 +105,8 @@ router.get('/filtered', auth, async (req, res) => {
           totalMinutes: { 
             $round: [{ $divide: ['$totalSeconds', 60] }, 0]
           },
-          count: 1
+          totalEntries: '$count',
+          projects: 1
         }
       },
       { 
