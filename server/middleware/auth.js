@@ -7,42 +7,65 @@ const auth = (req, res, next) => {
     console.log('Auth Middleware - Eingehende Anfrage:', {
       method: req.method,
       path: req.path,
-      headers: req.headers
+      headers: {
+        ...req.headers,
+        authorization: req.headers.authorization ? 'Bearer [FILTERED]' : undefined
+      }
     });
 
     // Token aus dem Authorization Header extrahieren
     const authHeader = req.header('Authorization');
     if (!authHeader) {
       console.log('Kein Authorization Header gefunden');
-      return res.status(401).json({ error: 'Authentifizierungsfehler' });
+      return res.status(401).json({ 
+        error: 'Authentifizierungsfehler',
+        details: 'Kein Authorization Header'
+      });
     }
 
     const token = authHeader.replace('Bearer ', '');
     if (!token) {
       console.log('Kein Token im Authorization Header');
-      return res.status(401).json({ error: 'Authentifizierungsfehler' });
+      return res.status(401).json({ 
+        error: 'Authentifizierungsfehler',
+        details: 'Kein Token gefunden'
+      });
     }
 
-    console.log('Extrahierter Token:', token.substring(0, 20) + '...');
+    console.log('Token-Format überprüfen:', {
+      length: token.length,
+      startsWithBearer: authHeader.startsWith('Bearer '),
+      containsSpaces: token.includes(' ')
+    });
 
     // JWT Secret aus der Umgebungsvariable oder Fallback
     const jwtSecret = process.env.JWT_SECRET || 'FreelancerApp2025SecretKey';
-    console.log('Verwendeter JWT Secret:', jwtSecret.substring(0, 5) + '...');
-
+    
     // Token verifizieren
-    const decoded = jwt.verify(token, jwtSecret);
-    console.log('Decodierter Token:', {
-      userId: decoded.userId,
-      exp: new Date(decoded.exp * 1000).toISOString(),
-      iat: new Date(decoded.iat * 1000).toISOString()
-    });
+    try {
+      const decoded = jwt.verify(token, jwtSecret);
+      console.log('Token erfolgreich decodiert:', {
+        userId: decoded.userId,
+        exp: new Date(decoded.exp * 1000).toISOString(),
+        iat: new Date(decoded.iat * 1000).toISOString(),
+        timeUntilExpiration: Math.floor((decoded.exp * 1000 - Date.now()) / 1000) + ' Sekunden'
+      });
 
-    // User-Objekt im Request-Objekt speichern
-    req.user = {
-      _id: decoded.userId
-    };
-    console.log('Gespeichertes User-Objekt:', req.user);
-    next();
+      // User-Objekt im Request-Objekt speichern
+      req.user = decoded.userId;
+      next();
+    } catch (jwtError) {
+      console.error('JWT Verifikationsfehler:', {
+        name: jwtError.name,
+        message: jwtError.message,
+        expiredAt: jwtError.expiredAt
+      });
+      
+      return res.status(401).json({ 
+        error: 'Authentifizierungsfehler',
+        details: jwtError.name === 'TokenExpiredError' ? 'Token abgelaufen' : 'Ungültiger Token'
+      });
+    }
   } catch (err) {
     console.error('Auth Middleware Fehler:', {
       name: err.name,
@@ -50,7 +73,10 @@ const auth = (req, res, next) => {
       code: err.code,
       stack: err.stack
     });
-    res.status(401).json({ error: 'Authentifizierungsfehler' });
+    res.status(401).json({ 
+      error: 'Authentifizierungsfehler',
+      details: 'Interner Fehler bei der Authentifizierung'
+    });
   }
 };
 
