@@ -361,6 +361,56 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         Aktuelle Zeit: <span className="font-bold">{formatTime(elapsedTime)}</span>
       </p>
 
+      {/* Projektinformationen */}
+      <div className="space-y-4 mb-4">
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Projektnummer
+          </label>
+          {useLastProject && (
+            <span className="text-xs text-green-600">Letztes Projekt wird verwendet</span>
+          )}
+        </div>
+        <div>
+          <input
+            type="text"
+            value={projectInfo.projectNumber}
+            onChange={(e) => setProjectInfo({ ...projectInfo, projectNumber: e.target.value })}
+            className="w-full p-2 border rounded-lg"
+            placeholder="z.B. PRJ-001"
+            disabled={isTracking || useLastProject}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Projektname
+          </label>
+          <input
+            type="text"
+            value={projectInfo.projectName}
+            onChange={(e) => setProjectInfo({ ...projectInfo, projectName: e.target.value })}
+            className="w-full p-2 border rounded-lg"
+            placeholder="z.B. Website-Relaunch"
+            disabled={isTracking || useLastProject}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Beschreibung
+          </label>
+          <textarea
+            value={projectInfo.description}
+            onChange={(e) => setProjectInfo({ ...projectInfo, description: e.target.value })}
+            className="w-full p-2 border rounded-lg"
+            placeholder="Kurze Beschreibung der Tätigkeit"
+            rows="2"
+            disabled={isTracking}
+          />
+        </div>
+      </div>
+
       {/* Sprachsteuerung Button und Status */}
       <div className="flex flex-col items-center mb-6">
         <div className="flex space-x-2 w-full max-w-xs mb-2">
@@ -380,18 +430,24 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
               <span className="animate-pulse w-3 h-3 bg-white rounded-full"></span>
             )}
           </button>
+          
+          {/* Letztes Projekt Toggle mit Tooltip */}
           <button
             onClick={() => setUseLastProject(!useLastProject)}
             className={`px-4 py-2 rounded-lg ${
               useLastProject 
                 ? 'bg-green-500 hover:bg-green-600' 
                 : 'bg-gray-500 hover:bg-gray-600'
-            } text-white transition-colors`}
+            } text-white transition-colors relative group`}
             title={useLastProject ? 'Letztes Projekt wird verwendet' : 'Neues Projekt eingeben'}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
             </svg>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              {useLastProject ? 'Klicken um neues Projekt einzugeben' : 'Klicken um letztes Projekt zu verwenden'}
+            </div>
           </button>
         </div>
         
@@ -422,44 +478,6 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
             )}
           </div>
         )}
-      </div>
-
-      {/* Projektinformationen */}
-      <div className="space-y-4 mb-4">
-        <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Projektnummer
-          </label>
-          {useLastProject && (
-            <span className="text-xs text-green-600">Letztes Projekt wird verwendet</span>
-          )}
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Projektname
-          </label>
-          <input
-            type="text"
-            value={projectInfo.projectName}
-            onChange={(e) => setProjectInfo({ ...projectInfo, projectName: e.target.value })}
-            className="w-full p-2 border rounded-lg"
-            placeholder="z.B. Website-Relaunch"
-            disabled={isTracking}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Beschreibung
-          </label>
-          <textarea
-            value={projectInfo.description}
-            onChange={(e) => setProjectInfo({ ...projectInfo, description: e.target.value })}
-            className="w-full p-2 border rounded-lg"
-            placeholder="Kurze Beschreibung der Tätigkeit"
-            rows="2"
-            disabled={isTracking}
-          />
-        </div>
       </div>
 
       <div className="flex justify-center space-x-4">
