@@ -167,4 +167,43 @@ router.get('/filtered', auth, async (req, res) => {
   }
 });
 
+// Test-Endpunkt für Datenbankverbindung
+router.get('/test', auth, async (req, res) => {
+  try {
+    // Prüfe Datenbankverbindung
+    const dbState = mongoose.connection.readyState;
+    const dbStateText = {
+      0: 'Getrennt',
+      1: 'Verbunden',
+      2: 'Verbindung wird aufgebaut',
+      3: 'Trennung wird durchgeführt'
+    }[dbState];
+
+    // Prüfe, ob Einträge existieren
+    const totalEntries = await TimeEntry.countDocuments();
+    const sampleEntry = await TimeEntry.findOne().lean();
+
+    res.json({
+      success: true,
+      database: {
+        state: dbState,
+        stateText: dbStateText,
+        totalEntries,
+        sampleEntry: sampleEntry ? {
+          id: sampleEntry._id,
+          userId: sampleEntry.userId,
+          startTime: sampleEntry.startTime,
+          endTime: sampleEntry.endTime
+        } : null
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+      stack: err.stack
+    });
+  }
+});
+
 module.exports = router; 
