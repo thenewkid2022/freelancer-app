@@ -263,9 +263,10 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
     if ('webkitSpeechRecognition' in window) {
       const recognition = new window.webkitSpeechRecognition();
-      recognition.continuous = false; // Änderung: Einzelne Erkennungen statt kontinuierlich
-      recognition.interimResults = true;
+      recognition.continuous = false;
+      recognition.interimResults = false;
       recognition.lang = 'de-DE';
+      recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
         setIsProcessingVoice(true);
@@ -275,11 +276,8 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       };
 
       recognition.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
-          .join('')
-          .toLowerCase();
-
+        const transcript = event.results[0][0].transcript.toLowerCase().trim();
+        console.log('Spracherkennung Ergebnis:', transcript);
         setLastSpokenCommand(transcript);
         handleVoiceCommand(transcript);
       };
@@ -289,13 +287,13 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         if (isListening && !isInDialog) {
           setTimeout(() => {
             try {
-              recognition.start(); // Starte neue Erkennung mit Verzögerung
+              recognition.start();
             } catch (error) {
               console.error('Fehler beim Neustart der Spracherkennung:', error);
               setIsListening(false);
               toast.error('Spracherkennung wurde aufgrund eines Fehlers gestoppt');
             }
-          }, 1000); // 1 Sekunde Pause zwischen den Erkennungen
+          }, 500);
         }
         setLastSpokenCommand('');
       };
@@ -303,33 +301,61 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       recognition.onerror = (event) => {
         console.error('Spracherkennungsfehler:', event.error);
         setIsProcessingVoice(false);
-        setIsListening(false);
-        if (event.error !== 'no-speech') {
+        if (event.error === 'no-speech') {
+          setTimeout(() => {
+            if (isListening) {
+              try {
+                recognition.start();
+              } catch (error) {
+                console.error('Fehler beim Neustart nach no-speech:', error);
+              }
+            }
+          }, 500);
+        } else {
+          setIsListening(false);
           speak('Es gab einen Fehler mit der Spracherkennung');
           toast.error('Spracherkennung wurde aufgrund eines Fehlers deaktiviert');
         }
       };
 
-      recognition.start();
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error('Fehler beim Starten der Spracherkennung:', error);
+        setIsListening(false);
+        toast.error('Spracherkennung konnte nicht gestartet werden');
+      }
 
       return () => {
-        recognition.stop();
+        try {
+          recognition.stop();
+        } catch (error) {
+          console.error('Fehler beim Stoppen der Spracherkennung:', error);
+        }
         window.speechSynthesis.cancel();
       };
     } else {
       toast.error('Spracherkennung wird in diesem Browser nicht unterstützt');
     }
-  }, [isListening, speak]);
+  }, [isListening, speak, isInDialog, handleVoiceCommand]);
 
   // Separater Handler für Sprachbefehle
   const handleVoiceCommand = useCallback((transcript) => {
+    console.log('Sprachbefehl erkannt:', transcript);
+
+    // Normalisiere den Befehl
+    const normalizedCommand = transcript.toLowerCase().trim();
+
     if (isInDialog) {
       handleDialog(transcript);
       return;
     }
 
-    // Hauptbefehle
-    if (transcript.includes('start') || transcript.includes('beginn')) {
+    // Hauptbefehle mit verbesserter Erkennung
+    if (normalizedCommand.includes('start') || 
+        normalizedCommand.includes('beginn') || 
+        normalizedCommand.includes('starten')) {
+      console.log('Start-Befehl erkannt');
       if (!isTracking) {
         if (!projectInfo.projectNumber && !useLastProject) {
           speak('Welche Projektnummer möchten Sie verwenden?');
@@ -340,31 +366,72 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
           handleStart();
           speak('Zeiterfassung gestartet');
         }
+      } else {
+        speak('Zeiterfassung läuft bereits');
       }
-    } else if (transcript.includes('stop') || transcript.includes('ende')) {
+    } 
+    else if (normalizedCommand.includes('stop') || 
+             normalizedCommand.includes('ende') || 
+             normalizedCommand.includes('beenden') ||
+             normalizedCommand.includes('stopp')) {
+      console.log('Stop-Befehl erkannt');
       if (isTracking) {
         handleStop();
         speak('Zeiterfassung beendet');
+      } else {
+        speak('Keine aktive Zeiterfassung zum Beenden');
       }
-    } else if (transcript.includes('letztes projekt')) {
+    } 
+    else if (normalizedCommand.includes('letztes projekt') || 
+             normalizedCommand.includes('vorheriges projekt')) {
+      console.log('Letztes Projekt Befehl erkannt');
       const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
       if (lastProject) {
-        setProjectInfo(JSON.parse(lastProject));
+        const savedProject = JSON.parse(lastProject);
+        setProjectInfo(savedProject);
         setUseLastProject(true);
-        speak('Letztes Projekt geladen');
+        speak(`Letztes Projekt geladen: ${savedProject.projectNumber} - ${savedProject.projectName}`);
       } else {
         speak('Kein letztes Projekt gefunden');
       }
-    } else if (transcript.includes('hilfe')) {
-      speak('Verfügbare Befehle sind: Start oder Beginn zum Starten, Stop oder Ende zum Beenden, und Letztes Projekt um das vorherige Projekt zu laden.');
-    } else if (transcript.includes('status')) {
+    } 
+    else if (normalizedCommand.includes('hilfe') || 
+             normalizedCommand.includes('befehle')) {
+      console.log('Hilfe-Befehl erkannt');
+      speak('Verfügbare Befehle sind: Start oder Beginn zum Starten, Stop oder Ende zum Beenden, Letztes Projekt um das vorherige Projekt zu laden, und Status um den aktuellen Stand abzufragen.');
+    } 
+    else if (normalizedCommand.includes('status') || 
+             normalizedCommand.includes('stand')) {
+      console.log('Status-Befehl erkannt');
       if (isTracking) {
-        speak(`Zeiterfassung läuft für Projekt ${projectInfo.projectNumber} seit ${formatTime(elapsedTime)}`);
+        const time = formatTime(elapsedTime);
+        speak(`Zeiterfassung läuft für Projekt ${projectInfo.projectNumber} seit ${time}`);
       } else {
-        speak('Keine aktive Zeiterfassung');
+        if (projectInfo.projectNumber) {
+          speak(`Keine aktive Zeiterfassung. Letztes Projekt: ${projectInfo.projectNumber} - ${projectInfo.projectName}`);
+        } else {
+          speak('Keine aktive Zeiterfassung und kein Projekt ausgewählt');
+        }
       }
     }
-  }, [isInDialog, handleDialog, isTracking, projectInfo, useLastProject, handleStart, handleStop, elapsedTime, speak]);
+    else if (normalizedCommand.includes('neues projekt')) {
+      console.log('Neues Projekt Befehl erkannt');
+      setUseLastProject(false);
+      setProjectInfo({
+        projectNumber: '',
+        projectName: '',
+        description: ''
+      });
+      speak('Bitte geben Sie die neue Projektnummer ein');
+      setCurrentQuestion('projekt_nummer');
+      setWaitingForAnswer(true);
+      setIsInDialog(true);
+    }
+    else {
+      console.log('Unbekannter Befehl:', normalizedCommand);
+      speak('Befehl nicht erkannt. Sagen Sie Hilfe für verfügbare Befehle.');
+    }
+  }, [isInDialog, handleDialog, isTracking, projectInfo, useLastProject, handleStart, handleStop, elapsedTime, speak, formatTime]);
 
   // Toggle Sprachsteuerung
   const toggleVoiceControl = () => {
