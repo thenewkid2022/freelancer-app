@@ -43,15 +43,25 @@ export const authService = {
         timestamp: new Date().toISOString()
       });
       
+      // Explizite Request-Konfiguration
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        withCredentials: true
+      };
+      
       const response = await api.post('/api/auth/login', { 
         email, 
         password 
-      });
+      }, config);
       
       console.log('Login response received:', {
         status: response.status,
         hasToken: !!response.data.token,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        headers: response.headers
       });
       
       if (!response.data.token) {
@@ -71,7 +81,9 @@ export const authService = {
       console.error('Login error:', {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
+        config: error.config,
+        headers: error.response?.headers
       });
       throw error;
     }

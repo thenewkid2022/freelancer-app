@@ -1,14 +1,22 @@
 import axios from 'axios';
 import { authService } from './auth';
 
+// Explizite API-URL
+const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-chi.vercel.app';
+
+console.log('Initializing API with URL:', API_URL);
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'https://freelancer-app-chi.vercel.app',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   },
   timeout: 10000,
-  withCredentials: true // Wichtig für CORS mit Credentials
+  withCredentials: true,
+  validateStatus: function (status) {
+    return status >= 200 && status < 500; // Akzeptiere auch Fehler-Statuscodes für besseres Error-Handling
+  }
 });
 
 // Request Interceptor
@@ -29,7 +37,8 @@ api.interceptors.request.use(
         Authorization: config.headers.Authorization ? 'Bearer [FILTERED]' : undefined
       },
       hasToken: !!token,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      withCredentials: config.withCredentials
     });
     
     return config;
@@ -52,6 +61,7 @@ api.interceptors.response.use(
       url: response.config.url,
       status: response.status,
       data: response.data,
+      headers: response.headers,
       timestamp: new Date().toISOString()
     });
     return response;
@@ -64,6 +74,7 @@ api.interceptors.response.use(
       data: error.response?.data,
       message: error.message,
       code: error.code,
+      headers: error.response?.headers,
       timestamp: new Date().toISOString()
     });
 
