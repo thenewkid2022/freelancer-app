@@ -257,90 +257,10 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     }
   }, [currentQuestion, waitingForAnswer, speak, handleStart]);
 
-  // Speech Recognition Setup
-  useEffect(() => {
-    if (!isListening) return;
-
-    if ('webkitSpeechRecognition' in window) {
-      const recognition = new window.webkitSpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'de-DE';
-      recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => {
-        setIsProcessingVoice(true);
-        if (!isInDialog) {
-          speak('Sprachsteuerung aktiviert. Sagen Sie Hilfe für verfügbare Befehle.');
-        }
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript.toLowerCase().trim();
-        console.log('Spracherkennung Ergebnis:', transcript);
-        setLastSpokenCommand(transcript);
-        handleVoiceCommand(transcript);
-      };
-
-      recognition.onend = () => {
-        setIsProcessingVoice(false);
-        if (isListening && !isInDialog) {
-          setTimeout(() => {
-            try {
-              recognition.start();
-            } catch (error) {
-              console.error('Fehler beim Neustart der Spracherkennung:', error);
-              setIsListening(false);
-              toast.error('Spracherkennung wurde aufgrund eines Fehlers gestoppt');
-            }
-          }, 500);
-        }
-        setLastSpokenCommand('');
-      };
-
-      recognition.onerror = (event) => {
-        console.error('Spracherkennungsfehler:', event.error);
-        setIsProcessingVoice(false);
-        if (event.error === 'no-speech') {
-          setTimeout(() => {
-            if (isListening) {
-              try {
-                recognition.start();
-              } catch (error) {
-                console.error('Fehler beim Neustart nach no-speech:', error);
-              }
-            }
-          }, 500);
-        } else {
-          setIsListening(false);
-          speak('Es gab einen Fehler mit der Spracherkennung');
-          toast.error('Spracherkennung wurde aufgrund eines Fehlers deaktiviert');
-        }
-      };
-
-      try {
-        recognition.start();
-      } catch (error) {
-        console.error('Fehler beim Starten der Spracherkennung:', error);
-        setIsListening(false);
-        toast.error('Spracherkennung konnte nicht gestartet werden');
-      }
-
-      return () => {
-        try {
-          recognition.stop();
-        } catch (error) {
-          console.error('Fehler beim Stoppen der Spracherkennung:', error);
-        }
-        window.speechSynthesis.cancel();
-      };
-    } else {
-      toast.error('Spracherkennung wird in diesem Browser nicht unterstützt');
-    }
-  }, [isListening, speak, isInDialog, handleVoiceCommand]);
-
   // Separater Handler für Sprachbefehle
   const handleVoiceCommand = useCallback((transcript) => {
+    if (!transcript) return; // Schutz vor undefined/leeren Befehlen
+
     console.log('Sprachbefehl erkannt:', transcript);
 
     // Normalisiere den Befehl
@@ -387,10 +307,15 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       console.log('Letztes Projekt Befehl erkannt');
       const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
       if (lastProject) {
-        const savedProject = JSON.parse(lastProject);
-        setProjectInfo(savedProject);
-        setUseLastProject(true);
-        speak(`Letztes Projekt geladen: ${savedProject.projectNumber} - ${savedProject.projectName}`);
+        try {
+          const savedProject = JSON.parse(lastProject);
+          setProjectInfo(savedProject);
+          setUseLastProject(true);
+          speak(`Letztes Projekt geladen: ${savedProject.projectNumber} - ${savedProject.projectName}`);
+        } catch (error) {
+          console.error('Fehler beim Laden des letzten Projekts:', error);
+          speak('Fehler beim Laden des letzten Projekts');
+        }
       } else {
         speak('Kein letztes Projekt gefunden');
       }
@@ -431,7 +356,109 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       console.log('Unbekannter Befehl:', normalizedCommand);
       speak('Befehl nicht erkannt. Sagen Sie Hilfe für verfügbare Befehle.');
     }
-  }, [isInDialog, handleDialog, isTracking, projectInfo, useLastProject, handleStart, handleStop, elapsedTime, speak, formatTime]);
+  }, [
+    isInDialog,
+    handleDialog,
+    isTracking,
+    projectInfo,
+    useLastProject,
+    handleStart,
+    handleStop,
+    elapsedTime,
+    speak,
+    formatTime,
+    setCurrentQuestion,
+    setWaitingForAnswer,
+    setIsInDialog,
+    setProjectInfo,
+    setUseLastProject
+  ]);
+
+  // Speech Recognition Setup
+  useEffect(() => {
+    let recognition = null;
+
+    if (!isListening) return;
+
+    if ('webkitSpeechRecognition' in window) {
+      try {
+        recognition = new window.webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'de-DE';
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+          setIsProcessingVoice(true);
+          if (!isInDialog) {
+            speak('Sprachsteuerung aktiviert. Sagen Sie Hilfe für verfügbare Befehle.');
+          }
+        };
+
+        recognition.onresult = (event) => {
+          if (event.results && event.results[0] && event.results[0][0]) {
+            const transcript = event.results[0][0].transcript.toLowerCase().trim();
+            console.log('Spracherkennung Ergebnis:', transcript);
+            setLastSpokenCommand(transcript);
+            handleVoiceCommand(transcript);
+          }
+        };
+
+        recognition.onend = () => {
+          setIsProcessingVoice(false);
+          if (isListening && !isInDialog) {
+            setTimeout(() => {
+              try {
+                recognition?.start();
+              } catch (error) {
+                console.error('Fehler beim Neustart der Spracherkennung:', error);
+                setIsListening(false);
+                toast.error('Spracherkennung wurde aufgrund eines Fehlers gestoppt');
+              }
+            }, 500);
+          }
+          setLastSpokenCommand('');
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Spracherkennungsfehler:', event.error);
+          setIsProcessingVoice(false);
+          if (event.error === 'no-speech') {
+            setTimeout(() => {
+              if (isListening) {
+                try {
+                  recognition?.start();
+                } catch (error) {
+                  console.error('Fehler beim Neustart nach no-speech:', error);
+                }
+              }
+            }, 500);
+          } else {
+            setIsListening(false);
+            speak('Es gab einen Fehler mit der Spracherkennung');
+            toast.error('Spracherkennung wurde aufgrund eines Fehlers deaktiviert');
+          }
+        };
+
+        recognition.start();
+      } catch (error) {
+        console.error('Fehler beim Initialisieren der Spracherkennung:', error);
+        setIsListening(false);
+        toast.error('Spracherkennung konnte nicht gestartet werden');
+      }
+    } else {
+      toast.error('Spracherkennung wird in diesem Browser nicht unterstützt');
+    }
+
+    return () => {
+      try {
+        recognition?.stop();
+      } catch (error) {
+        console.error('Fehler beim Stoppen der Spracherkennung:', error);
+      }
+      window.speechSynthesis.cancel();
+    };
+  }, [isListening, speak, isInDialog, handleVoiceCommand]);
 
   // Toggle Sprachsteuerung
   const toggleVoiceControl = () => {
