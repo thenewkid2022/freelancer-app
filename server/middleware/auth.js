@@ -41,12 +41,18 @@ const auth = (req, res, next) => {
       containsSpaces: token.includes(' ')
     });
 
-    // JWT Secret aus der Umgebungsvariable oder Fallback
-    const jwtSecret = process.env.JWT_SECRET || 'FreelancerApp2025SecretKey';
-    
-    // Token verifizieren
+    // Strikter JWT Secret Check
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET nicht in Umgebungsvariablen gefunden');
+      return res.status(500).json({
+        error: 'Serverfehler',
+        details: 'Authentifizierungskonfiguration fehlerhaft'
+      });
+    }
+
+    // Token verifizieren mit strikt definiertem Secret
     try {
-      const decoded = jwt.verify(token, jwtSecret);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       console.log('Token erfolgreich decodiert:', {
         userId: decoded.userId,
         exp: new Date(decoded.exp * 1000).toISOString(),

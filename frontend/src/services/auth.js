@@ -5,7 +5,18 @@ const validateToken = (token) => {
   
   // Überprüfe Token-Format (JWT-Format)
   const tokenRegex = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/;
-  return tokenRegex.test(token);
+  if (!tokenRegex.test(token)) return false;
+  
+  // Überprüfe Token-Ablauf
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
 };
 
 export const authService = {
@@ -19,7 +30,7 @@ export const authService = {
       if (response.data.token) {
         // Validiere Token vor dem Speichern
         if (!validateToken(response.data.token)) {
-          throw new Error('Ungültiges Token-Format');
+          throw new Error('Ungültiges Token-Format oder Token abgelaufen');
         }
         
         console.log('Token erhalten:', {

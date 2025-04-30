@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authService } from './auth';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000'
@@ -7,13 +8,19 @@ const api = axios.create({
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
+    const token = authService.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
     // Debug-Logging für jeden Request
     console.log('API - Request Details:', {
       url: config.url,
       method: config.method,
-      headers: config.headers,
+      hasToken: !!token,
       timestamp: new Date().toISOString()
     });
+    
     return config;
   },
   (error) => {

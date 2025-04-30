@@ -40,5 +40,10 @@
     "NODE_ENV": "production",
     "CORS_ORIGIN": "https://freelancer-app-chi.vercel.app",
     "API_URL": "https://freelancer-app-chi.vercel.app/api"
+  },
+  "build": {
+    "env": {
+      "REACT_APP_API_URL": "https://freelancer-app-chi.vercel.app/api"
+    }
   }
 } 
