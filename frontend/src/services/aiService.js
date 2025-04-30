@@ -16,27 +16,48 @@ class AIService {
         throw new Error('Kein Authentifizierungstoken gefunden');
       }
 
+      // Validiere Token-Format
+      if (!token.match(/^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/)) {
+        console.error('AI Service - Ungültiges Token-Format');
+        throw new Error('Ungültiges Token-Format');
+      }
+
       // Explizite Request-Konfiguration
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       };
 
-      // Debug-Logging für Request-Konfiguration
-      console.log('AI Service - Request Config:', {
+      // Debug-Logging für Request-Headers
+      console.log('AI Service - Request Headers:', {
+        headers,
         url: '/api/ai/analyze',
-        headers: config.headers,
         timestamp: new Date().toISOString()
       });
 
-      const response = await api.post('/api/ai/analyze', { description }, config);
+      // Erstelle Request-Body
+      const data = { description };
+
+      // Debug-Logging für Request-Body
+      console.log('AI Service - Request Body:', {
+        data,
+        timestamp: new Date().toISOString()
+      });
+
+      // Sende Request mit expliziten Optionen
+      const response = await api.post('/api/ai/analyze', data, { 
+        headers,
+        validateStatus: function (status) {
+          return status >= 200 && status < 300;
+        }
+      });
 
       // Debug-Logging für erfolgreiche Antwort
       console.log('AI Service - Erfolgreiche Antwort:', {
         status: response.status,
         headers: response.headers,
+        data: response.data,
         timestamp: new Date().toISOString()
       });
 
@@ -46,9 +67,11 @@ class AIService {
       console.error('AI Service - Fehler:', {
         message: error.message,
         status: error.response?.status,
+        statusText: error.response?.statusText,
         data: error.response?.data,
-        requestConfig: error.config,
-        requestHeaders: error.config?.headers,
+        headers: error.config?.headers,
+        requestUrl: error.config?.url,
+        requestMethod: error.config?.method,
         timestamp: new Date().toISOString()
       });
       throw error;
