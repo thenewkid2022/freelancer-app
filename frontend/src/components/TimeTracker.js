@@ -14,6 +14,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
   const [loading, setLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [lastSpokenCommand, setLastSpokenCommand] = useState('');
   const [projectInfo, setProjectInfo] = useState({
     projectNumber: '',
     projectName: '',
@@ -103,6 +104,8 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
           .join('')
           .toLowerCase();
 
+        setLastSpokenCommand(transcript);
+
         if (transcript.includes('start') || transcript.includes('beginn')) {
           if (!isTracking) {
             handleStart();
@@ -116,9 +119,14 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         }
       };
 
+      recognition.onstart = () => {
+        toast.info('Spracherkennung aktiv');
+      };
+
       recognition.onerror = (event) => {
         console.error('Spracherkennungsfehler:', event.error);
         setIsListening(false);
+        toast.error('Spracherkennungsfehler: ' + event.error);
       };
 
       recognition.onend = () => {
@@ -127,9 +135,15 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         }
       };
 
+      if (isListening) {
+        recognition.start();
+      }
+
       return () => {
         recognition.stop();
       };
+    } else {
+      toast.error('Spracherkennung wird in diesem Browser nicht unterstützt');
     }
   }, [isTracking, isListening]);
 
@@ -272,30 +286,42 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         Aktuelle Zeit: <span className="font-bold">{formatTime(elapsedTime)}</span>
       </p>
       
-      {/* Sprachsteuerung Button */}
-      <div className="flex justify-center mb-4">
+      {/* Sprachsteuerung Button und Status */}
+      <div className="flex flex-col items-center mb-4 space-y-2">
         <button
           onClick={toggleVoiceControl}
           className={`px-4 py-2 rounded-lg ${
             isListening 
               ? 'bg-red-500 hover:bg-red-600' 
               : 'bg-blue-500 hover:bg-blue-600'
-          } text-white transition-colors`}
+          } text-white transition-colors flex items-center space-x-2`}
         >
-          {isListening ? 'Sprachsteuerung deaktivieren' : 'Sprachsteuerung aktivieren'}
+          <span>{isListening ? 'Sprachsteuerung deaktivieren' : 'Sprachsteuerung aktivieren'}</span>
+          {isListening && (
+            <span className="animate-pulse w-3 h-3 bg-white rounded-full"></span>
+          )}
         </button>
+        
+        {isListening && (
+          <div className="bg-blue-50 p-4 rounded-lg w-full">
+            <p className="text-sm text-blue-800 font-medium mb-2">
+              Sprachsteuerung aktiv
+            </p>
+            <p className="text-sm text-blue-600 mb-2">
+              Verfügbare Befehle:
+            </p>
+            <ul className="text-sm text-blue-600 list-disc list-inside">
+              <li>"Start" oder "Beginn" - Zeiterfassung starten</li>
+              <li>"Stop" oder "Ende" - Zeiterfassung beenden</li>
+            </ul>
+            {lastSpokenCommand && (
+              <p className="text-sm text-gray-600 mt-2">
+                Letzter Befehl: "{lastSpokenCommand}"
+              </p>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Sprachsteuerung Anleitung */}
-      {isListening && (
-        <div className="bg-blue-50 p-4 rounded-lg mb-4">
-          <p className="text-sm text-blue-800">
-            Sprachbefehle: <br />
-            - "Start" oder "Beginn" zum Starten <br />
-            - "Stop" oder "Ende" zum Beenden
-          </p>
-        </div>
-      )}
 
       {/* Projektinformationen */}
       <div className="space-y-4 mb-4">
