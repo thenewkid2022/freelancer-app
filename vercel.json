@@ -15,23 +15,29 @@
   ],
   "routes": [
     {
+      "src": "/api/auth/(.*)",
+      "methods": ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
+      "dest": "server/index.js"
+    },
+    {
       "src": "/api/(.*)",
-      "dest": "/server/index.js"
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+      "dest": "server/index.js"
     },
     {
       "src": "/health",
-      "dest": "/server/index.js"
+      "dest": "server/index.js"
     },
     {
       "src": "/metrics",
-      "dest": "/server/index.js"
+      "dest": "server/index.js"
     },
     {
       "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/build/index.html"
+      "dest": "frontend/build/index.html"
     }
   ],
   "env": {
