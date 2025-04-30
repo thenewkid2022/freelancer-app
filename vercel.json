@@ -16,19 +16,16 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server/app.js"
+      "dest": "server/app.js",
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+      "headers": {
+        "Access-Control-Allow-Origin": "https://freelancer-app-chi.vercel.app",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Authorization"
+      }
     },
     {
-      "src": "/static/(.*)",
-      "dest": "frontend/build/static/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "frontend/build/favicon.ico"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "frontend/build/manifest.json"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
@@ -39,6 +36,7 @@
     "MONGODB_URI": "@mongodb_uri",
     "JWT_SECRET": "@jwt_secret",
     "NODE_ENV": "production",
-    "CORS_ORIGIN": "https://freelancer-app-chi.vercel.app"
+    "CORS_ORIGIN": "https://freelancer-app-chi.vercel.app",
+    "API_URL": "https://freelancer-app-chi.vercel.app/api"
   }
 } 
