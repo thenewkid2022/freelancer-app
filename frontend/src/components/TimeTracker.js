@@ -282,20 +282,25 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
         Zeiterfassung
       </h2>
+
+      {/* Aktuelle Zeit */}
       <p className="text-lg text-gray-600 mb-4 text-center">
         Aktuelle Zeit: <span className="font-bold">{formatTime(elapsedTime)}</span>
       </p>
-      
-      {/* Sprachsteuerung Button und Status */}
-      <div className="flex flex-col items-center mb-4 space-y-2">
+
+      {/* Sprachsteuerung Button und Status - Neu positioniert */}
+      <div className="flex flex-col items-center mb-6">
         <button
           onClick={toggleVoiceControl}
-          className={`px-4 py-2 rounded-lg ${
+          className={`w-full max-w-xs px-4 py-2 rounded-lg ${
             isListening 
               ? 'bg-red-500 hover:bg-red-600' 
               : 'bg-blue-500 hover:bg-blue-600'
-          } text-white transition-colors flex items-center space-x-2`}
+          } text-white transition-colors flex items-center justify-center space-x-2 mb-2`}
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+          </svg>
           <span>{isListening ? 'Sprachsteuerung deaktivieren' : 'Sprachsteuerung aktivieren'}</span>
           {isListening && (
             <span className="animate-pulse w-3 h-3 bg-white rounded-full"></span>
