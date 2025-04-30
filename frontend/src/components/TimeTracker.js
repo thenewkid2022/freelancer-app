@@ -25,6 +25,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     projectName: '',
     description: ''
   });
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   // Lade gespeicherte Daten beim Start
   useEffect(() => {
@@ -101,6 +102,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
   // Sprachausgabe-Funktion
   const speak = useCallback((text) => {
+    window.speechSynthesis.cancel(); // Beende vorherige Sprachausgabe
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'de-DE';
     utterance.rate = 1.0;
@@ -240,9 +242,16 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
     if ('webkitSpeechRecognition' in window) {
       const recognition = new window.webkitSpeechRecognition();
-      recognition.continuous = true;
+      recognition.continuous = false; // Änderung: Einzelne Erkennungen statt kontinuierlich
       recognition.interimResults = true;
       recognition.lang = 'de-DE';
+
+      recognition.onstart = () => {
+        setIsProcessingVoice(true);
+        if (!isInDialog) {
+          speak('Sprachsteuerung aktiviert. Sagen Sie Hilfe für verfügbare Befehle.');
+        }
+      };
 
       recognition.onresult = (event) => {
         const transcript = Array.from(event.results)
@@ -251,65 +260,23 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
           .toLowerCase();
 
         setLastSpokenCommand(transcript);
-
-        if (isInDialog) {
-          handleDialog(transcript);
-          return;
-        }
-
-        // Hauptbefehle
-        if (transcript.includes('start') || transcript.includes('beginn')) {
-          if (!isTracking) {
-            if (!projectInfo.projectNumber && !useLastProject) {
-              speak('Welche Projektnummer möchten Sie verwenden?');
-              setCurrentQuestion('projekt_nummer');
-              setWaitingForAnswer(true);
-              setIsInDialog(true);
-            } else {
-              handleStart();
-              speak('Zeiterfassung gestartet');
-            }
-          }
-        } else if (transcript.includes('stop') || transcript.includes('ende')) {
-          if (isTracking) {
-            handleStop();
-            speak('Zeiterfassung beendet');
-          }
-        } else if (transcript.includes('letztes projekt')) {
-          const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
-          if (lastProject) {
-            setProjectInfo(JSON.parse(lastProject));
-            setUseLastProject(true);
-            speak('Letztes Projekt geladen');
-          } else {
-            speak('Kein letztes Projekt gefunden');
-          }
-        } else if (transcript.includes('hilfe')) {
-          speak('Verfügbare Befehle sind: Start oder Beginn zum Starten, Stop oder Ende zum Beenden, und Letztes Projekt um das vorherige Projekt zu laden.');
-        } else if (transcript.includes('status')) {
-          if (isTracking) {
-            speak(`Zeiterfassung läuft für Projekt ${projectInfo.projectNumber} seit ${formatTime(elapsedTime)}`);
-          } else {
-            speak('Keine aktive Zeiterfassung');
-          }
-        }
+        handleVoiceCommand(transcript);
       };
 
-      recognition.onstart = () => {
-        if (!isInDialog) {
-          speak('Sprachsteuerung aktiviert. Sagen Sie Hilfe für verfügbare Befehle.');
+      recognition.onend = () => {
+        setIsProcessingVoice(false);
+        if (isListening) {
+          recognition.start(); // Starte neue Erkennung
+          setLastSpokenCommand(''); // Setze letzten Befehl zurück
         }
       };
 
       recognition.onerror = (event) => {
         console.error('Spracherkennungsfehler:', event.error);
-        setIsListening(false);
-        speak('Es gab einen Fehler mit der Spracherkennung');
-      };
-
-      recognition.onend = () => {
-        if (isListening) {
-          recognition.start();
+        setIsProcessingVoice(false);
+        if (event.error !== 'no-speech') {
+          setIsListening(false);
+          speak('Es gab einen Fehler mit der Spracherkennung');
         }
       };
 
@@ -322,7 +289,52 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     } else {
       toast.error('Spracherkennung wird in diesem Browser nicht unterstützt');
     }
-  }, [isListening, isInDialog, handleDialog, speak, handleStart, handleStop, isTracking, projectInfo, useLastProject, elapsedTime]);
+  }, [isListening, speak]);
+
+  // Separater Handler für Sprachbefehle
+  const handleVoiceCommand = useCallback((transcript) => {
+    if (isInDialog) {
+      handleDialog(transcript);
+      return;
+    }
+
+    // Hauptbefehle
+    if (transcript.includes('start') || transcript.includes('beginn')) {
+      if (!isTracking) {
+        if (!projectInfo.projectNumber && !useLastProject) {
+          speak('Welche Projektnummer möchten Sie verwenden?');
+          setCurrentQuestion('projekt_nummer');
+          setWaitingForAnswer(true);
+          setIsInDialog(true);
+        } else {
+          handleStart();
+          speak('Zeiterfassung gestartet');
+        }
+      }
+    } else if (transcript.includes('stop') || transcript.includes('ende')) {
+      if (isTracking) {
+        handleStop();
+        speak('Zeiterfassung beendet');
+      }
+    } else if (transcript.includes('letztes projekt')) {
+      const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
+      if (lastProject) {
+        setProjectInfo(JSON.parse(lastProject));
+        setUseLastProject(true);
+        speak('Letztes Projekt geladen');
+      } else {
+        speak('Kein letztes Projekt gefunden');
+      }
+    } else if (transcript.includes('hilfe')) {
+      speak('Verfügbare Befehle sind: Start oder Beginn zum Starten, Stop oder Ende zum Beenden, und Letztes Projekt um das vorherige Projekt zu laden.');
+    } else if (transcript.includes('status')) {
+      if (isTracking) {
+        speak(`Zeiterfassung läuft für Projekt ${projectInfo.projectNumber} seit ${formatTime(elapsedTime)}`);
+      } else {
+        speak('Keine aktive Zeiterfassung');
+      }
+    }
+  }, [isInDialog, handleDialog, isTracking, projectInfo, useLastProject, handleStart, handleStop, elapsedTime, speak]);
 
   // Toggle Sprachsteuerung
   const toggleVoiceControl = () => {
@@ -420,14 +432,17 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
               isListening 
                 ? 'bg-red-500 hover:bg-red-600' 
                 : 'bg-blue-500 hover:bg-blue-600'
-            } text-white transition-colors flex items-center justify-center space-x-2`}
+            } text-white transition-colors flex items-center justify-center space-x-2 relative`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
             </svg>
             <span>{isListening ? 'Deaktivieren' : 'Aktivieren'}</span>
-            {isListening && (
-              <span className="animate-pulse w-3 h-3 bg-white rounded-full"></span>
+            {isProcessingVoice && (
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+              </span>
             )}
           </button>
           
@@ -453,14 +468,19 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         
         {isListening && (
           <div className="bg-blue-50 p-4 rounded-lg w-full">
-            <p className="text-sm text-blue-800 font-medium mb-2">
-              Sprachsteuerung aktiv
-              {isInDialog && (
-                <span className="ml-2 text-green-600">
-                  (Im Dialog: {currentQuestion === 'projekt_nummer' ? 'Warte auf Projektnummer' : 'Warte auf Beschreibung'})
-                </span>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-blue-800 font-medium">
+                Sprachsteuerung aktiv
+                {isInDialog && (
+                  <span className="ml-2 text-green-600">
+                    (Im Dialog: {currentQuestion === 'projekt_nummer' ? 'Warte auf Projektnummer' : 'Warte auf Beschreibung'})
+                  </span>
+                )}
+              </p>
+              {isProcessingVoice && (
+                <span className="text-xs text-blue-600">Höre zu...</span>
               )}
-            </p>
+            </div>
             <p className="text-sm text-blue-600 mb-2">
               Verfügbare Befehle:
             </p>
@@ -472,9 +492,11 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
               <li>"Hilfe" - Verfügbare Befehle anzeigen</li>
             </ul>
             {lastSpokenCommand && (
-              <p className="text-sm text-gray-600 mt-2">
-                Letzter Befehl: "{lastSpokenCommand}"
-              </p>
+              <div className="mt-2 p-2 bg-white rounded border border-blue-100">
+                <p className="text-sm text-gray-600">
+                  Letzter Befehl: <span className="font-medium">{lastSpokenCommand}</span>
+                </p>
+              </div>
             )}
           </div>
         )}
