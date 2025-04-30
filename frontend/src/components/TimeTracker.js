@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { timeEntryService } from '../services/timeEntry';
 import { toast, ToastContainer } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
@@ -22,6 +22,9 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     projectName: '',
     description: ''
   });
+  const [isInDialog, setIsInDialog] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [waitingForAnswer, setWaitingForAnswer] = useState(false);
 
   // Lade gespeicherte Daten beim Start
   useEffect(() => {
@@ -96,6 +99,59 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     };
   }, [isTracking, startTime]);
 
+  // Sprachausgabe-Funktion
+  const speak = useCallback((text) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'de-DE';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  // Interaktiver Dialog-Handler
+  const handleDialog = useCallback((transcript) => {
+    if (!waitingForAnswer) return;
+
+    if (currentQuestion === 'projekt_nummer') {
+      const numberMatch = transcript.match(/\d+/);
+      if (numberMatch) {
+        const projectNumber = numberMatch[0];
+        setProjectInfo(prev => ({
+          ...prev,
+          projectNumber: `PRJ-${projectNumber.padStart(3, '0')}`,
+          projectName: `Projekt ${projectNumber}`,
+        }));
+        speak('Möchten Sie eine Beschreibung hinzufügen?');
+        setCurrentQuestion('beschreibung');
+      } else {
+        speak('Ich habe die Projektnummer nicht verstanden. Bitte nennen Sie eine Nummer.');
+      }
+      return;
+    }
+
+    if (currentQuestion === 'beschreibung') {
+      if (transcript.includes('nein') || transcript.includes('keine')) {
+        setProjectInfo(prev => ({
+          ...prev,
+          description: 'Per Sprache gestartet'
+        }));
+        speak('Alles klar, ich starte die Zeiterfassung jetzt.');
+        handleStart();
+      } else {
+        setProjectInfo(prev => ({
+          ...prev,
+          description: transcript
+        }));
+        speak('Danke, ich starte die Zeiterfassung jetzt.');
+        handleStart();
+      }
+      setCurrentQuestion('');
+      setWaitingForAnswer(false);
+      setIsInDialog(false);
+      return;
+    }
+  }, [currentQuestion, waitingForAnswer, speak, handleStart]);
+
   // Speech Recognition Setup
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
@@ -112,52 +168,59 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
         setLastSpokenCommand(transcript);
 
-        // Projekt-Nummer aus Spracheingabe extrahieren
-        const projectNumberMatch = transcript.match(/projekt\s*(\d+)/i);
-        if (projectNumberMatch) {
-          const projectNumber = projectNumberMatch[1];
-          setProjectInfo(prev => ({
-            ...prev,
-            projectNumber: `PRJ-${projectNumber.padStart(3, '0')}`,
-            projectName: `Projekt ${projectNumber}`,
-            description: 'Per Sprache gestartet'
-          }));
-          toast.success(`Projekt ${projectNumber} ausgewählt`);
+        if (isInDialog) {
+          handleDialog(transcript);
           return;
         }
 
+        // Hauptbefehle
         if (transcript.includes('start') || transcript.includes('beginn')) {
           if (!isTracking) {
             if (!projectInfo.projectNumber && !useLastProject) {
-              toast.info('Bitte Projektnummer per Sprache angeben (z.B. "Projekt 1")');
+              speak('Welche Projektnummer möchten Sie verwenden?');
+              setCurrentQuestion('projekt_nummer');
+              setWaitingForAnswer(true);
+              setIsInDialog(true);
               return;
             }
             handleStart();
-            toast.info('Zeiterfassung per Sprache gestartet');
+            speak('Zeiterfassung gestartet');
           }
         } else if (transcript.includes('stop') || transcript.includes('ende')) {
           if (isTracking) {
             handleStop();
-            toast.info('Zeiterfassung per Sprache beendet');
+            speak('Zeiterfassung beendet');
           }
         } else if (transcript.includes('letztes projekt')) {
-          setUseLastProject(true);
           const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
           if (lastProject) {
             setProjectInfo(JSON.parse(lastProject));
-            toast.success('Letztes Projekt geladen');
+            setUseLastProject(true);
+            speak('Letztes Projekt geladen');
+          } else {
+            speak('Kein letztes Projekt gefunden');
+          }
+        } else if (transcript.includes('hilfe')) {
+          speak('Verfügbare Befehle sind: Start oder Beginn zum Starten, Stop oder Ende zum Beenden, und Letztes Projekt um das vorherige Projekt zu laden.');
+        } else if (transcript.includes('status')) {
+          if (isTracking) {
+            speak(`Zeiterfassung läuft für Projekt ${projectInfo.projectNumber} seit ${formatTime(elapsedTime)}`);
+          } else {
+            speak('Keine aktive Zeiterfassung');
           }
         }
       };
 
       recognition.onstart = () => {
-        toast.info('Spracherkennung aktiv');
+        if (!isInDialog) {
+          speak('Sprachsteuerung aktiviert. Sagen Sie Hilfe für verfügbare Befehle.');
+        }
       };
 
       recognition.onerror = (event) => {
         console.error('Spracherkennungsfehler:', event.error);
         setIsListening(false);
-        toast.error('Spracherkennungsfehler: ' + event.error);
+        speak('Es gab einen Fehler mit der Spracherkennung');
       };
 
       recognition.onend = () => {
@@ -172,11 +235,12 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
       return () => {
         recognition.stop();
+        window.speechSynthesis.cancel();
       };
     } else {
       toast.error('Spracherkennung wird in diesem Browser nicht unterstützt');
     }
-  }, [isTracking, isListening, useLastProject]);
+  }, [isTracking, isListening, useLastProject, isInDialog, handleDialog, speak]);
 
   // Toggle Sprachsteuerung
   const toggleVoiceControl = () => {
@@ -360,6 +424,11 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
           <div className="bg-blue-50 p-4 rounded-lg w-full">
             <p className="text-sm text-blue-800 font-medium mb-2">
               Sprachsteuerung aktiv
+              {isInDialog && (
+                <span className="ml-2 text-green-600">
+                  (Im Dialog: {currentQuestion === 'projekt_nummer' ? 'Warte auf Projektnummer' : 'Warte auf Beschreibung'})
+                </span>
+              )}
             </p>
             <p className="text-sm text-blue-600 mb-2">
               Verfügbare Befehle:
@@ -367,8 +436,9 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
             <ul className="text-sm text-blue-600 list-disc list-inside">
               <li>"Start" oder "Beginn" - Zeiterfassung starten</li>
               <li>"Stop" oder "Ende" - Zeiterfassung beenden</li>
-              <li>"Projekt [Nummer]" - Projekt auswählen (z.B. "Projekt 1")</li>
               <li>"Letztes Projekt" - Letztes Projekt laden</li>
+              <li>"Status" - Aktuelle Zeiterfassung abfragen</li>
+              <li>"Hilfe" - Verfügbare Befehle anzeigen</li>
             </ul>
             {lastSpokenCommand && (
               <p className="text-sm text-gray-600 mt-2">
