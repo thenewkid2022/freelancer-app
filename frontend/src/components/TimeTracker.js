@@ -265,18 +265,27 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
       recognition.onend = () => {
         setIsProcessingVoice(false);
-        if (isListening) {
-          recognition.start(); // Starte neue Erkennung
-          setLastSpokenCommand(''); // Setze letzten Befehl zurück
+        if (isListening && !isInDialog) {
+          setTimeout(() => {
+            try {
+              recognition.start(); // Starte neue Erkennung mit Verzögerung
+            } catch (error) {
+              console.error('Fehler beim Neustart der Spracherkennung:', error);
+              setIsListening(false);
+              toast.error('Spracherkennung wurde aufgrund eines Fehlers gestoppt');
+            }
+          }, 1000); // 1 Sekunde Pause zwischen den Erkennungen
         }
+        setLastSpokenCommand('');
       };
 
       recognition.onerror = (event) => {
         console.error('Spracherkennungsfehler:', event.error);
         setIsProcessingVoice(false);
+        setIsListening(false);
         if (event.error !== 'no-speech') {
-          setIsListening(false);
           speak('Es gab einen Fehler mit der Spracherkennung');
+          toast.error('Spracherkennung wurde aufgrund eines Fehlers deaktiviert');
         }
       };
 
