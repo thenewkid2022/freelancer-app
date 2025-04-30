@@ -22,6 +22,11 @@ const formatDuration = (seconds) => {
 // Gefilterte Statistiken abrufen
 router.get('/filtered', auth, async (req, res) => {
   try {
+    console.log('Statistik-Anfrage erhalten:', {
+      userId: req.user?._id,
+      query: req.query
+    });
+
     if (!req.user || !req.user._id) {
       throw new Error('Benutzer nicht authentifiziert');
     }
@@ -46,7 +51,9 @@ router.get('/filtered', auth, async (req, res) => {
       filter.tags = { $in: tags.split(',') };
     }
 
-    // Vereinfachte Aggregation Pipeline
+    console.log('Angewendeter Filter:', filter);
+
+    // Aggregation Pipeline
     const pipeline = [
       { $match: filter },
       {
@@ -62,7 +69,16 @@ router.get('/filtered', auth, async (req, res) => {
           },
           totalSeconds: { $sum: '$duration' },
           totalEntries: { $sum: 1 },
-          projects: { $addToSet: '$project' }
+          projects: { $addToSet: '$project' },
+          entries: {
+            $push: {
+              startTime: '$startTime',
+              endTime: '$endTime',
+              duration: '$duration',
+              project: '$project',
+              description: '$description'
+            }
+          }
         }
       },
       {
@@ -77,13 +93,41 @@ router.get('/filtered', auth, async (req, res) => {
             $round: [{ $divide: ['$totalSeconds', 60] }, 0]
           },
           totalEntries: 1,
-          projects: 1
+          averageMinutesPerEntry: {
+            $round: [
+              { $divide: [{ $divide: ['$totalSeconds', 60] }, '$totalEntries'] },
+              0
+            ]
+          },
+          projects: 1,
+          entries: {
+            $map: {
+              input: '$entries',
+              as: 'entry',
+              in: {
+                startTime: '$$entry.startTime',
+                endTime: '$$entry.endTime',
+                duration: '$$entry.duration',
+                durationFormatted: {
+                  $function: {
+                    body: formatDuration.toString(),
+                    args: ['$$entry.duration'],
+                    lang: 'js'
+                  }
+                },
+                project: '$$entry.project',
+                description: '$$entry.description'
+              }
+            }
+          }
         }
       },
       { $sort: { date: 1 } }
     ];
 
-    const stats = await TimeEntry.aggregate(pipeline);
+    console.log('Ausführe Aggregation Pipeline...');
+    const stats = await TimeEntry.aggregate(pipeline).exec();
+    console.log('Aggregation erfolgreich, Ergebnisse:', stats.length);
 
     // Gesamtstatistiken berechnen
     const totalStats = stats.reduce((acc, curr) => ({
@@ -107,6 +151,26 @@ router.get('/filtered', auth, async (req, res) => {
         end: stats.length > 0 ? stats[stats.length - 1].date : null
       }
     };
+
+    // CSV-Export
+    if (req.query.format === 'csv') {
+      const csv = [
+        ['Datum', 'Stunden', 'Minuten', 'Sekunden', 'Einträge', 'Durchschnitt (Min)', 'Projekte'],
+        ...stats.map(stat => [
+          stat.date,
+          stat.totalHours,
+          stat.totalMinutes,
+          stat.totalSeconds,
+          stat.totalEntries,
+          stat.averageMinutesPerEntry,
+          stat.projects.join('; ')
+        ])
+      ].map(row => row.join(',')).join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=zeiterfassung-statistiken.csv');
+      return res.send(csv);
+    }
 
     res.json({
       stats,
