@@ -2,7 +2,12 @@ import axios from 'axios';
 import { authService } from './auth';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000'
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  timeout: 10000
 });
 
 // Request Interceptor
@@ -17,6 +22,11 @@ api.interceptors.request.use(
     console.log('API - Request Details:', {
       url: config.url,
       method: config.method,
+      baseURL: config.baseURL,
+      headers: {
+        ...config.headers,
+        Authorization: config.headers.Authorization ? 'Bearer [FILTERED]' : undefined
+      },
       hasToken: !!token,
       timestamp: new Date().toISOString()
     });
@@ -24,7 +34,11 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('API - Request Error:', error);
+    console.error('API - Request Error:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
     return Promise.reject(error);
   }
 );
@@ -36,7 +50,7 @@ api.interceptors.response.use(
     console.log('API - Response Success:', {
       url: response.config.url,
       status: response.status,
-      headers: response.headers,
+      data: response.data,
       timestamp: new Date().toISOString()
     });
     return response;
@@ -47,14 +61,20 @@ api.interceptors.response.use(
       url: error.config?.url,
       status: error.response?.status,
       data: error.response?.data,
-      headers: error.config?.headers,
+      message: error.message,
+      code: error.code,
       timestamp: new Date().toISOString()
     });
 
+    // Spezifische Fehlerbehandlung
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
+      console.log('Unauthorized - Logging out');
+      authService.logout();
       window.location.href = '/login';
+    } else if (!error.response) {
+      console.error('Network Error:', error.message);
     }
+    
     return Promise.reject(error);
   }
 );

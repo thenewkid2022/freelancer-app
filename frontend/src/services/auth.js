@@ -1,20 +1,34 @@
 import api from './api';
 
 const validateToken = (token) => {
-  if (!token) return false;
+  if (!token) {
+    console.log('Token validation failed: Token is empty');
+    return false;
+  }
   
   // Überprüfe Token-Format (JWT-Format)
   const tokenRegex = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/;
-  if (!tokenRegex.test(token)) return false;
+  if (!tokenRegex.test(token)) {
+    console.log('Token validation failed: Invalid format');
+    return false;
+  }
   
   // Überprüfe Token-Ablauf
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
+    console.log('Token payload:', {
+      exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : 'none',
+      iat: payload.iat ? new Date(payload.iat * 1000).toISOString() : 'none',
+      userId: payload.userId || 'none'
+    });
+    
     if (payload.exp && payload.exp * 1000 < Date.now()) {
+      console.log('Token validation failed: Token expired');
       return false;
     }
     return true;
   } catch (e) {
+    console.error('Token validation error:', e);
     return false;
   }
 };
@@ -23,31 +37,41 @@ export const authService = {
   // Login
   login: async (email, password) => {
     try {
-      console.log('Login-Versuch:', { email, apiUrl: api.defaults.baseURL });
+      console.log('Login attempt:', { 
+        email,
+        apiUrl: api.defaults.baseURL,
+        timestamp: new Date().toISOString()
+      });
       
-      const response = await api.post('/api/auth/login', { email, password });
+      const response = await api.post('/api/auth/login', { 
+        email, 
+        password 
+      });
       
-      if (response.data.token) {
-        // Validiere Token vor dem Speichern
-        if (!validateToken(response.data.token)) {
-          throw new Error('Ungültiges Token-Format oder Token abgelaufen');
-        }
-        
-        console.log('Token erhalten:', {
-          length: response.data.token.length,
-          valid: true
-        });
-        
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('userId', response.data.userId);
+      console.log('Login response received:', {
+        status: response.status,
+        hasToken: !!response.data.token,
+        timestamp: new Date().toISOString()
+      });
+      
+      if (!response.data.token) {
+        throw new Error('No token received in login response');
       }
+
+      // Validiere Token vor dem Speichern
+      if (!validateToken(response.data.token)) {
+        throw new Error('Invalid token format or token expired');
+      }
+      
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userId', response.data.userId);
       
       return response.data;
     } catch (error) {
-      console.error('Login-Fehler:', {
+      console.error('Login error:', {
         message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
+        response: error.response?.data,
+        status: error.response?.status
       });
       throw error;
     }
