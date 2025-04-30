@@ -35,7 +35,7 @@
     }
   ],
   "env": {
-    "MONGODB_URI": "@mongodb_uri",
+    "MONGODB_URI": "mongodb+srv://freelancerappuser:FreelancerApp2025@cluster0.0ini8jvw.mongodb.net/freelancer-app?retryWrites=true&w=majority",
     "JWT_SECRET": "0acf740ed0b204d9e21a1e1b829380866d85d31792e87713123ce3e9d0ffd729eed0764d2fc73a3a63a153f68723c322cad7b21a1539d85178f08e4bab8338c2",
     "NODE_ENV": "production",
     "CORS_ORIGIN": "https://freelancer-app-chi.vercel.app",
