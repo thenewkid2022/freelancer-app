@@ -2,7 +2,7 @@ import axios from 'axios';
 import { authService } from './auth';
 
 // Explizite API-URL
-const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-chi.vercel.app';
+const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-chi.vercel.app/api';
 
 console.log('Initializing API with URL:', API_URL);
 
@@ -32,6 +32,7 @@ api.interceptors.request.use(
       url: config.url,
       method: config.method,
       baseURL: config.baseURL,
+      fullUrl: `${config.baseURL}${config.url}`,
       headers: {
         ...config.headers,
         Authorization: config.headers.Authorization ? 'Bearer [FILTERED]' : undefined
