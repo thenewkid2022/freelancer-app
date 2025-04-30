@@ -21,64 +21,45 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS muss vor anderen Middleware kommen
-app.use(cors(config.corsOptions));
+// Basis-Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Sicherheits-Middleware
-app.use(helmet({
-  crossOriginResourcePolicy: false,
-  crossOriginOpenerPolicy: false
-}));
 app.use(securityMiddleware);
 
-// Rate Limiting
-app.use('/auth', authLimiter);
-app.use('/api', apiLimiter);
-
-// JSON Parser
-app.use(express.json());
-
-// Monitoring Middleware
-app.use(requestMetricsMiddleware);
-
-// Request Logging
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logRequest(req, res, duration);
-  });
-  next();
-});
-
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Freelancer API Dokumentation'
+// CORS-Konfiguration
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'https://freelancer-app-chi.vercel.app',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
-// Health Check Endpunkt
+// Rate Limiting
+app.use('/api/auth', authLimiter);
+app.use('/api', apiLimiter);
+
+// Logging
+app.use(logRequest);
+
+// Monitoring
+app.use(requestMetricsMiddleware);
+
+// API-Routen
+app.use('/api/auth', authRoutes);
+app.use('/api/time-entries', timeEntriesRoutes);
+app.use('/api/v1/time-entries', timeEntriesV1Routes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/ai', aiRoutes);
+
+// Health Check und Metrics
 app.get('/health', healthCheckMiddleware);
-
-// Test-Route
-app.get('/test', (req, res) => {
-  res.json({ message: 'Server is running!' });
-});
-
-// Metriken-Endpunkt
 app.get('/metrics', async (req, res) => {
   res.set('Content-Type', register.contentType);
   res.end(await register.metrics());
 });
-
-// API Versionierung
-app.use('/api/v1/time-entries', timeEntriesV1Routes);
-app.use('/api/time-entries', timeEntriesRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/time-entries/stats', statsRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/ai', aiRoutes);
 
 // Error Handler
 app.use(errorHandler);

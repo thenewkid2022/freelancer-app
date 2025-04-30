@@ -7,8 +7,8 @@ const auth = require('../middleware/auth');
 const { validateUser, validateAuth } = require('../middleware/validator');
 require('dotenv').config();
 
-// JWT Secret Check
-console.log('Checking JWT_SECRET environment variable:', {
+// Debug-Logging für JWT Secret
+console.log('JWT Secret Status:', {
   isDefined: !!process.env.JWT_SECRET,
   length: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0,
   environment: process.env.NODE_ENV
@@ -48,32 +48,53 @@ router.post('/register', validateUser, async (req, res) => {
   }
 });
 
-// Anmeldung
+// Login-Route
 router.post('/login', validateAuth, async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    // Prüfen, ob der Benutzer existiert
+    const { email, password } = req.body;
+
+    // Debug-Logging für Login-Versuch
+    console.log('Login-Versuch:', {
+      email,
+      timestamp: new Date().toISOString(),
+      headers: req.headers
+    });
+
+    // Benutzer suchen
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('Benutzer nicht gefunden:', email);
       return res.status(400).json({ message: 'Ungültige Anmeldedaten' });
     }
 
     // Passwort überprüfen
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('Falsches Passwort für Benutzer:', email);
       return res.status(400).json({ message: 'Ungültige Anmeldedaten' });
     }
 
     // JWT generieren
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    // Erfolgreiche Antwort
+    res.json({
+      token,
+      userId: user._id,
+      message: 'Login erfolgreich'
     });
 
-    res.json({ token, userId: user._id });
   } catch (err) {
-    console.error('Fehler bei der Anmeldung:', err);
-    res.status(500).json({ message: 'Serverfehler' });
+    console.error('Login-Fehler:', {
+      error: err.message,
+      stack: err.stack,
+      timestamp: new Date().toISOString()
+    });
+    res.status(500).json({ message: 'Serverfehler bei der Anmeldung' });
   }
 });
 
