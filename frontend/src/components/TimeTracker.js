@@ -58,7 +58,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     } catch (error) {
       console.error('Fehler beim Formatieren der Zeit:', error);
       return '0h 0m 0s';
-    }
+      }
   }, []);
 
   // Start-Button Handler
@@ -70,10 +70,10 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
     try {
       localStorage.setItem(LAST_PROJECT_KEY, JSON.stringify(projectInfo));
-      const newStartTime = Date.now() - elapsedTime;
-      setIsTracking(true);
-      setStartTime(newStartTime);
-      toast.success('Zeiterfassung gestartet');
+    const newStartTime = Date.now() - elapsedTime;
+    setIsTracking(true);
+    setStartTime(newStartTime);
+    toast.success('Zeiterfassung gestartet');
     } catch (error) {
       console.error('Fehler beim Starten der Zeiterfassung:', error);
       toast.error('Fehler beim Starten der Zeiterfassung');
@@ -85,27 +85,27 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     if (!isTracking) return;
     
     try {
-      setIsTracking(false);
-      setLoading(true);
-      const duration = Math.floor(elapsedTime / 1000);
-      const endTime = new Date();
-      
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        toast.error('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.');
-        setLoading(false);
-        return;
-      }
-
-      const requestData = {
-        startTime: new Date(startTime),
-        endTime,
-        duration,
-        project: `${projectInfo.projectNumber} - ${projectInfo.projectName}`,
+    setIsTracking(false);
+    setLoading(true);
+    const duration = Math.floor(elapsedTime / 1000);
+    const endTime = new Date();
+    
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      toast.error('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.');
+      setLoading(false);
+      return;
+    }
+    
+    const requestData = {
+      startTime: new Date(startTime),
+      endTime,
+      duration,
+      project: `${projectInfo.projectNumber} - ${projectInfo.projectName}`,
         description: projectInfo.description || 'Keine Beschreibung',
-        userId: userId
-      };
-      
+      userId: userId
+    };
+    
       await timeEntryService.create(requestData);
       if (onTimeEntrySaved) {
         onTimeEntrySaved();
@@ -522,7 +522,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       <p className="text-lg text-gray-600 mb-4 text-center">
         Aktuelle Zeit: <span className="font-bold">{formatTime(elapsedTime)}</span>
       </p>
-
+      
       {/* Projektinformationen */}
       <div className="space-y-4 mb-4">
         <div className="flex items-center justify-between">
