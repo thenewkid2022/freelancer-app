@@ -21,6 +21,11 @@ const formatDuration = (seconds) => {
 // Gefilterte Statistiken abrufen
 router.get('/filtered', auth, async (req, res) => {
   try {
+    console.log('Statistik-Anfrage erhalten:', {
+      userId: req.user._id,
+      query: req.query
+    });
+
     const { startDate, endDate, groupBy = 'daily', project, tags } = req.query;
     
     // Filter erstellen
@@ -40,6 +45,8 @@ router.get('/filtered', auth, async (req, res) => {
     if (tags) {
       filter.tags = { $in: tags.split(',') };
     }
+
+    console.log('Angewendeter Filter:', filter);
 
     // Aggregation Pipeline
     const pipeline = [
@@ -111,7 +118,9 @@ router.get('/filtered', auth, async (req, res) => {
       { $sort: { date: 1 } }
     ];
 
+    console.log('Ausführe Aggregation Pipeline...');
     const stats = await TimeEntry.aggregate(pipeline);
+    console.log('Aggregation erfolgreich, Ergebnisse:', stats.length);
 
     // Gesamtstatistiken berechnen
     const totalStats = stats.reduce((acc, curr) => ({
@@ -161,8 +170,16 @@ router.get('/filtered', auth, async (req, res) => {
       summary
     });
   } catch (err) {
-    console.error('Fehler beim Abrufen der Statistiken:', err);
-    res.status(500).json({ message: err.message });
+    console.error('Detaillierter Fehler in der Statistik-Route:', {
+      error: err.message,
+      stack: err.stack,
+      query: req.query,
+      userId: req.user._id
+    });
+    res.status(500).json({ 
+      message: 'Fehler beim Abrufen der Statistiken',
+      error: err.message 
+    });
   }
 });
 
