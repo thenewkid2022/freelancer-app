@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { apiClient } from './api/client';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -29,27 +29,28 @@ class AuthService {
 
   setAuthToken(token: string) {
     this.token = token;
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    localStorage.setItem('token', token);
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>(`${API_URL}/auth/login`, credentials);
-    return response.data;
+    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+    this.setAuthToken(response.token);
+    return response;
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>(`${API_URL}/auth/register`, data);
-    return response.data;
+    const response = await apiClient.post<AuthResponse>('/auth/register', data);
+    this.setAuthToken(response.token);
+    return response;
   }
 
   async getCurrentUser(): Promise<User> {
-    const response = await axios.get<User>(`${API_URL}/auth/me`);
-    return response.data;
+    return apiClient.get<User>('/auth/me');
   }
 
   logout() {
     this.token = null;
-    delete axios.defaults.headers.common['Authorization'];
+    localStorage.removeItem('token');
   }
 }
 
