@@ -3,11 +3,18 @@ import axios from 'axios';
 class AIService {
   constructor() {
     this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    this.axiosInstance = axios.create({
+      baseURL: this.baseURL,
+      timeout: 10000,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   }
 
   async analyzeActivity(description) {
     try {
-      const response = await axios.post(`${this.baseURL}/api/ai/analyze`, {
+      const response = await this.axiosInstance.post('/api/ai/analyze', {
         description
       });
       return response.data;
@@ -19,7 +26,7 @@ class AIService {
 
   async getSuggestions(projectId) {
     try {
-      const response = await axios.get(`${this.baseURL}/api/ai/suggestions/${projectId}`);
+      const response = await this.axiosInstance.get(`/api/ai/suggestions/${projectId}`);
       return response.data;
     } catch (error) {
       console.error('Fehler beim Abrufen der Vorschläge:', error);
@@ -29,7 +36,7 @@ class AIService {
 
   async categorizeActivity(description) {
     try {
-      const response = await axios.post(`${this.baseURL}/api/ai/categorize`, {
+      const response = await this.axiosInstance.post('/api/ai/categorize', {
         description
       });
       return response.data;
