@@ -434,7 +434,7 @@ const EnhancedTimeStatistics = ({ refresh }) => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => `${value.toFixed(1)}h`} />
+                      <Tooltip formatter={(value) => `${value.toFixed(2)}h`} />
                     </PieChart>
                   </div>
                 </div>
@@ -450,7 +450,7 @@ const EnhancedTimeStatistics = ({ refresh }) => {
                         <span className="text-sm truncate flex-grow" title={entry.name}>
                           {entry.name.length > 20 ? `${entry.name.substring(0, 17)}...` : entry.name}
                         </span>
-                        <span className="text-sm ml-2 flex-shrink-0">{entry.value.toFixed(1)}h</span>
+                        <span className="text-sm ml-2 flex-shrink-0">{entry.value.toFixed(2)}h</span>
                       </div>
                     ))}
                   </div>
@@ -507,7 +507,7 @@ const EnhancedTimeStatistics = ({ refresh }) => {
               <div key={period.period} className="bg-gray-50 rounded-lg p-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-semibold text-gray-700">{period.period}</span>
-                  <span className="text-blue-600 font-bold">{period.totalHours.toFixed(1)}h</span>
+                  <span className="text-blue-600 font-bold">{period.totalHours.toFixed(2)}h</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
                   <div>
@@ -550,7 +550,7 @@ const EnhancedTimeStatistics = ({ refresh }) => {
                         {period.period}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {period.totalHours.toFixed(1)}h
+                        {period.totalHours.toFixed(2)}h
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {period.totalMinutes}
