@@ -19,6 +19,12 @@ const formatDuration = (seconds) => {
   return parts.join(' ');
 };
 
+// Hilfsfunktion für 15-Minuten-Rundung
+const roundToNearest15Minutes = (seconds) => {
+  const minutes = Math.round(seconds / 60);
+  return Math.round(minutes / 15) * 15 * 60; // Zurück in Sekunden
+};
+
 // Gefilterte Statistiken abrufen
 router.get('/filtered', auth, async (req, res) => {
   try {
@@ -90,7 +96,17 @@ router.get('/filtered', auth, async (req, res) => {
               date: '$startTime'
             }
           },
-          totalSeconds: { $sum: '$duration' },
+          totalSeconds: { 
+            $sum: { 
+              $function: {
+                body: function(seconds) {
+                  return Math.round(seconds / 60 / 15) * 15 * 60;
+                },
+                args: ["$duration"],
+                lang: "js"
+              }
+            }
+          },
           count: { $sum: 1 },
           projects: { $addToSet: '$project' }
         }

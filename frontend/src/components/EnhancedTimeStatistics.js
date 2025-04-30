@@ -78,10 +78,10 @@ const EnhancedTimeStatistics = ({ refresh }) => {
         }
       });
 
-      // Konvertiere in das Format für das Kuchendiagramm
+      // Konvertiere in das Format für das Kuchendiagramm und runde auf 15 Minuten
       const pieData = Object.entries(projectHours).map(([project, hours]) => ({
         name: project || 'Allgemein',
-        value: parseFloat(hours.toFixed(2))
+        value: Math.round(hours * 4) / 4 // Rundung auf 15 Minuten (0.25 Stunden)
       }));
       setProjectStats(pieData);
     }
@@ -91,14 +91,14 @@ const EnhancedTimeStatistics = ({ refresh }) => {
       setStats({
         totalStats: {
           totalPeriods: data.stats.length,
-          totalHours: parseFloat(data.summary.totalHours.toFixed(2)),
-          averageHoursPerPeriod: parseFloat(data.summary.averageHoursPerDay),
+          totalHours: Math.round(data.summary.totalHours * 4) / 4, // Rundung auf 15 Minuten
+          averageHoursPerPeriod: Math.round(data.summary.averageHoursPerDay * 4) / 4,
           totalEntries: data.summary.totalEntries
         },
         results: data.stats.map(stat => ({
           period: stat.date,
-          totalHours: parseFloat(stat.totalHours.toFixed(2)),
-          totalMinutes: Math.round(stat.totalHours * 60),
+          totalHours: Math.round(stat.totalHours * 4) / 4,
+          totalMinutes: Math.round(stat.totalHours * 60 / 15) * 15,
           numberOfEntries: stat.totalEntries
         }))
       });
@@ -461,13 +461,15 @@ const EnhancedTimeStatistics = ({ refresh }) => {
             <div className="bg-green-50 p-4 rounded-lg">
               <h3 className="text-base md:text-lg font-semibold text-green-800">Gesamtstunden</h3>
               <p className="text-2xl md:text-3xl font-bold text-green-600">
-                {stats.totalStats.totalHours.toFixed(1)}h
+                {stats.totalStats.totalHours.toFixed(2)}h
+                <span className="text-sm text-green-500 ml-2">(15min gerundet)</span>
               </p>
             </div>
             <div className="bg-purple-50 p-4 rounded-lg">
               <h3 className="text-base md:text-lg font-semibold text-purple-800">Durchschnitt</h3>
               <p className="text-2xl md:text-3xl font-bold text-purple-600">
-                {stats.totalStats.averageHoursPerPeriod}h
+                {stats.totalStats.averageHoursPerPeriod.toFixed(2)}h
+                <span className="text-sm text-purple-500 ml-2">(15min gerundet)</span>
               </p>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
