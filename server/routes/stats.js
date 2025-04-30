@@ -145,11 +145,17 @@ router.get('/filtered', auth, async (req, res) => {
     console.log('Erste 3 Ergebnisse:', JSON.stringify(stats.slice(0, 3), null, 2));
 
     // 6. Zusammenfassung erstellen
+    const totalEntries = stats.reduce((sum, day) => sum + day.totalEntries, 0);
+    const totalHours = stats.reduce((sum, day) => sum + day.totalHours, 0);
+    const totalMinutes = stats.reduce((sum, day) => sum + day.totalMinutes, 0);
+    const daysTracked = stats.length;
+    
     const summary = {
-      totalEntries: stats.reduce((sum, day) => sum + day.count, 0),
-      totalHours: stats.reduce((sum, day) => sum + day.totalHours, 0),
-      totalMinutes: stats.reduce((sum, day) => sum + day.totalMinutes, 0),
-      daysTracked: stats.length,
+      totalEntries,
+      totalHours: Math.round(totalHours * 4) / 4, // Rundung auf 15 Minuten
+      totalMinutes: Math.round(totalMinutes / 15) * 15, // Rundung auf 15 Minuten
+      averageHoursPerDay: daysTracked > 0 ? Math.round((totalHours / daysTracked) * 4) / 4 : 0, // Verhindere Division durch 0
+      daysTracked,
       dateRange: {
         start: stats.length > 0 ? stats[0].date : null,
         end: stats.length > 0 ? stats[stats.length - 1].date : null

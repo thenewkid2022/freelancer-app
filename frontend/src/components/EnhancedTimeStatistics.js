@@ -58,47 +58,59 @@ const EnhancedTimeStatistics = ({ refresh }) => {
     if (data.stats && data.stats.length > 0) {
       // Sammle alle einzigartigen Projekte und ihre Gesamtstunden
       const projectHours = {};
+      let totalProjectHours = 0;
+
       data.stats.forEach(stat => {
         // Null-Check für projects
         const projects = stat.projects || [];
+        const hoursPerProject = stat.totalHours / (projects.length || 1); // Verhindere Division durch 0
+
         if (projects.length === 0) {
-          // Wenn keine Projekte definiert sind, verwende "Allgemein"
           if (!projectHours['Allgemein']) {
             projectHours['Allgemein'] = 0;
           }
           projectHours['Allgemein'] += stat.totalHours;
+          totalProjectHours += stat.totalHours;
         } else {
           projects.forEach(project => {
             if (!projectHours[project]) {
               projectHours[project] = 0;
             }
-            // Teile die Stunden gleichmäßig auf die Projekte des Tages auf
-            projectHours[project] += stat.totalHours / projects.length;
+            projectHours[project] += hoursPerProject;
+            totalProjectHours += hoursPerProject;
           });
         }
       });
 
       // Konvertiere in das Format für das Kuchendiagramm und runde auf 15 Minuten
-      const pieData = Object.entries(projectHours).map(([project, hours]) => ({
-        name: project || 'Allgemein',
-        value: Math.round(hours * 4) / 4 // Rundung auf 15 Minuten (0.25 Stunden)
-      }));
+      const pieData = Object.entries(projectHours)
+        .filter(([_, hours]) => hours > 0) // Filtere Projekte mit 0 Stunden
+        .map(([project, hours]) => ({
+          name: project || 'Allgemein',
+          value: Math.round(hours * 4) / 4 // Rundung auf 15 Minuten
+        }))
+        .sort((a, b) => b.value - a.value); // Sortiere nach Stunden absteigend
+
       setProjectStats(pieData);
     }
 
     // Gesamtstatistiken setzen
     if (data.summary) {
+      const totalHours = Math.round(data.summary.totalHours * 4) / 4; // Rundung auf 15 Minuten
+      const totalPeriods = data.stats.length || 1; // Verhindere Division durch 0
+      const averageHours = totalHours / totalPeriods;
+
       setStats({
         totalStats: {
-          totalPeriods: data.stats.length,
-          totalHours: Math.round(data.summary.totalHours * 4) / 4, // Rundung auf 15 Minuten
-          averageHoursPerPeriod: Math.round(data.summary.averageHoursPerDay * 4) / 4,
+          totalPeriods: totalPeriods,
+          totalHours: totalHours,
+          averageHoursPerPeriod: Math.round(averageHours * 4) / 4, // Rundung auf 15 Minuten
           totalEntries: data.summary.totalEntries
         },
         results: data.stats.map(stat => ({
           period: stat.date,
           totalHours: Math.round(stat.totalHours * 4) / 4,
-          totalMinutes: Math.round(stat.totalHours * 60 / 15) * 15,
+          totalMinutes: Math.round(stat.totalMinutes / 15) * 15, // Rundung auf 15 Minuten
           numberOfEntries: stat.totalEntries
         }))
       });
