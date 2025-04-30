@@ -32,11 +32,6 @@ api.interceptors.request.use(
       config.url = '/' + config.url;
     }
     
-    // Füge /api nur hinzu, wenn es nicht bereits vorhanden ist
-    if (!config.url.startsWith('/api/') && !config.url.includes('/api/')) {
-      config.url = '/api' + config.url;
-    }
-    
     // Debug-Logging für jeden Request
     console.log('API - Request Details:', {
       url: config.url,

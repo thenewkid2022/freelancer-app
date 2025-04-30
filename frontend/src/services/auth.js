@@ -6,22 +6,8 @@ const validateToken = (token) => {
     return false;
   }
   
-  // Überprüfe Token-Format (JWT-Format)
-  const tokenRegex = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/;
-  if (!tokenRegex.test(token)) {
-    console.log('Token validation failed: Invalid format');
-    return false;
-  }
-  
-  // Überprüfe Token-Ablauf
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    console.log('Token payload:', {
-      exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : 'none',
-      iat: payload.iat ? new Date(payload.iat * 1000).toISOString() : 'none',
-      userId: payload.userId || 'none'
-    });
-    
     if (payload.exp && payload.exp * 1000 < Date.now()) {
       console.log('Token validation failed: Token expired');
       return false;
@@ -43,25 +29,15 @@ export const authService = {
         timestamp: new Date().toISOString()
       });
       
-      // Explizite Request-Konfiguration
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        withCredentials: true
-      };
-      
-      const response = await api.post('/api/auth/login', { 
+      const response = await api.post('/auth/login', { 
         email, 
         password 
-      }, config);
+      });
       
       console.log('Login response received:', {
         status: response.status,
         hasToken: !!response.data.token,
-        timestamp: new Date().toISOString(),
-        headers: response.headers
+        timestamp: new Date().toISOString()
       });
       
       if (!response.data.token) {
@@ -74,16 +50,16 @@ export const authService = {
       }
       
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('userId', response.data.userId);
+      if (response.data.userId) {
+        localStorage.setItem('userId', response.data.userId);
+      }
       
       return response.data;
     } catch (error) {
       console.error('Login error:', {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status,
-        config: error.config,
-        headers: error.response?.headers
+        status: error.response?.status
       });
       throw error;
     }
