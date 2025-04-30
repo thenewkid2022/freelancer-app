@@ -36,7 +36,12 @@ module.exports = {
         process.env.ADMIN_URL
       ].filter(Boolean);
       
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Erlaube Requests ohne Origin (z.B. mobile Apps oder Postman)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         logger.warn(`CORS-Blockierung für Origin: ${origin}`);
@@ -48,7 +53,8 @@ module.exports = {
     exposedHeaders: ['X-Total-Count', 'X-Rate-Limit-Remaining'],
     credentials: true,
     maxAge: 86400,
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
+    preflightContinue: false
   },
 
   // Logging

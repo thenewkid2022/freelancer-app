@@ -4,15 +4,12 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const aiRoutes = require('./routes/ai');
+const config = require('./config/config');
 
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors(config.corsOptions));
 app.use(express.json());
 
 // Logging Middleware
