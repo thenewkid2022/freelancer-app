@@ -23,6 +23,8 @@ const formatDuration = (seconds) => {
 router.get('/filtered', auth, async (req, res) => {
   try {
     // 1. Basis-Validierung
+    console.log('Statistik-Anfrage empfangen');
+    
     if (!req.user?._id) {
       console.error('Kein Benutzer gefunden:', req.user);
       return res.status(401).json({ 
@@ -43,7 +45,7 @@ router.get('/filtered', auth, async (req, res) => {
 
     // 3. Filter-Erstellung
     const filter = {
-      userId: req.user._id  // Hier keine Konvertierung mehr nötig
+      userId: new mongoose.Types.ObjectId(req.user._id)  // Konvertierung wieder hinzugefügt
     };
 
     try {
@@ -54,7 +56,26 @@ router.get('/filtered', auth, async (req, res) => {
       return res.status(400).json({ message: 'Ungültiges Datumsformat' });
     }
 
-    console.log('Filter erstellt:', filter);
+    console.log('Angewendeter Filter:', JSON.stringify(filter, null, 2));
+
+    // Zuerst prüfen, ob überhaupt Einträge existieren
+    const entriesCount = await TimeEntry.countDocuments(filter);
+    console.log(`Gefundene Einträge vor Aggregation: ${entriesCount}`);
+
+    if (entriesCount === 0) {
+      return res.json({
+        success: true,
+        stats: [],
+        summary: {
+          totalEntries: 0,
+          totalHours: 0,
+          totalMinutes: 0,
+          daysTracked: 0,
+          dateRange: { start: null, end: null }
+        },
+        debug: { filter, entriesCount }
+      });
+    }
 
     // 4. Basis-Aggregation
     const pipeline = [
@@ -93,11 +114,12 @@ router.get('/filtered', auth, async (req, res) => {
       }
     ];
 
-    console.log('Pipeline erstellt, starte Aggregation...');
+    console.log('Pipeline erstellt:', JSON.stringify(pipeline, null, 2));
 
     // 5. Aggregation ausführen
     const stats = await TimeEntry.aggregate(pipeline);
-    console.log('Aggregation abgeschlossen, Anzahl Ergebnisse:', stats.length);
+    console.log('Aggregation abgeschlossen, Ergebnisse:', stats.length);
+    console.log('Erste 3 Ergebnisse:', JSON.stringify(stats.slice(0, 3), null, 2));
 
     // 6. Zusammenfassung erstellen
     const summary = {
@@ -111,11 +133,18 @@ router.get('/filtered', auth, async (req, res) => {
       }
     };
 
+    console.log('Zusammenfassung erstellt:', JSON.stringify(summary, null, 2));
+
     // 7. Antwort senden
     res.json({
       success: true,
       stats,
-      summary
+      summary,
+      debug: {
+        filter,
+        entriesCount,
+        pipelineStages: pipeline.length
+      }
     });
 
   } catch (err) {
@@ -129,7 +158,11 @@ router.get('/filtered', auth, async (req, res) => {
     res.status(500).json({ 
       success: false,
       message: 'Fehler beim Abrufen der Statistiken',
-      error: err.message
+      error: err.message,
+      debug: {
+        errorType: err.name,
+        errorMessage: err.message
+      }
     });
   }
 });
