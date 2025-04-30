@@ -6,6 +6,7 @@ import PaymentModal from './PaymentModal';
 import 'react-toastify/dist/ReactToastify.css';
 
 const STORAGE_KEY = 'timeTracker';
+const LAST_PROJECT_KEY = 'lastProject';
 
 const TimeTracker = ({ onTimeEntrySaved }) => {
   const [isTracking, setIsTracking] = useState(false);
@@ -15,6 +16,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [lastSpokenCommand, setLastSpokenCommand] = useState('');
+  const [useLastProject, setUseLastProject] = useState(true);
   const [projectInfo, setProjectInfo] = useState({
     projectNumber: '',
     projectName: '',
@@ -24,6 +26,8 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
   // Lade gespeicherte Daten beim Start
   useEffect(() => {
     const savedData = localStorage.getItem(STORAGE_KEY);
+    const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
+    
     if (savedData) {
       const data = JSON.parse(savedData);
       setIsTracking(data.isTracking);
@@ -31,13 +35,15 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       setElapsedTime(data.elapsedTime);
       setProjectInfo(data.projectInfo);
       
-      // Wenn eine Zeitmessung läuft, berechne die verstrichene Zeit
       if (data.isTracking && data.startTime) {
         const newElapsedTime = Date.now() - data.startTime;
         setElapsedTime(newElapsedTime);
       }
+    } else if (lastProject && useLastProject) {
+      // Wenn keine aktive Zeiterfassung, aber ein letztes Projekt existiert
+      setProjectInfo(JSON.parse(lastProject));
     }
-  }, []);
+  }, [useLastProject]);
 
   // Speichere Daten bei Änderungen
   useEffect(() => {
@@ -106,8 +112,26 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
         setLastSpokenCommand(transcript);
 
+        // Projekt-Nummer aus Spracheingabe extrahieren
+        const projectNumberMatch = transcript.match(/projekt\s*(\d+)/i);
+        if (projectNumberMatch) {
+          const projectNumber = projectNumberMatch[1];
+          setProjectInfo(prev => ({
+            ...prev,
+            projectNumber: `PRJ-${projectNumber.padStart(3, '0')}`,
+            projectName: `Projekt ${projectNumber}`,
+            description: 'Per Sprache gestartet'
+          }));
+          toast.success(`Projekt ${projectNumber} ausgewählt`);
+          return;
+        }
+
         if (transcript.includes('start') || transcript.includes('beginn')) {
           if (!isTracking) {
+            if (!projectInfo.projectNumber && !useLastProject) {
+              toast.info('Bitte Projektnummer per Sprache angeben (z.B. "Projekt 1")');
+              return;
+            }
             handleStart();
             toast.info('Zeiterfassung per Sprache gestartet');
           }
@@ -115,6 +139,13 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
           if (isTracking) {
             handleStop();
             toast.info('Zeiterfassung per Sprache beendet');
+          }
+        } else if (transcript.includes('letztes projekt')) {
+          setUseLastProject(true);
+          const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
+          if (lastProject) {
+            setProjectInfo(JSON.parse(lastProject));
+            toast.success('Letztes Projekt geladen');
           }
         }
       };
@@ -145,7 +176,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     } else {
       toast.error('Spracherkennung wird in diesem Browser nicht unterstützt');
     }
-  }, [isTracking, isListening]);
+  }, [isTracking, isListening, useLastProject]);
 
   // Toggle Sprachsteuerung
   const toggleVoiceControl = () => {
@@ -159,6 +190,9 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       toast.warning('Bitte geben Sie Projektnummer und Projektname ein');
       return;
     }
+
+    // Speichere das aktuelle Projekt als letztes Projekt
+    localStorage.setItem(LAST_PROJECT_KEY, JSON.stringify(projectInfo));
 
     const newStartTime = Date.now() - elapsedTime;
     console.log('Zeiterfassung gestartet:', {
@@ -288,24 +322,39 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         Aktuelle Zeit: <span className="font-bold">{formatTime(elapsedTime)}</span>
       </p>
 
-      {/* Sprachsteuerung Button und Status - Neu positioniert */}
+      {/* Sprachsteuerung Button und Status */}
       <div className="flex flex-col items-center mb-6">
-        <button
-          onClick={toggleVoiceControl}
-          className={`w-full max-w-xs px-4 py-2 rounded-lg ${
-            isListening 
-              ? 'bg-red-500 hover:bg-red-600' 
-              : 'bg-blue-500 hover:bg-blue-600'
-          } text-white transition-colors flex items-center justify-center space-x-2 mb-2`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-          </svg>
-          <span>{isListening ? 'Sprachsteuerung deaktivieren' : 'Sprachsteuerung aktivieren'}</span>
-          {isListening && (
-            <span className="animate-pulse w-3 h-3 bg-white rounded-full"></span>
-          )}
-        </button>
+        <div className="flex space-x-2 w-full max-w-xs mb-2">
+          <button
+            onClick={toggleVoiceControl}
+            className={`flex-1 px-4 py-2 rounded-lg ${
+              isListening 
+                ? 'bg-red-500 hover:bg-red-600' 
+                : 'bg-blue-500 hover:bg-blue-600'
+            } text-white transition-colors flex items-center justify-center space-x-2`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+            </svg>
+            <span>{isListening ? 'Deaktivieren' : 'Aktivieren'}</span>
+            {isListening && (
+              <span className="animate-pulse w-3 h-3 bg-white rounded-full"></span>
+            )}
+          </button>
+          <button
+            onClick={() => setUseLastProject(!useLastProject)}
+            className={`px-4 py-2 rounded-lg ${
+              useLastProject 
+                ? 'bg-green-500 hover:bg-green-600' 
+                : 'bg-gray-500 hover:bg-gray-600'
+            } text-white transition-colors`}
+            title={useLastProject ? 'Letztes Projekt wird verwendet' : 'Neues Projekt eingeben'}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
         
         {isListening && (
           <div className="bg-blue-50 p-4 rounded-lg w-full">
@@ -318,6 +367,8 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
             <ul className="text-sm text-blue-600 list-disc list-inside">
               <li>"Start" oder "Beginn" - Zeiterfassung starten</li>
               <li>"Stop" oder "Ende" - Zeiterfassung beenden</li>
+              <li>"Projekt [Nummer]" - Projekt auswählen (z.B. "Projekt 1")</li>
+              <li>"Letztes Projekt" - Letztes Projekt laden</li>
             </ul>
             {lastSpokenCommand && (
               <p className="text-sm text-gray-600 mt-2">
@@ -330,18 +381,13 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
       {/* Projektinformationen */}
       <div className="space-y-4 mb-4">
-        <div>
+        <div className="flex items-center justify-between">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Projektnummer
           </label>
-          <input
-            type="text"
-            value={projectInfo.projectNumber}
-            onChange={(e) => setProjectInfo({ ...projectInfo, projectNumber: e.target.value })}
-            className="w-full p-2 border rounded-lg"
-            placeholder="z.B. PRJ-001"
-            disabled={isTracking}
-          />
+          {useLastProject && (
+            <span className="text-xs text-green-600">Letztes Projekt wird verwendet</span>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
