@@ -7,7 +7,7 @@ module.exports = {
   nodeEnv: process.env.NODE_ENV || 'development',
 
   // MongoDB Konfiguration
-  mongoUri: process.env.MONGO_URI || 'mongodb+srv://christianvonow:Freelancer2024@cluster0.iqxvxvz.mongodb.net/freelancer-app?retryWrites=true&w=majority',
+  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/freelancer-app',
   mongoOptions: {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
