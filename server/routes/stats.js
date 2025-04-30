@@ -22,171 +22,105 @@ const formatDuration = (seconds) => {
 // Gefilterte Statistiken abrufen
 router.get('/filtered', auth, async (req, res) => {
   try {
-    console.log('Statistik-Anfrage erhalten:', {
-      userId: req.user?._id,
-      query: req.query
-    });
-
-    if (!req.user || !req.user._id) {
-      throw new Error('Benutzer nicht authentifiziert');
+    // 1. Basis-Validierung
+    if (!req.user?._id) {
+      console.error('Kein Benutzer gefunden:', req.user);
+      return res.status(401).json({ message: 'Nicht authentifiziert' });
     }
 
-    const { startDate, endDate, groupBy = 'daily', project, tags } = req.query;
-    
-    // Filter erstellen
+    // 2. Parameter-Extraktion
+    const { startDate, endDate, groupBy = 'daily' } = req.query;
+    console.log('Parameter erhalten:', { startDate, endDate, groupBy });
+
+    // 3. Filter-Erstellung
     const filter = {
       userId: new mongoose.Types.ObjectId(req.user._id)
     };
 
-    if (startDate) {
-      filter.startTime = { $gte: new Date(startDate) };
-    }
-    if (endDate) {
-      filter.endTime = { $lte: new Date(endDate) };
-    }
-    if (project) {
-      filter.project = { $regex: project, $options: 'i' };
-    }
-    if (tags) {
-      filter.tags = { $in: tags.split(',') };
+    try {
+      if (startDate) filter.startTime = { $gte: new Date(startDate) };
+      if (endDate) filter.endTime = { $lte: new Date(endDate) };
+    } catch (dateError) {
+      console.error('Fehler bei der Datums-Konvertierung:', dateError);
+      return res.status(400).json({ message: 'Ungültiges Datumsformat' });
     }
 
-    console.log('Angewendeter Filter:', filter);
+    console.log('Filter erstellt:', filter);
 
-    // Aggregation Pipeline
+    // 4. Basis-Aggregation
     const pipeline = [
-      { $match: filter },
+      { 
+        $match: filter 
+      },
       {
         $group: {
           _id: {
-            date: {
-              $dateToString: {
-                format: groupBy === 'daily' ? '%Y-%m-%d' : 
-                       groupBy === 'weekly' ? '%Y-%U' : '%Y-%m',
-                date: '$startTime'
-              }
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$startTime'
             }
           },
           totalSeconds: { $sum: '$duration' },
-          totalEntries: { $sum: 1 },
-          projects: { $addToSet: '$project' },
-          entries: {
-            $push: {
-              startTime: '$startTime',
-              endTime: '$endTime',
-              duration: '$duration',
-              project: '$project',
-              description: '$description'
-            }
-          }
+          count: { $sum: 1 }
         }
       },
       {
         $project: {
           _id: 0,
-          date: '$_id.date',
-          totalSeconds: 1,
+          date: '$_id',
           totalHours: { 
             $round: [{ $divide: ['$totalSeconds', 3600] }, 2]
           },
           totalMinutes: { 
             $round: [{ $divide: ['$totalSeconds', 60] }, 0]
           },
-          totalEntries: 1,
-          averageMinutesPerEntry: {
-            $round: [
-              { $divide: [{ $divide: ['$totalSeconds', 60] }, '$totalEntries'] },
-              0
-            ]
-          },
-          projects: 1,
-          entries: {
-            $map: {
-              input: '$entries',
-              as: 'entry',
-              in: {
-                startTime: '$$entry.startTime',
-                endTime: '$$entry.endTime',
-                duration: '$$entry.duration',
-                durationFormatted: {
-                  $function: {
-                    body: formatDuration.toString(),
-                    args: ['$$entry.duration'],
-                    lang: 'js'
-                  }
-                },
-                project: '$$entry.project',
-                description: '$$entry.description'
-              }
-            }
-          }
+          count: 1
         }
       },
-      { $sort: { date: 1 } }
+      { 
+        $sort: { 
+          date: 1 
+        } 
+      }
     ];
 
-    console.log('Ausführe Aggregation Pipeline...');
-    const stats = await TimeEntry.aggregate(pipeline).exec();
-    console.log('Aggregation erfolgreich, Ergebnisse:', stats.length);
+    console.log('Pipeline erstellt, starte Aggregation...');
 
-    // Gesamtstatistiken berechnen
-    const totalStats = stats.reduce((acc, curr) => ({
-      totalSeconds: acc.totalSeconds + curr.totalSeconds,
-      totalEntries: acc.totalEntries + curr.totalEntries,
-      projects: [...new Set([...acc.projects, ...curr.projects])]
-    }), { totalSeconds: 0, totalEntries: 0, projects: [] });
+    // 5. Aggregation ausführen
+    const stats = await TimeEntry.aggregate(pipeline);
+    console.log('Aggregation abgeschlossen, Anzahl Ergebnisse:', stats.length);
 
+    // 6. Zusammenfassung erstellen
     const summary = {
-      totalHours: parseFloat((totalStats.totalSeconds / 3600).toFixed(2)),
-      totalMinutes: Math.round(totalStats.totalSeconds / 60),
-      totalSeconds: totalStats.totalSeconds,
-      totalEntries: totalStats.totalEntries,
-      averageMinutesPerEntry: totalStats.totalEntries > 0 
-        ? Math.round((totalStats.totalSeconds / 60) / totalStats.totalEntries)
-        : 0,
-      totalProjects: totalStats.projects.length,
-      durationFormatted: formatDuration(totalStats.totalSeconds),
+      totalEntries: stats.reduce((sum, day) => sum + day.count, 0),
+      totalHours: stats.reduce((sum, day) => sum + day.totalHours, 0),
+      totalMinutes: stats.reduce((sum, day) => sum + day.totalMinutes, 0),
+      daysTracked: stats.length,
       dateRange: {
         start: stats.length > 0 ? stats[0].date : null,
         end: stats.length > 0 ? stats[stats.length - 1].date : null
       }
     };
 
-    // CSV-Export
-    if (req.query.format === 'csv') {
-      const csv = [
-        ['Datum', 'Stunden', 'Minuten', 'Sekunden', 'Einträge', 'Durchschnitt (Min)', 'Projekte'],
-        ...stats.map(stat => [
-          stat.date,
-          stat.totalHours,
-          stat.totalMinutes,
-          stat.totalSeconds,
-          stat.totalEntries,
-          stat.averageMinutesPerEntry,
-          stat.projects.join('; ')
-        ])
-      ].map(row => row.join(',')).join('\n');
-
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=zeiterfassung-statistiken.csv');
-      return res.send(csv);
-    }
-
+    // 7. Antwort senden
     res.json({
+      success: true,
       stats,
       summary
     });
+
   } catch (err) {
-    console.error('Fehler in der Statistik-Route:', {
-      error: err.message,
+    console.error('Detaillierter Fehler in der Statistik-Route:', {
+      message: err.message,
       stack: err.stack,
       query: req.query,
       userId: req.user?._id
     });
     
     res.status(500).json({ 
+      success: false,
       message: 'Fehler beim Abrufen der Statistiken',
-      error: err.message 
+      error: err.message
     });
   }
 });
