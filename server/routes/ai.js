@@ -2,12 +2,26 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const TimeEntry = require('../models/TimeEntry');
+const { logger } = require('../utils/logger');
 
 // KI-Analyse der Aktivität
 router.post('/analyze', auth, async (req, res) => {
   try {
+    logger.info('KI-Analyse-Anfrage empfangen:', {
+      userId: req.user,
+      descriptionLength: req.body.description?.length || 0
+    });
+
     const { description } = req.body;
     
+    if (!description) {
+      logger.warn('Keine Beschreibung in der Anfrage');
+      return res.status(400).json({ 
+        error: 'Validierungsfehler',
+        message: 'Beschreibung ist erforderlich'
+      });
+    }
+
     // Hier würde die eigentliche KI-Analyse stattfinden
     // Für den Anfang simulieren wir die Analyse
     const suggestions = {
@@ -27,10 +41,28 @@ router.post('/analyze', auth, async (req, res) => {
       ]
     };
 
+    logger.info('KI-Analyse erfolgreich durchgeführt', {
+      userId: req.user,
+      suggestionsCount: {
+        categories: suggestions.categories.length,
+        tags: suggestions.tags.length,
+        projects: suggestions.similarProjects.length
+      }
+    });
+
     res.json(suggestions);
   } catch (error) {
-    console.error('Fehler bei der KI-Analyse:', error);
-    res.status(500).json({ message: 'Fehler bei der KI-Analyse' });
+    logger.error('Fehler bei der KI-Analyse:', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user
+    });
+    
+    res.status(500).json({ 
+      error: 'Serverfehler',
+      message: 'Fehler bei der KI-Analyse',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
