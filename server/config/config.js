@@ -24,7 +24,7 @@ module.exports = {
 
   // CORS Konfiguration
   corsOptions: {
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || 'https://freelancer-app-chi.vercel.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     exposedHeaders: ['X-Total-Count', 'X-Rate-Limit-Remaining'],
