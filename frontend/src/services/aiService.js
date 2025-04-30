@@ -1,25 +1,20 @@
 import api from './api';
+import { authService } from './auth';
 
 class AIService {
   async analyzeActivity(description) {
     try {
-      const token = localStorage.getItem('token');
+      // Token über den Auth-Service abrufen
+      const token = authService.getToken();
       
-      // Debug-Logging für Token-Status
       console.log('AI Service - Token Status:', {
         exists: !!token,
-        length: token?.length || 0,
+        valid: authService.isAuthenticated(),
         timestamp: new Date().toISOString()
       });
 
       if (!token) {
-        throw new Error('Kein Authentifizierungstoken gefunden');
-      }
-
-      // Validiere Token-Format
-      if (!token.match(/^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_.+/=]*$/)) {
-        console.error('AI Service - Ungültiges Token-Format');
-        throw new Error('Ungültiges Token-Format');
+        throw new Error('Kein gültiges Authentifizierungstoken gefunden');
       }
 
       // Explizite Request-Konfiguration
@@ -30,23 +25,15 @@ class AIService {
       };
 
       // Debug-Logging für Request-Headers
-      console.log('AI Service - Request Headers:', {
-        headers,
+      console.log('AI Service - Request Details:', {
         url: '/api/ai/analyze',
-        timestamp: new Date().toISOString()
-      });
-
-      // Erstelle Request-Body
-      const data = { description };
-
-      // Debug-Logging für Request-Body
-      console.log('AI Service - Request Body:', {
-        data,
+        headers,
+        description: description?.length || 0,
         timestamp: new Date().toISOString()
       });
 
       // Sende Request mit expliziten Optionen
-      const response = await api.post('/api/ai/analyze', data, { 
+      const response = await api.post('/api/ai/analyze', { description }, { 
         headers,
         validateStatus: function (status) {
           return status >= 200 && status < 300;
@@ -63,6 +50,13 @@ class AIService {
 
       return response.data;
     } catch (error) {
+      // Wenn der Token ungültig ist, Logout durchführen
+      if (error.response?.status === 401) {
+        console.warn('Token ungültig - Logout durchführen');
+        authService.logout();
+        window.location.href = '/login';
+      }
+
       // Erweitertes Error-Logging
       console.error('AI Service - Fehler:', {
         message: error.message,
