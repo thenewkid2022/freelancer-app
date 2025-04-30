@@ -7,37 +7,44 @@ class AIService {
       console.log('AI Service - Token Check:', {
         exists: !!token,
         length: token?.length || 0,
-        endpoint: '/api/ai/analyze'
+        endpoint: '/api/ai/analyze',
+        timestamp: new Date().toISOString()
       });
 
       if (!token) {
         throw new Error('Kein Authentifizierungstoken gefunden');
       }
 
-      // Explizit den Token im Header setzen
-      const headers = {
-        Authorization: `Bearer ${token}`
+      // Konfiguration für die Anfrage
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       };
 
       console.log('Sende KI-Analyse-Anfrage:', {
         url: '/api/ai/analyze',
         descriptionLength: description?.length || 0,
         hasToken: !!token,
-        headers
+        headerConfig: config.headers
       });
 
-      const response = await api.post('/api/ai/analyze', {
-        description
-      }, { headers });
+      const response = await api.post('/api/ai/analyze', { description }, config);
 
-      console.log('KI-Analyse erfolgreich:', response.data);
+      console.log('KI-Analyse erfolgreich:', {
+        status: response.status,
+        dataReceived: !!response.data
+      });
+      
       return response.data;
     } catch (error) {
       console.error('Fehler bei der KI-Analyse:', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
-        headers: error.config?.headers
+        requestConfig: error.config,
+        timestamp: new Date().toISOString()
       });
       throw error;
     }
