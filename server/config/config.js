@@ -15,13 +15,11 @@ module.exports = {
     minPoolSize: 5,
     retryWrites: true,
     w: 'majority',
-    wtimeoutMS: 2500,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+    wtimeoutMS: 2500
   },
 
   // JWT Konfiguration
-  jwtSecret: process.env.JWT_SECRET,
+  jwtSecret: process.env.JWT_SECRET || (process.env.NODE_ENV === 'development' ? 'development_secret' : null),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
 
   // CORS Konfiguration
