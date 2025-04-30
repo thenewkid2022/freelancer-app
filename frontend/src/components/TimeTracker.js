@@ -4,6 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { ClipLoader } from 'react-spinners';
 import PaymentModal from './PaymentModal';
 import 'react-toastify/dist/ReactToastify.css';
+import AIFeatures from './AIFeatures';
 
 const STORAGE_KEY = 'timeTracker';
 const LAST_PROJECT_KEY = 'lastProject';
@@ -500,6 +501,32 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     }
   }, [isListening]);
 
+  const handleSuggestionAccepted = (suggestion) => {
+    switch (suggestion.type) {
+      case 'category':
+        setProjectInfo(prev => ({
+          ...prev,
+          category: suggestion.value
+        }));
+        break;
+      case 'tag':
+        setProjectInfo(prev => ({
+          ...prev,
+          tags: [...(prev.tags || []), suggestion.value]
+        }));
+        break;
+      case 'project':
+        setProjectInfo(prev => ({
+          ...prev,
+          projectNumber: suggestion.value.projectNumber,
+          projectName: suggestion.value.name
+        }));
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div className="bg-white shadow-lg rounded-lg p-6 mb-6 max-w-md mx-auto">
       <ToastContainer
@@ -694,6 +721,12 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         visible={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         amount={25.00} // Beispielbetrag - hier können Sie Ihre eigene Logik zur Berechnung des Betrags einbauen
+      />
+
+      {/* KI-Funktionen */}
+      <AIFeatures
+        projectInfo={projectInfo}
+        onSuggestionAccepted={handleSuggestionAccepted}
       />
     </div>
   );
