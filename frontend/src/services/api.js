@@ -2,7 +2,7 @@ import axios from 'axios';
 import { authService } from './auth';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
+  baseURL: 'https://freelancer-app-chi.vercel.app/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
