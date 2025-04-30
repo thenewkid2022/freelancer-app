@@ -25,16 +25,25 @@ router.get('/filtered', auth, async (req, res) => {
     // 1. Basis-Validierung
     if (!req.user?._id) {
       console.error('Kein Benutzer gefunden:', req.user);
-      return res.status(401).json({ message: 'Nicht authentifiziert' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Nicht authentifiziert',
+        debug: { user: req.user }
+      });
     }
 
     // 2. Parameter-Extraktion
     const { startDate, endDate, groupBy = 'daily' } = req.query;
-    console.log('Parameter erhalten:', { startDate, endDate, groupBy });
+    console.log('Parameter erhalten:', { 
+      startDate, 
+      endDate, 
+      groupBy,
+      userId: req.user._id 
+    });
 
     // 3. Filter-Erstellung
     const filter = {
-      userId: new mongoose.Types.ObjectId(req.user._id)
+      userId: req.user._id  // Hier keine Konvertierung mehr nötig
     };
 
     try {

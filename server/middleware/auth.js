@@ -37,9 +37,11 @@ const auth = (req, res, next) => {
       iat: new Date(decoded.iat * 1000).toISOString()
     });
 
-    // User-ID im Request-Objekt speichern
-    req.user = decoded.userId;
-    console.log('Gespeicherte User ID:', req.user);
+    // User-Objekt im Request-Objekt speichern
+    req.user = {
+      _id: decoded.userId
+    };
+    console.log('Gespeichertes User-Objekt:', req.user);
     next();
   } catch (err) {
     console.error('Auth Middleware Fehler:', {
