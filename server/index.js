@@ -16,6 +16,7 @@ const { register, requestMetricsMiddleware } = require('./utils/monitoring');
 const { healthCheckMiddleware } = require('./utils/healthCheck');
 const { monitorMetrics } = require('./utils/alerting');
 const paymentRoutes = require('./routes/payment');
+const aiRoutes = require('./routes/ai');
 require('dotenv').config();
 
 const app = express();
@@ -77,6 +78,7 @@ app.use('/api/time-entries', timeEntriesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/time-entries/stats', statsRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Error Handler
 app.use(errorHandler);

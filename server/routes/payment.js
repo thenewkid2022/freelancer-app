@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Temporär deaktiviert für Entwicklung
+// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const authenticateToken = require('../middleware/auth');
 
 // Handler für die Planauswahl
