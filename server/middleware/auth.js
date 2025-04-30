@@ -41,16 +41,17 @@ const auth = (req, res, next) => {
       containsSpaces: token.includes(' ')
     });
 
-    // Strikter JWT Secret Check
+    // JWT Secret Check
     if (!process.env.JWT_SECRET) {
       console.error('JWT_SECRET nicht in Umgebungsvariablen gefunden');
+      console.log('Verfügbare Umgebungsvariablen:', Object.keys(process.env));
       return res.status(500).json({
         error: 'Serverfehler',
-        details: 'Authentifizierungskonfiguration fehlerhaft'
+        details: 'Authentifizierungskonfiguration unvollständig'
       });
     }
 
-    // Token verifizieren mit strikt definiertem Secret
+    // Token verifizieren
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       console.log('Token erfolgreich decodiert:', {
@@ -60,7 +61,6 @@ const auth = (req, res, next) => {
         timeUntilExpiration: Math.floor((decoded.exp * 1000 - Date.now()) / 1000) + ' Sekunden'
       });
 
-      // User-Objekt im Request-Objekt speichern
       req.user = decoded.userId;
       next();
     } catch (jwtError) {

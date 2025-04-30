@@ -7,9 +7,15 @@ const auth = require('../middleware/auth');
 const { validateUser, validateAuth } = require('../middleware/validator');
 require('dotenv').config();
 
-// Strikter JWT Secret Check
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET Umgebungsvariable ist nicht gesetzt');
+// JWT Secret Check
+console.log('Checking JWT_SECRET environment variable:', {
+  isDefined: !!process.env.JWT_SECRET,
+  length: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0,
+  environment: process.env.NODE_ENV
+});
+
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('WARNING: JWT_SECRET is not set in production environment');
 }
 
 // Registrierung
