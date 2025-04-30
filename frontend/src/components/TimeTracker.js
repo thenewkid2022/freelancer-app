@@ -13,6 +13,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [projectInfo, setProjectInfo] = useState({
     projectNumber: '',
     projectName: '',
@@ -87,6 +88,56 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       }
     };
   }, [isTracking, startTime]);
+
+  // Speech Recognition Setup
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new window.webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'de-DE';
+
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('')
+          .toLowerCase();
+
+        if (transcript.includes('start') || transcript.includes('beginn')) {
+          if (!isTracking) {
+            handleStart();
+            toast.info('Zeiterfassung per Sprache gestartet');
+          }
+        } else if (transcript.includes('stop') || transcript.includes('ende')) {
+          if (isTracking) {
+            handleStop();
+            toast.info('Zeiterfassung per Sprache beendet');
+          }
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Spracherkennungsfehler:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        if (isListening) {
+          recognition.start();
+        }
+      };
+
+      return () => {
+        recognition.stop();
+      };
+    }
+  }, [isTracking, isListening]);
+
+  // Toggle Sprachsteuerung
+  const toggleVoiceControl = () => {
+    setIsListening(!isListening);
+    toast.info(isListening ? 'Sprachsteuerung deaktiviert' : 'Sprachsteuerung aktiviert');
+  };
 
   // Start-Button Handler
   const handleStart = () => {
@@ -221,6 +272,31 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         Aktuelle Zeit: <span className="font-bold">{formatTime(elapsedTime)}</span>
       </p>
       
+      {/* Sprachsteuerung Button */}
+      <div className="flex justify-center mb-4">
+        <button
+          onClick={toggleVoiceControl}
+          className={`px-4 py-2 rounded-lg ${
+            isListening 
+              ? 'bg-red-500 hover:bg-red-600' 
+              : 'bg-blue-500 hover:bg-blue-600'
+          } text-white transition-colors`}
+        >
+          {isListening ? 'Sprachsteuerung deaktivieren' : 'Sprachsteuerung aktivieren'}
+        </button>
+      </div>
+
+      {/* Sprachsteuerung Anleitung */}
+      {isListening && (
+        <div className="bg-blue-50 p-4 rounded-lg mb-4">
+          <p className="text-sm text-blue-800">
+            Sprachbefehle: <br />
+            - "Start" oder "Beginn" zum Starten <br />
+            - "Stop" oder "Ende" zum Beenden
+          </p>
+        </div>
+      )}
+
       {/* Projektinformationen */}
       <div className="space-y-4 mb-4">
         <div>
