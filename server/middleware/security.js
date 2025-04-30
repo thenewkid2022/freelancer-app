@@ -1,6 +1,5 @@
 const express = require('express');
 const helmet = require('helmet');
-const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const config = require('../config/config');
 
@@ -33,9 +32,6 @@ const securityMiddleware = [
     referrerPolicy: { policy: "strict-origin-when-cross-origin" },
     xssFilter: true
   }),
-
-  // CORS-Konfiguration
-  cors(config.corsOptions),
 
   // Body Parser mit Größenbeschränkung
   express.json({ limit: '10kb' }),

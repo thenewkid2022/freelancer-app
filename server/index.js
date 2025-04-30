@@ -63,14 +63,7 @@ const startServer = async () => {
     
     const app = express();
     
-    // Basis-Middleware
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
-
-    // Sicherheits-Middleware
-    app.use(securityMiddleware);
-
-    // CORS-Konfiguration
+    // CORS-Konfiguration (muss vor allen anderen Middlewares kommen)
     app.use(cors({
       origin: process.env.CORS_ORIGIN || 'https://freelancer-app-chi.vercel.app',
       credentials: true,
@@ -78,12 +71,16 @@ const startServer = async () => {
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
       exposedHeaders: ['Content-Length', 'X-Requested-With'],
       maxAge: 86400,
-      preflightContinue: true,
-      optionsSuccessStatus: 200
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     }));
 
-    // OPTIONS-Handler für CORS-Preflight
-    app.options('*', cors());
+    // Basis-Middleware
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+
+    // Sicherheits-Middleware
+    app.use(securityMiddleware);
 
     // Rate Limiting
     app.use('/api/auth', authLimiter);
