@@ -1,0 +1,310 @@
+import { Router, Request, Response, NextFunction } from 'express';
+import { auth, requireRole } from '../middleware/auth';
+import { validateRequest } from '../middleware/validation';
+import { z } from 'zod';
+import { TimeEntry, TimeEntryDocument } from '../models/TimeEntry';
+import { NotFoundError, ForbiddenError } from '../utils/errors';
+
+const router = Router();
+
+// Validierungsschemas
+const createTimeEntrySchema = z.object({
+  body: z.object({
+    project: z.string().min(1, 'Projekt ist erforderlich'),
+    description: z.string().min(1, 'Beschreibung ist erforderlich'),
+    startTime: z.string().datetime(),
+    endTime: z.string().datetime().optional(),
+    hourlyRate: z.number().min(0, 'Stundensatz muss positiv sein'),
+    tags: z.array(z.string()).optional()
+  })
+});
+
+const updateTimeEntrySchema = z.object({
+  params: z.object({
+    id: z.string()
+  }),
+  body: z.object({
+    project: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
+    startTime: z.string().datetime().optional(),
+    endTime: z.string().datetime().optional(),
+    hourlyRate: z.number().min(0).optional(),
+    status: z.enum(['pending', 'approved', 'rejected']).optional(),
+    tags: z.array(z.string()).optional()
+  })
+});
+
+/**
+ * @swagger
+ * /api/time-entries:
+ *   post:
+ *     tags: [TimeEntries]
+ *     summary: Erstellt einen neuen Zeiteintrag
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - project
+ *               - description
+ *               - startTime
+ *               - hourlyRate
+ *             properties:
+ *               project:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               startTime:
+ *                 type: string
+ *                 format: date-time
+ *               endTime:
+ *                 type: string
+ *                 format: date-time
+ *               hourlyRate:
+ *                 type: number
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Zeiteintrag erfolgreich erstellt
+ *       400:
+ *         description: Validierungsfehler
+ *       401:
+ *         description: Nicht authentifiziert
+ */
+router.post('/', 
+  auth, 
+  requireRole(['freelancer']),
+  validateRequest(createTimeEntrySchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new ForbiddenError('Nicht authentifiziert');
+      }
+
+      const timeEntry = await TimeEntry.create({
+        ...req.body,
+        freelancer: req.user._id,
+        status: 'pending'
+      });
+      res.status(201).json(timeEntry);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/time-entries:
+ *   get:
+ *     tags: [TimeEntries]
+ *     summary: Gibt alle Zeiteinträge des Benutzers zurück
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Liste der Zeiteinträge
+ *       401:
+ *         description: Nicht authentifiziert
+ */
+router.get('/',
+  auth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new ForbiddenError('Nicht authentifiziert');
+      }
+
+      const query: any = {};
+      
+      if (req.user.role === 'freelancer') {
+        query.freelancer = req.user._id;
+      } else if (req.user.role === 'client') {
+        query.client = req.user._id;
+      }
+
+      if (req.query.status) {
+        query.status = req.query.status;
+      }
+
+      if (req.query.startDate || req.query.endDate) {
+        query.startTime = {};
+        if (req.query.startDate) {
+          query.startTime.$gte = new Date(req.query.startDate as string);
+        }
+        if (req.query.endDate) {
+          query.startTime.$lte = new Date(req.query.endDate as string);
+        }
+      }
+
+      const timeEntries = await TimeEntry.find(query)
+        .sort({ startTime: -1 })
+        .populate('freelancer', 'name email')
+        .populate('client', 'name email');
+
+      res.json(timeEntries);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/time-entries/{id}:
+ *   put:
+ *     tags: [TimeEntries]
+ *     summary: Aktualisiert einen Zeiteintrag
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               project:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               startTime:
+ *                 type: string
+ *                 format: date-time
+ *               endTime:
+ *                 type: string
+ *                 format: date-time
+ *               hourlyRate:
+ *                 type: number
+ *               status:
+ *                 type: string
+ *                 enum: [pending, approved, rejected]
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Zeiteintrag erfolgreich aktualisiert
+ *       400:
+ *         description: Validierungsfehler
+ *       401:
+ *         description: Nicht authentifiziert
+ *       403:
+ *         description: Keine Berechtigung
+ *       404:
+ *         description: Zeiteintrag nicht gefunden
+ */
+router.put('/:id',
+  auth,
+  validateRequest(updateTimeEntrySchema),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new ForbiddenError('Nicht authentifiziert');
+      }
+
+      const timeEntry = await TimeEntry.findById(req.params.id) as TimeEntryDocument;
+      
+      if (!timeEntry) {
+        throw new NotFoundError('Zeiteintrag nicht gefunden');
+      }
+
+      if (req.user.role === 'freelancer' && timeEntry.freelancer.toString() !== req.user._id.toString()) {
+        throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
+      }
+
+      if (req.user.role === 'client' && timeEntry.client.toString() !== req.user._id.toString()) {
+        throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
+      }
+
+      Object.assign(timeEntry, req.body);
+      await timeEntry.save();
+
+      res.json(timeEntry);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/time-entries/{id}:
+ *   delete:
+ *     tags: [TimeEntries]
+ *     summary: Löscht einen Zeiteintrag
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Zeiteintrag erfolgreich gelöscht
+ *       401:
+ *         description: Nicht authentifiziert
+ *       403:
+ *         description: Keine Berechtigung
+ *       404:
+ *         description: Zeiteintrag nicht gefunden
+ */
+router.delete('/:id',
+  auth,
+  requireRole(['freelancer']),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new ForbiddenError('Nicht authentifiziert');
+      }
+
+      const timeEntry = await TimeEntry.findById(req.params.id) as TimeEntryDocument;
+      
+      if (!timeEntry) {
+        throw new NotFoundError('Zeiteintrag nicht gefunden');
+      }
+
+      if (timeEntry.freelancer.toString() !== req.user._id.toString()) {
+        throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
+      }
+
+      await timeEntry.deleteOne();
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+export default router; 

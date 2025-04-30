@@ -1,0 +1,77 @@
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { Box } from '@mui/material';
+import Navbar from '@components/Navbar';
+import PrivateRoute from '@components/PrivateRoute';
+import Login from '@components/auth/Login';
+import Register from '@components/auth/Register';
+import Dashboard from '@components/Dashboard';
+import TimeTracker from '@components/TimeTracker';
+import TimeEntries from '@components/TimeEntries';
+import Payments from '@components/Payments';
+import Statistics from '@components/Statistics';
+import Profile from '@components/Profile';
+
+const App: React.FC = () => {
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Navbar />
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/time-tracker"
+            element={
+              <PrivateRoute>
+                <TimeTracker />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/time-entries"
+            element={
+              <PrivateRoute>
+                <TimeEntries />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/payments"
+            element={
+              <PrivateRoute>
+                <Payments />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/statistics"
+            element={
+              <PrivateRoute>
+                <Statistics />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </Box>
+    </Box>
+  );
+};
+
+export default App; 

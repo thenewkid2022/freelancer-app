@@ -23,17 +23,17 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     
-    - name: Install Dependencies
+    - name: Install Backend Dependencies
       run: |
         cd server
         npm ci
     
-    - name: Run Linting
+    - name: Run Backend Linting
       run: |
         cd server
         npm run lint
     
-    - name: Run Tests
+    - name: Run Backend Tests
       run: |
         cd server
         npm test
@@ -42,7 +42,22 @@ jobs:
         MONGO_URI: mongodb://localhost:27017/freelancer-test
         JWT_SECRET: test-secret
 
-  deploy:
+    - name: Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Run Frontend Linting
+      run: |
+        cd frontend
+        npm run lint
+    
+    - name: Run Frontend Tests
+      run: |
+        cd frontend
+        npm test
+
+  build:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -56,7 +71,41 @@ jobs:
         node-version: '18.x'
         cache: 'npm'
     
-    - name: Install Dependencies
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm ci
+        npm run build
+      env:
+        REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+    
+    - name: Upload Frontend Build
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download Frontend Build
+      uses: actions/download-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend/build
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+    
+    - name: Install Backend Dependencies
       run: |
         cd server
         npm ci
