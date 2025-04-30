@@ -29,7 +29,12 @@ api.interceptors.request.use(
     
     // Stelle sicher, dass die URL korrekt formatiert ist
     if (!config.url.startsWith('/')) {
-      config.url = '/api/' + config.url;
+      config.url = '/' + config.url;
+    }
+    
+    // Füge /api nur hinzu, wenn es nicht bereits vorhanden ist
+    if (!config.url.startsWith('/api/') && !config.url.includes('/api/')) {
+      config.url = '/api' + config.url;
     }
     
     // Debug-Logging für jeden Request
