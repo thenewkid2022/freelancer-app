@@ -25,7 +25,7 @@ router.get('/filtered', auth, async (req, res) => {
     
     // Filter erstellen
     const filter = {
-      userId: mongoose.Types.ObjectId(req.user._id)
+      userId: new mongoose.Types.ObjectId(req.user._id)
     };
 
     if (startDate) {
