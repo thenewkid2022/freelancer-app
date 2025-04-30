@@ -7,16 +7,19 @@ const auth = (req, res, next) => {
     console.log('Auth Middleware - Eingehende Anfrage:', {
       method: req.method,
       path: req.path,
+      origin: req.headers.origin,
+      host: req.headers.host,
       headers: {
         ...req.headers,
         authorization: req.headers.authorization ? 'Bearer [FILTERED]' : undefined
-      }
+      },
+      timestamp: new Date().toISOString()
     });
 
     // Token aus dem Authorization Header extrahieren
     const authHeader = req.header('Authorization');
     if (!authHeader) {
-      console.log('Kein Authorization Header gefunden');
+      console.log('Kein Authorization Header gefunden - Verfügbare Header:', Object.keys(req.headers));
       return res.status(401).json({ 
         error: 'Authentifizierungsfehler',
         details: 'Kein Authorization Header'
