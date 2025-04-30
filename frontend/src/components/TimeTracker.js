@@ -112,6 +112,27 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
   // Start-Button Handler
   const handleStart = useCallback(() => {
+    // Wenn useLastProject aktiv ist und kein Projekt geladen wurde, versuche das letzte Projekt zu laden
+    if (useLastProject && (!projectInfo.projectNumber || !projectInfo.projectName)) {
+      const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
+      if (lastProject) {
+        const savedProject = JSON.parse(lastProject);
+        setProjectInfo(savedProject);
+        // Führe handleStart erneut aus, nachdem das Projekt geladen wurde
+        setTimeout(() => {
+          if (savedProject.projectNumber && savedProject.projectName) {
+            const newStartTime = Date.now() - elapsedTime;
+            setIsTracking(true);
+            setStartTime(newStartTime);
+            toast.success('Zeiterfassung gestartet');
+          } else {
+            toast.warning('Bitte geben Sie Projektnummer und Projektname ein');
+          }
+        }, 0);
+        return;
+      }
+    }
+
     if (!projectInfo.projectNumber || !projectInfo.projectName) {
       toast.warning('Bitte geben Sie Projektnummer und Projektname ein');
       return;
@@ -128,7 +149,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     setIsTracking(true);
     setStartTime(newStartTime);
     toast.success('Zeiterfassung gestartet');
-  }, [projectInfo, elapsedTime]);
+  }, [projectInfo, elapsedTime, useLastProject]);
 
   // Stop-Button Handler
   const handleStop = useCallback(async () => {
