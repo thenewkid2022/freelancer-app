@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 const aiRoutes = require('./routes/ai');
 
@@ -14,6 +15,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Logging Middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
 // Health Check Route
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
@@ -22,12 +29,20 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/ai', aiRoutes);
 
+// Serve static files from the React app in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/build')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+  });
+}
+
 // Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Ein Fehler ist aufgetreten',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  console.error(`${new Date().toISOString()} - Error:`, err);
+  res.status(err.status || 500).json({ 
+    message: process.env.NODE_ENV === 'production' ? 'Ein Fehler ist aufgetreten' : err.message,
+    error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });
 
@@ -35,4 +50,6 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server läuft auf Port ${PORT}`);
-}); 
+});
+
+module.exports = app; 
