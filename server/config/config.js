@@ -24,34 +24,13 @@ module.exports = {
 
   // CORS Konfiguration
   corsOptions: {
-    origin: function(origin, callback) {
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:3002',
-        'https://freelancer-app-chi.vercel.app',
-        process.env.CLIENT_URL,
-        process.env.ADMIN_URL
-      ].filter(Boolean);
-      
-      // Erlaube Requests ohne Origin (z.B. mobile Apps oder Postman)
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        logger.warn(`CORS-Blockierung für Origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     exposedHeaders: ['X-Total-Count', 'X-Rate-Limit-Remaining'],
     credentials: true,
     maxAge: 86400,
-    optionsSuccessStatus: 200,
+    optionsSuccessStatus: 204,
     preflightContinue: false
   },
 
