@@ -19,40 +19,43 @@ const paymentRoutes = require('./routes/payment');
 const aiRoutes = require('./routes/ai');
 require('dotenv').config();
 
-// Verbesserte Umgebungsvariablen-Überprüfung
-const checkEnvVars = (retries = 3, delay = 1000) => {
-  return new Promise((resolve, reject) => {
-    const check = (attempt) => {
-      const jwtSecret = process.env.JWT_SECRET;
-      const mongoUri = process.env.MONGODB_URI;
-      
-      logger.info('Umgebungsvariablen-Status:', {
-        jwtSecretDefined: !!jwtSecret,
-        mongoUriDefined: !!mongoUri,
-        environment: process.env.NODE_ENV,
-        attempt: attempt
-      });
+// Umgebungsvariablen überprüfen
+const checkEnvVars = async () => {
+  const requiredVars = ['JWT_SECRET', 'MONGODB_URI'];
+  const missingVars = requiredVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    throw new Error(`Fehlende Umgebungsvariablen: ${missingVars.join(', ')}`);
+  }
+  
+  logger.info('Alle erforderlichen Umgebungsvariablen sind vorhanden');
+};
 
-      if (jwtSecret && mongoUri) {
-        logger.info('✅ Alle kritischen Umgebungsvariablen sind verfügbar');
-        resolve(true);
-      } else if (attempt < retries) {
-        logger.warn(`⚠️ Warte auf Umgebungsvariablen (Versuch ${attempt}/${retries})...`);
-        setTimeout(() => check(attempt + 1), delay);
-      } else {
-        logger.error('❌ Kritische Umgebungsvariablen nicht verfügbar nach mehreren Versuchen');
-        if (process.env.NODE_ENV === 'production') {
-          logger.error('Server wird in Produktionsumgebung ohne kritische Umgebungsvariablen gestartet!');
-          process.exit(1);
-        } else {
-          logger.warn('⚠️ Server startet im Entwicklungsmodus ohne alle Umgebungsvariablen');
-          resolve(false);
-        }
+// Port-Konfiguration
+const PORT = process.env.PORT || 5000;
+
+// Swagger-Konfiguration
+const swaggerOptions = {
+  explorer: true,
+  swaggerOptions: {
+    urls: [
+      {
+        url: '/swagger.json',
+        name: 'Spec'
       }
-    };
-    
-    check(1);
-  });
+    ]
+  }
+};
+
+// MongoDB-Verbindung herstellen
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, config.mongoOptions);
+    logger.info('MongoDB erfolgreich verbunden');
+  } catch (err) {
+    logger.error('MongoDB Verbindungsfehler:', err);
+    process.exit(1);
+  }
 };
 
 // Async Server-Start
@@ -62,6 +65,12 @@ const startServer = async () => {
     await checkEnvVars();
     
     const app = express();
+
+    // Debug-Logging für CORS-Konfiguration
+    logger.debug('CORS-Konfiguration:', {
+      origin: process.env.CORS_ORIGIN || 'https://freelancer-app-chi.vercel.app',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+    });
     
     // CORS-Konfiguration (muss vor allen anderen Middlewares kommen)
     app.use(cors({
@@ -70,14 +79,22 @@ const startServer = async () => {
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
       exposedHeaders: ['Content-Length', 'X-Requested-With'],
-      maxAge: 86400,
-      preflightContinue: false,
-      optionsSuccessStatus: 204
+      maxAge: 86400
     }));
+
+    // OPTIONS Preflight Handler
+    app.options('*', cors());
 
     // Basis-Middleware
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+
+    // Swagger API-Dokumentation
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, swaggerOptions));
+    app.get('/swagger.json', (req, res) => {
+      res.setHeader('Content-Type', 'application/json');
+      res.send(swaggerSpecs);
+    });
 
     // Sicherheits-Middleware
     app.use(securityMiddleware);
@@ -111,76 +128,14 @@ const startServer = async () => {
     app.use(errorHandler);
 
     // MongoDB-Verbindung
-    logger.info('Versuche Verbindung mit MongoDB aufzubauen...');
-    logger.debug('MongoDB URI:', config.mongoUri ? 'URI vorhanden' : 'URI fehlt');
-    logger.debug('MongoDB Verbindungsoptionen:', config.mongoOptions);
-
-    const connectWithRetry = () => {
-      mongoose.connect(config.mongoUri, config.mongoOptions)
-        .then(() => {
-          logger.info('✅ MongoDB erfolgreich verbunden');
-          logger.debug('Verbindungsstatus:', mongoose.connection.readyState);
-          logger.debug('Datenbank:', mongoose.connection.name);
-          logger.debug('Host:', mongoose.connection.host);
-        })
-        .catch((err) => {
-          logger.error('❌ MongoDB Verbindungsfehler:', {
-            error: err.message,
-            stack: err.stack,
-            code: err.code
-          });
-          logger.info('Versuche in 5 Sekunden erneut zu verbinden...');
-          setTimeout(connectWithRetry, 5000);
-        });
-    };
-
-    connectWithRetry();
-
-    // Verbindungsereignisse
-    mongoose.connection.on('disconnected', () => {
-      logger.warn('MongoDB Verbindung verloren. Versuche erneut zu verbinden...');
-      setTimeout(connectWithRetry, 5000);
-    });
-
-    mongoose.connection.on('error', (err) => {
-      logger.error('MongoDB Verbindungsfehler:', err);
-    });
-
-    // Regelmäßige Health Checks und Metriken-Überwachung
-    setInterval(async () => {
-      try {
-        // Memory-Überwachung
-        const memoryUsage = process.memoryUsage();
-        const heapUsedPercentage = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
-        monitorMetrics.memory(heapUsedPercentage);
-
-        // Datenbank-Überwachung
-        const start = Date.now();
-        await mongoose.connection.db.admin().ping();
-        const latency = Date.now() - start;
-        monitorMetrics.database(latency);
-
-        // Fehlerrate-Überwachung
-        const errorRate = 0; // Hier würde die tatsächliche Fehlerrate berechnet werden
-        monitorMetrics.errorRate(errorRate);
-      } catch (error) {
-        logger.error('Fehler bei der Metriken-Überwachung:', error);
-      }
-    }, 60000); // Alle 60 Sekunden
+    await connectDB();
 
     // Server starten
-    const PORT = process.env.PORT || 10000;
     app.listen(PORT, '0.0.0.0', () => {
       logger.info(`🚀 Server läuft auf Port ${PORT}`);
       logger.info(`📚 API-Dokumentation verfügbar unter http://localhost:${PORT}/api-docs`);
       logger.info(`🔍 Health Check verfügbar unter http://localhost:${PORT}/health`);
       logger.info(`📊 Metriken verfügbar unter http://localhost:${PORT}/metrics`);
-      logger.debug('Server-Status:', {
-        nodeVersion: process.version,
-        platform: process.platform,
-        memoryUsage: process.memoryUsage(),
-        uptime: process.uptime()
-      });
     });
   } catch (error) {
     logger.error('Fehler beim Serverstart:', error);
