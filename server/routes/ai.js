@@ -3,14 +3,31 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const TimeEntry = require('../models/TimeEntry');
 const { logger } = require('../utils/logger');
+const User = require('../models/User');
 
 // KI-Analyse der Aktivität
 router.post('/analyze', auth, async (req, res) => {
   try {
+    const userId = req.user;
+    
     logger.info('KI-Analyse-Anfrage empfangen:', {
-      userId: req.user,
-      descriptionLength: req.body.description?.length || 0
+      userId,
+      descriptionLength: req.body.description?.length || 0,
+      headers: {
+        authorization: req.headers.authorization ? 'Present' : 'Missing',
+        contentType: req.headers['content-type']
+      }
     });
+
+    // Überprüfe ob der Benutzer existiert
+    const user = await User.findById(userId);
+    if (!user) {
+      logger.warn('Benutzer nicht gefunden:', { userId });
+      return res.status(404).json({
+        error: 'Benutzer nicht gefunden',
+        message: 'Der authentifizierte Benutzer existiert nicht in der Datenbank'
+      });
+    }
 
     const { description } = req.body;
     
@@ -42,7 +59,7 @@ router.post('/analyze', auth, async (req, res) => {
     };
 
     logger.info('KI-Analyse erfolgreich durchgeführt', {
-      userId: req.user,
+      userId,
       suggestionsCount: {
         categories: suggestions.categories.length,
         tags: suggestions.tags.length,
@@ -55,7 +72,7 @@ router.post('/analyze', auth, async (req, res) => {
     logger.error('Fehler bei der KI-Analyse:', {
       error: error.message,
       stack: error.stack,
-      userId: req.user
+      userId
     });
     
     res.status(500).json({ 

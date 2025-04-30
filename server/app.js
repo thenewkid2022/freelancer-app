@@ -8,6 +8,9 @@ const config = require('./config/config');
 
 const app = express();
 
+// Trust proxy setup für Cloudflare und Render
+app.set('trust proxy', true);
+
 // Middleware
 app.use(cors(config.corsOptions));
 app.use(express.json());

@@ -4,19 +4,31 @@ class AIService {
   async analyzeActivity(description) {
     try {
       const token = localStorage.getItem('token');
+      console.log('AI Service - Token Check:', {
+        exists: !!token,
+        length: token?.length || 0,
+        endpoint: '/api/ai/analyze'
+      });
+
       if (!token) {
         throw new Error('Kein Authentifizierungstoken gefunden');
       }
 
+      // Explizit den Token im Header setzen
+      const headers = {
+        Authorization: `Bearer ${token}`
+      };
+
       console.log('Sende KI-Analyse-Anfrage:', {
         url: '/api/ai/analyze',
         descriptionLength: description?.length || 0,
-        hasToken: !!token
+        hasToken: !!token,
+        headers
       });
 
       const response = await api.post('/api/ai/analyze', {
         description
-      });
+      }, { headers });
 
       console.log('KI-Analyse erfolgreich:', response.data);
       return response.data;
@@ -24,7 +36,8 @@ class AIService {
       console.error('Fehler bei der KI-Analyse:', {
         message: error.message,
         status: error.response?.status,
-        data: error.response?.data
+        data: error.response?.data,
+        headers: error.config?.headers
       });
       throw error;
     }
