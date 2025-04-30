@@ -68,7 +68,7 @@ export const authService = {
   // Registrierung
   register: async (userData) => {
     try {
-      const response = await api.post('/api/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       return response.data;
     } catch (error) {
       console.error('Registration error:', {
@@ -111,7 +111,7 @@ export const authService = {
         throw new Error('Kein gültiges Token vorhanden');
       }
 
-      const response = await api.get('/api/auth/profile');
+      const response = await api.get('/auth/profile');
       return response.data;
     } catch (error) {
       console.error('Profil-Abruf-Fehler:', {
@@ -126,7 +126,7 @@ export const authService = {
   // Profil aktualisieren
   updateProfile: async (userData) => {
     try {
-      const response = await api.put('/api/auth/profile', userData);
+      const response = await api.put('/auth/profile', userData);
       return response.data;
     } catch (error) {
       console.error('Profile update error:', {
@@ -141,7 +141,7 @@ export const authService = {
   // Passwort ändern
   changePassword: async (currentPassword, newPassword) => {
     try {
-      const response = await api.put('/api/auth/change-password', {
+      const response = await api.put('/auth/change-password', {
         currentPassword,
         newPassword
       });
