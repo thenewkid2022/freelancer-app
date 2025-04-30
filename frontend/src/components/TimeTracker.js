@@ -17,14 +17,14 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
   const [isListening, setIsListening] = useState(false);
   const [lastSpokenCommand, setLastSpokenCommand] = useState('');
   const [useLastProject, setUseLastProject] = useState(true);
+  const [isInDialog, setIsInDialog] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [waitingForAnswer, setWaitingForAnswer] = useState(false);
   const [projectInfo, setProjectInfo] = useState({
     projectNumber: '',
     projectName: '',
     description: ''
   });
-  const [isInDialog, setIsInDialog] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState('');
-  const [waitingForAnswer, setWaitingForAnswer] = useState(false);
 
   // Lade gespeicherte Daten beim Start
   useEffect(() => {
@@ -108,6 +108,89 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     window.speechSynthesis.speak(utterance);
   }, []);
 
+  // Start-Button Handler
+  const handleStart = useCallback(() => {
+    if (!projectInfo.projectNumber || !projectInfo.projectName) {
+      toast.warning('Bitte geben Sie Projektnummer und Projektname ein');
+      return;
+    }
+
+    // Speichere das aktuelle Projekt als letztes Projekt
+    localStorage.setItem(LAST_PROJECT_KEY, JSON.stringify(projectInfo));
+
+    const newStartTime = Date.now() - elapsedTime;
+    console.log('Zeiterfassung gestartet:', {
+      startTime: new Date(newStartTime).toISOString(),
+      elapsedTime
+    });
+    setIsTracking(true);
+    setStartTime(newStartTime);
+    toast.success('Zeiterfassung gestartet');
+  }, [projectInfo, elapsedTime]);
+
+  // Stop-Button Handler
+  const handleStop = useCallback(async () => {
+    console.log('Zeiterfassung wird gestoppt...');
+    setIsTracking(false);
+    setLoading(true);
+    const duration = Math.floor(elapsedTime / 1000);
+    const endTime = new Date();
+    
+    const userId = localStorage.getItem('userId');
+    console.log('User ID aus localStorage:', userId);
+    
+    if (!userId) {
+      toast.error('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.');
+      setLoading(false);
+      return;
+    }
+
+    if (!projectInfo.projectNumber || !projectInfo.projectName) {
+      toast.error('Bitte geben Sie Projektnummer und Projektname ein');
+      setLoading(false);
+      return;
+    }
+
+    if (!projectInfo.description) {
+      projectInfo.description = 'Keine Beschreibung';
+    }
+    
+    const requestData = {
+      startTime: new Date(startTime),
+      endTime,
+      duration,
+      project: `${projectInfo.projectNumber} - ${projectInfo.projectName}`,
+      description: projectInfo.description,
+      userId: userId
+    };
+    
+    try {
+      const response = await timeEntryService.create(requestData);
+      if (onTimeEntrySaved) {
+        onTimeEntrySaved();
+      }
+      toast.success('Zeiterfassung erfolgreich gespeichert');
+      setElapsedTime(0);
+      setStartTime(null);
+      setProjectInfo({
+        projectNumber: '',
+        projectName: '',
+        description: ''
+      });
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error('Fehler beim Senden der Daten:', error);
+      if (error.response?.status === 401) {
+        toast.error('Bitte melden Sie sich erneut an');
+        window.location.href = '/login';
+      } else {
+        toast.error('Fehler beim Speichern der Zeiterfassung');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [elapsedTime, startTime, projectInfo, onTimeEntrySaved]);
+
   // Interaktiver Dialog-Handler
   const handleDialog = useCallback((transcript) => {
     if (!waitingForAnswer) return;
@@ -148,12 +231,13 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
       setCurrentQuestion('');
       setWaitingForAnswer(false);
       setIsInDialog(false);
-      return;
     }
   }, [currentQuestion, waitingForAnswer, speak, handleStart]);
 
   // Speech Recognition Setup
   useEffect(() => {
+    if (!isListening) return;
+
     if ('webkitSpeechRecognition' in window) {
       const recognition = new window.webkitSpeechRecognition();
       recognition.continuous = true;
@@ -181,10 +265,10 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
               setCurrentQuestion('projekt_nummer');
               setWaitingForAnswer(true);
               setIsInDialog(true);
-              return;
+            } else {
+              handleStart();
+              speak('Zeiterfassung gestartet');
             }
-            handleStart();
-            speak('Zeiterfassung gestartet');
           }
         } else if (transcript.includes('stop') || transcript.includes('ende')) {
           if (isTracking) {
@@ -229,9 +313,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
         }
       };
 
-      if (isListening) {
-        recognition.start();
-      }
+      recognition.start();
 
       return () => {
         recognition.stop();
@@ -240,119 +322,12 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     } else {
       toast.error('Spracherkennung wird in diesem Browser nicht unterstützt');
     }
-  }, [isTracking, isListening, useLastProject, isInDialog, handleDialog, speak]);
+  }, [isListening, isInDialog, handleDialog, speak, handleStart, handleStop, isTracking, projectInfo, useLastProject, elapsedTime]);
 
   // Toggle Sprachsteuerung
   const toggleVoiceControl = () => {
     setIsListening(!isListening);
     toast.info(isListening ? 'Sprachsteuerung deaktiviert' : 'Sprachsteuerung aktiviert');
-  };
-
-  // Start-Button Handler
-  const handleStart = () => {
-    if (!projectInfo.projectNumber || !projectInfo.projectName) {
-      toast.warning('Bitte geben Sie Projektnummer und Projektname ein');
-      return;
-    }
-
-    // Speichere das aktuelle Projekt als letztes Projekt
-    localStorage.setItem(LAST_PROJECT_KEY, JSON.stringify(projectInfo));
-
-    const newStartTime = Date.now() - elapsedTime;
-    console.log('Zeiterfassung gestartet:', {
-      startTime: new Date(newStartTime).toISOString(),
-      elapsedTime
-    });
-    setIsTracking(true);
-    setStartTime(newStartTime);
-    toast.success('Zeiterfassung gestartet');
-  };
-
-  // Stop-Button Handler
-  const handleStop = async () => {
-    console.log('Zeiterfassung wird gestoppt...');
-    setIsTracking(false);
-    setLoading(true);
-    const duration = Math.floor(elapsedTime / 1000);
-    const endTime = new Date();
-    
-    // Überprüfe, ob die userId vorhanden ist
-    const userId = localStorage.getItem('userId');
-    console.log('User ID aus localStorage:', userId);
-    
-    if (!userId) {
-      toast.error('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.');
-      setLoading(false);
-      return;
-    }
-
-    // Überprüfe, ob die Projektinformationen vollständig sind
-    if (!projectInfo.projectNumber || !projectInfo.projectName) {
-      toast.error('Bitte geben Sie Projektnummer und Projektname ein');
-      setLoading(false);
-      return;
-    }
-
-    // Überprüfe, ob die Beschreibung vorhanden ist
-    if (!projectInfo.description) {
-      projectInfo.description = 'Keine Beschreibung';
-    }
-    
-    const requestData = {
-      startTime: new Date(startTime),
-      endTime,
-      duration,
-      project: `${projectInfo.projectNumber} - ${projectInfo.projectName}`,
-      description: projectInfo.description,
-      userId: userId
-    };
-    
-    console.log('Zeiterfassungsdaten:', requestData);
-
-    try {
-      console.log('Sende Daten an das Backend...');
-      const response = await timeEntryService.create(requestData);
-      
-      console.log('Backend-Antwort erfolgreich:', {
-        status: 200,
-        data: response
-      });
-      
-      if (onTimeEntrySaved) {
-        onTimeEntrySaved();
-      }
-      
-      toast.success('Zeiterfassung erfolgreich gespeichert');
-
-      // Timer und Formular zurücksetzen
-      setElapsedTime(0);
-      setStartTime(null);
-      setProjectInfo({
-        projectNumber: '',
-        projectName: '',
-        description: ''
-      });
-      
-      // Lösche gespeicherte Daten
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (error) {
-      console.error('Fehler beim Senden der Daten:', {
-        status: error.response?.status,
-        message: error.response?.data?.message || error.message,
-        headers: error.response?.config?.headers || 'Keine Header-Informationen',
-        requestData: requestData
-      });
-      
-      if (error.response?.status === 401) {
-        // Behalte die Daten im localStorage bei einem Authentifizierungsfehler
-        toast.error('Bitte melden Sie sich erneut an');
-        window.location.href = '/login';
-      } else {
-        toast.error('Fehler beim Speichern der Zeiterfassung');
-      }
-    } finally {
-      setLoading(false);
-    }
   };
 
   // Zeit formatieren (Stunden, Minuten, Sekunden)
