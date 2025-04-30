@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 function TimeTracker() {
@@ -21,7 +21,7 @@ function TimeTracker() {
 
   const fetchTimeEntries = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/time-entries`, config);
+      const response = await api.get('/time-entries', config);
       setTimeEntries(response.data);
     } catch (error) {
       console.error('Error fetching time entries:', error);
@@ -30,7 +30,7 @@ function TimeTracker() {
 
   const startTracking = async () => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/time-entries/start`, {
+      const response = await api.post('/time-entries/start', {
         description
       }, config);
       setCurrentEntry(response.data);
@@ -43,7 +43,7 @@ function TimeTracker() {
 
   const stopTracking = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/time-entries/${currentEntry._id}/stop`, {}, config);
+      await api.post(`/time-entries/${currentEntry._id}/stop`, {}, config);
       setIsTracking(false);
       setCurrentEntry(null);
       setDescription('');

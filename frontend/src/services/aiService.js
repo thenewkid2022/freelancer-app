@@ -26,14 +26,14 @@ class AIService {
 
       // Debug-Logging für Request-Headers
       console.log('AI Service - Request Details:', {
-        url: '/api/ai/analyze',
+        url: '/ai/analyze',
         headers,
         description: description?.length || 0,
         timestamp: new Date().toISOString()
       });
 
       // Sende Request mit expliziten Optionen
-      const response = await api.post('/api/ai/analyze', { description }, { 
+      const response = await api.post('/ai/analyze', { description }, { 
         headers,
         validateStatus: function (status) {
           return status >= 200 && status < 300;
@@ -79,7 +79,7 @@ class AIService {
         throw new Error('Kein Authentifizierungstoken gefunden');
       }
 
-      const response = await api.get(`/api/ai/suggestions/${projectId}`);
+      const response = await api.get(`/ai/suggestions/${projectId}`);
       return response.data;
     } catch (error) {
       console.error('Fehler beim Abrufen der Vorschläge:', {
@@ -98,7 +98,7 @@ class AIService {
         throw new Error('Kein Authentifizierungstoken gefunden');
       }
 
-      const response = await api.post('/api/ai/categorize', {
+      const response = await api.post('/ai/categorize', {
         description
       });
       return response.data;

@@ -28,7 +28,7 @@ const TimeStatistics = () => {
       };
       
       const queryParams = new URLSearchParams(filters).toString();
-      const response = await api.get(`/api/time-entries/stats/filtered?${queryParams}`, config);
+      const response = await api.get(`/time-entries/stats/filtered?${queryParams}`, config);
       
       console.log('Statistiken erfolgreich geladen:', response.data);
       setStats(response.data);
@@ -91,7 +91,7 @@ const TimeStatistics = () => {
 
   const exportToCSV = async () => {
     try {
-      const response = await api.get('/api/stats/filtered', {
+      const response = await api.get('/stats/filtered', {
         params: { ...filters, format: 'csv' },
         responseType: 'blob'
       });

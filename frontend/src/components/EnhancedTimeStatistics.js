@@ -130,7 +130,7 @@ const EnhancedTimeStatistics = ({ refresh }) => {
       if (filters.tags.length > 0) queryParams.append('tags', filters.tags.join(','));
 
       const response = await api.get(
-        `/api/time-entries/stats/filtered?${queryParams}`,
+        `/time-entries/stats/filtered?${queryParams}`,
         getAuthConfig()
       );
 
@@ -207,7 +207,7 @@ const EnhancedTimeStatistics = ({ refresh }) => {
       });
 
       const response = await api.get(
-        `/api/time-entries/stats/filtered?${queryParams}`,
+        `/time-entries/stats/filtered?${queryParams}`,
         {
           ...getAuthConfig(),
           responseType: 'blob'

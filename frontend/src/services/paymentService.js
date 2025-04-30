@@ -14,7 +14,7 @@ export const paymentService = {
   async processStripePayment(amount, currency = 'eur') {
     try {
       // Hole Stripe Session vom Backend
-      const response = await api.post('/api/payments/create-session', {
+      const response = await api.post('/payments/create-session', {
         amount,
         currency
       });
@@ -37,7 +37,7 @@ export const paymentService = {
   async processBitcoinPayment(amount, currency = 'chf') {
     try {
       // Hole Lightning Invoice vom Backend
-      const response = await api.post('/api/payment/create-lightning-invoice', {
+      const response = await api.post('/payment/create-lightning-invoice', {
         amount,
         currency
       });
@@ -70,7 +70,7 @@ export const paymentService = {
   // Prüfe Zahlungsstatus
   async checkPaymentStatus(paymentHash) {
     try {
-      const response = await api.get(`/api/payments/status/${paymentHash}`);
+      const response = await api.get(`/payments/status/${paymentHash}`);
       return response.data;
     } catch (error) {
       console.error('Fehler beim Prüfen des Zahlungsstatus:', error);
@@ -81,7 +81,7 @@ export const paymentService = {
   // Stripe Checkout Session erstellen
   createStripeSession: async (amount) => {
     try {
-      const response = await api.post('/api/payments/create-checkout-session', { amount });
+      const response = await api.post('/payments/create-checkout-session', { amount });
       return response.data;
     } catch (error) {
       throw new Error('Fehler beim Erstellen der Stripe Session');
@@ -91,7 +91,7 @@ export const paymentService = {
   // Lightning Invoice erstellen
   createLightningInvoice: async (amount) => {
     try {
-      const response = await api.post('/api/payment/create-lightning-invoice', { amount });
+      const response = await api.post('/payment/create-lightning-invoice', { amount });
       return response.data;
     } catch (error) {
       throw new Error('Fehler bei der Erstellung der Lightning-Rechnung: ' + error.message);
@@ -101,7 +101,7 @@ export const paymentService = {
   // Lightning Zahlungsstatus prüfen
   checkLightningPayment: async (paymentHash) => {
     try {
-      const response = await api.get(`/api/payment/check-payment/${paymentHash}`);
+      const response = await api.get(`/payment/check-payment/${paymentHash}`);
       return response.data;
     } catch (error) {
       throw new Error('Fehler beim Überprüfen der Lightning-Zahlung: ' + error.message);
@@ -115,7 +115,7 @@ export const createStripePayment = async (amount, plan) => {
     console.log('Starting Stripe payment process...', { amount, plan });
     
     // Erstelle Stripe Checkout Session
-    const response = await api.post('/api/payment/create-stripe-session', {
+    const response = await api.post('/payment/create-stripe-session', {
       amount,
       plan,
       currency: 'chf',
@@ -150,7 +150,7 @@ export const createStripePayment = async (amount, plan) => {
 
 export const createLightningInvoice = async (amount, plan) => {
   try {
-    const response = await api.post('/api/payment/create-lightning-invoice', {
+    const response = await api.post('/payment/create-lightning-invoice', {
       amount,
       plan,
       currency: 'chf'
@@ -164,7 +164,7 @@ export const createLightningInvoice = async (amount, plan) => {
 
 export const checkLightningPayment = async (paymentHash) => {
   try {
-    const response = await api.get(`/api/payment/check-lightning-payment/${paymentHash}`);
+    const response = await api.get(`/payment/check-lightning-payment/${paymentHash}`);
     return response.data;
   } catch (error) {
     console.error('Fehler beim Überprüfen der Lightning-Zahlung:', error);
