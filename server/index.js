@@ -74,9 +74,16 @@ const startServer = async () => {
     app.use(cors({
       origin: process.env.CORS_ORIGIN || 'https://freelancer-app-chi.vercel.app',
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+      exposedHeaders: ['Content-Length', 'X-Requested-With'],
+      maxAge: 86400,
+      preflightContinue: true,
+      optionsSuccessStatus: 200
     }));
+
+    // OPTIONS-Handler für CORS-Preflight
+    app.options('*', cors());
 
     // Rate Limiting
     app.use('/api/auth', authLimiter);
