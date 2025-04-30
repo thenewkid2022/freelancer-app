@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 
 // Hilfsfunktion für Zeitformatierung
 const formatDuration = (seconds) => {
+  if (!seconds) return '0s';
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const remainingSeconds = seconds % 60;
@@ -21,10 +22,9 @@ const formatDuration = (seconds) => {
 // Gefilterte Statistiken abrufen
 router.get('/filtered', auth, async (req, res) => {
   try {
-    console.log('Statistik-Anfrage erhalten:', {
-      userId: req.user._id,
-      query: req.query
-    });
+    if (!req.user || !req.user._id) {
+      throw new Error('Benutzer nicht authentifiziert');
+    }
 
     const { startDate, endDate, groupBy = 'daily', project, tags } = req.query;
     
@@ -46,38 +46,29 @@ router.get('/filtered', auth, async (req, res) => {
       filter.tags = { $in: tags.split(',') };
     }
 
-    console.log('Angewendeter Filter:', filter);
-
-    // Aggregation Pipeline
+    // Vereinfachte Aggregation Pipeline
     const pipeline = [
       { $match: filter },
       {
         $group: {
           _id: {
-            $dateToString: {
-              format: groupBy === 'daily' ? '%Y-%m-%d' : 
-                     groupBy === 'weekly' ? '%Y-%U' : '%Y-%m',
-              date: '$startTime'
+            date: {
+              $dateToString: {
+                format: groupBy === 'daily' ? '%Y-%m-%d' : 
+                       groupBy === 'weekly' ? '%Y-%U' : '%Y-%m',
+                date: '$startTime'
+              }
             }
           },
           totalSeconds: { $sum: '$duration' },
           totalEntries: { $sum: 1 },
-          projects: { $addToSet: '$project' },
-          entries: {
-            $push: {
-              startTime: '$startTime',
-              endTime: '$endTime',
-              duration: '$duration',
-              project: '$project',
-              description: '$description'
-            }
-          }
+          projects: { $addToSet: '$project' }
         }
       },
       {
         $project: {
           _id: 0,
-          date: '$_id',
+          date: '$_id.date',
           totalSeconds: 1,
           totalHours: { 
             $round: [{ $divide: ['$totalSeconds', 3600] }, 2]
@@ -86,41 +77,13 @@ router.get('/filtered', auth, async (req, res) => {
             $round: [{ $divide: ['$totalSeconds', 60] }, 0]
           },
           totalEntries: 1,
-          averageMinutesPerEntry: {
-            $round: [
-              { $divide: [{ $divide: ['$totalSeconds', 60] }, '$totalEntries'] },
-              0
-            ]
-          },
-          projects: 1,
-          entries: {
-            $map: {
-              input: '$entries',
-              as: 'entry',
-              in: {
-                startTime: '$$entry.startTime',
-                endTime: '$$entry.endTime',
-                duration: '$$entry.duration',
-                durationFormatted: {
-                  $function: {
-                    body: formatDuration.toString(),
-                    args: ['$$entry.duration'],
-                    lang: 'js'
-                  }
-                },
-                project: '$$entry.project',
-                description: '$$entry.description'
-              }
-            }
-          }
+          projects: 1
         }
       },
       { $sort: { date: 1 } }
     ];
 
-    console.log('Ausführe Aggregation Pipeline...');
     const stats = await TimeEntry.aggregate(pipeline);
-    console.log('Aggregation erfolgreich, Ergebnisse:', stats.length);
 
     // Gesamtstatistiken berechnen
     const totalStats = stats.reduce((acc, curr) => ({
@@ -145,37 +108,18 @@ router.get('/filtered', auth, async (req, res) => {
       }
     };
 
-    // CSV-Export
-    if (req.query.format === 'csv') {
-      const csv = [
-        ['Datum', 'Stunden', 'Minuten', 'Sekunden', 'Einträge', 'Durchschnitt (Min)', 'Projekte'],
-        ...stats.map(stat => [
-          stat.date,
-          stat.totalHours,
-          stat.totalMinutes,
-          stat.totalSeconds,
-          stat.totalEntries,
-          stat.averageMinutesPerEntry,
-          stat.projects.join('; ')
-        ])
-      ].map(row => row.join(',')).join('\n');
-
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=zeiterfassung-statistiken.csv');
-      return res.send(csv);
-    }
-
     res.json({
       stats,
       summary
     });
   } catch (err) {
-    console.error('Detaillierter Fehler in der Statistik-Route:', {
+    console.error('Fehler in der Statistik-Route:', {
       error: err.message,
       stack: err.stack,
       query: req.query,
-      userId: req.user._id
+      userId: req.user?._id
     });
+    
     res.status(500).json({ 
       message: 'Fehler beim Abrufen der Statistiken',
       error: err.message 
