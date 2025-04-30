@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
 
 const Login = () => {
-  console.log('API URL:', process.env.REACT_APP_API_URL);
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -12,26 +10,49 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Logging der API-URL beim Komponenten-Mount
+  useEffect(() => {
+    console.log('Login Component - Environment:', {
+      REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+      NODE_ENV: process.env.NODE_ENV,
+      timestamp: new Date().toISOString()
+    });
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
     setLoading(true);
 
     try {
-      console.log('Versuche Login mit:', { email });
+      console.log('Login-Versuch initiiert:', {
+        email,
+        timestamp: new Date().toISOString()
+      });
+
       await login(email, password);
+      
+      console.log('Login erfolgreich, Navigation zur Hauptseite');
       setMessage('Erfolgreich angemeldet!');
       navigate('/');
     } catch (err) {
       console.error('Login-Fehler:', {
         message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
+        status: err.response?.status,
+        data: err.response?.data,
+        timestamp: new Date().toISOString()
       });
-      setMessage(
-        err.response?.data?.message || 
-        'Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung.'
-      );
+
+      // Spezifische Fehlermeldungen
+      if (err.response?.status === 401) {
+        setMessage('Ungültige Anmeldedaten. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.');
+      } else if (err.response?.status === 405) {
+        setMessage('Der Login-Service ist derzeit nicht verfügbar. Bitte versuchen Sie es später erneut.');
+      } else if (!err.response) {
+        setMessage('Verbindungsfehler. Bitte überprüfen Sie Ihre Internetverbindung.');
+      } else {
+        setMessage(err.response?.data?.message || 'Ein unerwarteter Fehler ist aufgetreten.');
+      }
     } finally {
       setLoading(false);
     }
