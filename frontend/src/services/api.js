@@ -2,7 +2,7 @@ import axios from 'axios';
 import { authService } from './auth';
 
 // Explizite API-URL
-const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-chi.vercel.app/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-chi.vercel.app';
 
 console.log('Initializing API with URL:', API_URL);
 
@@ -25,6 +25,11 @@ api.interceptors.request.use(
     const token = authService.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Stelle sicher, dass die URL korrekt formatiert ist
+    if (!config.url.startsWith('/')) {
+      config.url = '/api/' + config.url;
     }
     
     // Debug-Logging für jeden Request
@@ -84,6 +89,12 @@ api.interceptors.response.use(
       console.log('Unauthorized - Logging out');
       authService.logout();
       window.location.href = '/login';
+    } else if (error.response?.status === 405) {
+      console.error('Method Not Allowed - Überprüfe API-Route:', {
+        method: error.config?.method,
+        url: error.config?.url,
+        fullUrl: `${error.config?.baseURL}${error.config?.url}`
+      });
     } else if (!error.response) {
       console.error('Network Error:', error.message);
     }

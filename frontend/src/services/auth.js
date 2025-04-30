@@ -52,7 +52,7 @@ export const authService = {
         withCredentials: true
       };
       
-      const response = await api.post('/auth/login', { 
+      const response = await api.post('auth/login', { 
         email, 
         password 
       }, config);
@@ -91,8 +91,17 @@ export const authService = {
 
   // Registrierung
   register: async (userData) => {
-    const response = await api.post('/api/auth/register', userData);
-    return response.data;
+    try {
+      const response = await api.post('auth/register', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Registration error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw error;
+    }
   },
 
   // Logout
@@ -126,7 +135,7 @@ export const authService = {
         throw new Error('Kein gültiges Token vorhanden');
       }
 
-      const response = await api.get('/api/auth/profile');
+      const response = await api.get('auth/profile');
       return response.data;
     } catch (error) {
       console.error('Profil-Abruf-Fehler:', {
@@ -140,16 +149,34 @@ export const authService = {
 
   // Profil aktualisieren
   updateProfile: async (userData) => {
-    const response = await api.put('/api/auth/profile', userData);
-    return response.data;
+    try {
+      const response = await api.put('auth/profile', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Profile update error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw error;
+    }
   },
 
   // Passwort ändern
   changePassword: async (currentPassword, newPassword) => {
-    const response = await api.put('/api/auth/change-password', {
-      currentPassword,
-      newPassword
-    });
-    return response.data;
+    try {
+      const response = await api.put('auth/change-password', {
+        currentPassword,
+        newPassword
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Password change error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      throw error;
+    }
   }
 }; 
