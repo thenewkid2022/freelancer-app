@@ -210,21 +210,88 @@ const TimeEntriesList = ({ refresh, onEntryUpdated }) => {
     setCurrentPage(1); // Zurück zur ersten Seite bei Filteränderung
   }, []);
 
-  // Datum und Zeit formatieren
-  const formatDateTime = useCallback((date) => {
-    return new Date(date).toLocaleString('de-DE', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    });
-  }, []);
-
   // Dauer formatieren
   const formatDuration = useCallback((seconds) => {
+    if (!seconds) return '0h 0m 0s';
+    
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${hours}h ${minutes}m ${secs}s`;
+    
+    const parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
+    
+    return parts.join(' ');
   }, []);
+
+  // Datum formatieren
+  const formatDateTime = useCallback((dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(date);
+  }, []);
+
+  // Mobile Karten-Ansicht
+  const MobileCard = useCallback(({ entry }) => {
+    const [projectNumber] = (entry.project || 'Allgemein').split(' - ');
+    
+    return (
+      <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <span className="text-sm text-gray-500">Projekt</span>
+            <p className="font-medium">{projectNumber}</p>
+          </div>
+          <div className="text-right">
+            <span className="text-sm text-gray-500">Dauer</span>
+            <p className="font-medium">{formatDuration(entry.duration)}</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <span className="text-sm text-gray-500">Start</span>
+            <p className="text-sm">{formatDateTime(entry.startTime)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-500">Ende</span>
+            <p className="text-sm">{formatDateTime(entry.endTime)}</p>
+          </div>
+        </div>
+        
+        {entry.description && (
+          <div className="mt-3">
+            <span className="text-sm text-gray-500">Beschreibung</span>
+            <p className="text-sm mt-1">{entry.description}</p>
+          </div>
+        )}
+        
+        <div className="flex justify-end mt-3 space-x-2">
+          <button
+            onClick={() => handleEdit(entry)}
+            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Bearbeiten
+          </button>
+          <button
+            onClick={() => handleDelete(entry._id)}
+            className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Löschen
+          </button>
+        </div>
+      </div>
+    );
+  }, [formatDateTime, formatDuration, handleEdit, handleDelete]);
 
   // Sortier-Indikator
   const getSortIndicator = useCallback((field) => {
@@ -234,7 +301,7 @@ const TimeEntriesList = ({ refresh, onEntryUpdated }) => {
 
   // Memoized Filter-UI
   const filterUI = useMemo(() => (
-    <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Startdatum
@@ -309,7 +376,7 @@ const TimeEntriesList = ({ refresh, onEntryUpdated }) => {
   console.log('Aktuelle Zeiterfassungen:', entries);
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6 max-w-4xl mx-auto">
+    <div className="bg-white shadow-lg rounded-lg p-4 md:p-6 max-w-4xl mx-auto">
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -322,20 +389,34 @@ const TimeEntriesList = ({ refresh, onEntryUpdated }) => {
         pauseOnHover
       />
 
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+      <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4 text-center">
         Gespeicherte Zeiterfassungen
       </h2>
 
       {filterUI}
 
-      {!entries || entries.length === 0 ? (
-        <p className="text-gray-600 text-center">Keine Zeiterfassungen vorhanden.</p>
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      ) : !entries || entries.length === 0 ? (
+        <p className="text-gray-600 text-center py-8">
+          Keine Zeiterfassungen vorhanden.
+        </p>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          {/* Mobile Ansicht */}
+          <div className="md:hidden space-y-4">
+            {entries.map(entry => (
+              <MobileCard key={entry._id} entry={entry} />
+            ))}
+          </div>
+
+          {/* Desktop Ansicht */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full border-collapse">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-gray-50">
                   <th 
                     className="border border-gray-300 px-4 py-2 text-left text-gray-700 cursor-pointer"
                     onClick={() => handleSort('startTime')}
@@ -363,126 +444,47 @@ const TimeEntriesList = ({ refresh, onEntryUpdated }) => {
                   <th className="border border-gray-300 px-4 py-2 text-left text-gray-700">
                     Beschreibung
                   </th>
-                  <th className="border border-gray-300 px-4 py-2 text-left text-gray-700">
+                  <th className="border border-gray-300 px-4 py-2 text-center text-gray-700">
                     Aktionen
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {entries.map((entry, index) => {
-                  const [projectNumber] = (entry.project || 'Allgemein').split(' - ');
-                  return (
-                    <tr
-                      key={entry._id}
-                      className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
-                    >
-                      <td className="border border-gray-300 px-4 py-2 text-gray-600">
-                        {editingEntry === entry._id ? (
-                          <input
-                            type="datetime-local"
-                            value={editForm.startTime}
-                            onChange={(e) => setEditForm({
-                              ...editForm,
-                              startTime: e.target.value
-                            })}
-                            className="w-full p-1 border rounded"
-                          />
-                        ) : (
-                          formatDateTime(entry.startTime)
-                        )}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-gray-600">
-                        {editingEntry === entry._id ? (
-                          <input
-                            type="datetime-local"
-                            value={editForm.endTime}
-                            onChange={(e) => setEditForm({
-                              ...editForm,
-                              endTime: e.target.value
-                            })}
-                            className="w-full p-1 border rounded"
-                          />
-                        ) : (
-                          entry.endTime ? formatDateTime(entry.endTime) : 'Nicht beendet'
-                        )}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-gray-600">
-                        {entry.duration ? formatDuration(entry.duration) : 'N/A'}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-gray-600">
-                        {editingEntry === entry._id ? (
-                          <input
-                            type="text"
-                            value={editForm.projectNumber}
-                            onChange={(e) => setEditForm({
-                              ...editForm,
-                              projectNumber: e.target.value
-                            })}
-                            className="w-full p-1 border rounded"
-                            placeholder="z.B. PRJ-001"
-                          />
-                        ) : (
-                          projectNumber || 'Allgemein'
-                        )}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-gray-600">
-                        {editingEntry === entry._id ? (
-                          <textarea
-                            value={editForm.description}
-                            onChange={(e) => setEditForm({
-                              ...editForm,
-                              description: e.target.value
-                            })}
-                            className="w-full p-1 border rounded"
-                            placeholder="Beschreibung"
-                            rows="2"
-                          />
-                        ) : (
-                          entry.description || '-'
-                        )}
-                      </td>
-                      <td className="border border-gray-300 px-4 py-2 text-gray-600">
-                        <div className="flex space-x-2">
-                          {editingEntry === entry._id ? (
-                            <>
-                              <button
-                                onClick={() => handleSave(entry._id)}
-                                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors"
-                                disabled={loading}
-                              >
-                                {loading ? <ClipLoader color="#ffffff" size={20} /> : 'Speichern'}
-                              </button>
-                              <button
-                                onClick={() => setEditingEntry(null)}
-                                className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors"
-                                disabled={loading}
-                              >
-                                Abbrechen
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                onClick={() => handleEdit(entry)}
-                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
-                                disabled={loading}
-                              >
-                                Bearbeiten
-                              </button>
-                              <button
-                                onClick={() => handleDelete(entry._id)}
-                                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors"
-                                disabled={loading}
-                              >
-                                Löschen
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {entries.map(entry => (
+                  <tr key={entry._id} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2 text-gray-600">
+                      {formatDateTime(entry.startTime)}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-gray-600">
+                      {formatDateTime(entry.endTime)}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-gray-600">
+                      {formatDuration(entry.duration)}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-gray-600">
+                      {entry.project || 'Allgemein'}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-gray-600">
+                      {entry.description}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">
+                      <div className="flex justify-center space-x-2">
+                        <button
+                          onClick={() => handleEdit(entry)}
+                          className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          Bearbeiten
+                        </button>
+                        <button
+                          onClick={() => handleDelete(entry._id)}
+                          className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                          Löschen
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

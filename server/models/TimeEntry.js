@@ -16,9 +16,7 @@ const timeEntrySchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true,
-    trim: true,
-    maxlength: 500
+    default: ''
   },
   startTime: {
     type: Date,
@@ -31,14 +29,26 @@ const timeEntrySchema = new mongoose.Schema({
   },
   duration: {
     type: Number,
-    required: true,
-    min: 0
+    required: true
   },
   tags: [{
     type: String,
     trim: true,
     maxlength: 50
   }],
+  hourlyRate: {
+    type: Number,
+    default: 0
+  },
+  billable: {
+    type: Boolean,
+    default: true
+  },
+  status: {
+    type: String,
+    enum: ['active', 'completed', 'billed'],
+    default: 'completed'
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -51,6 +61,28 @@ const timeEntrySchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Virtuelle Felder für formatierte Zeit
+timeEntrySchema.virtual('formattedDuration').get(function() {
+  const hours = Math.floor(this.duration / 3600);
+  const minutes = Math.floor((this.duration % 3600) / 60);
+  const seconds = this.duration % 60;
+  
+  const parts = [];
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+  
+  return parts.join(' ');
+});
+
+timeEntrySchema.virtual('durationInHours').get(function() {
+  return (this.duration / 3600).toFixed(2);
+});
+
+timeEntrySchema.virtual('durationInMinutes').get(function() {
+  return Math.round(this.duration / 60);
+});
+
 // Compound Indizes für häufig verwendete Abfragen
 timeEntrySchema.index({ userId: 1, startTime: -1 });
 timeEntrySchema.index({ project: 1, startTime: -1 });
@@ -59,8 +91,10 @@ timeEntrySchema.index({ userId: 1, project: 1, startTime: -1 });
 // Pre-save Middleware für automatische Dauerberechnung
 timeEntrySchema.pre('save', function(next) {
   if (this.isModified('startTime') || this.isModified('endTime')) {
-    this.duration = Math.floor((this.endTime - this.startTime) / 1000);
+    // Berechne die exakte Dauer in Sekunden
+    this.duration = Math.round((this.endTime - this.startTime) / 1000);
   }
+  this.updatedAt = new Date();
   next();
 });
 
@@ -74,7 +108,7 @@ timeEntrySchema.pre('validate', function(next) {
 
 // Statische Methode für Statistiken
 timeEntrySchema.statics.getStats = async function(userId, startDate, endDate) {
-  return this.aggregate([
+  const pipeline = [
     {
       $match: {
         userId: mongoose.Types.ObjectId(userId),
@@ -86,14 +120,56 @@ timeEntrySchema.statics.getStats = async function(userId, startDate, endDate) {
     },
     {
       $group: {
-        _id: null,
+        _id: {
+          date: { $dateToString: { format: '%Y-%m-%d', date: '$startTime' } },
+          project: '$project'
+        },
         totalDuration: { $sum: '$duration' },
         count: { $sum: 1 },
-        avgDuration: { $avg: '$duration' }
+        avgDuration: { $avg: '$duration' },
+        minDuration: { $min: '$duration' },
+        maxDuration: { $max: '$duration' }
       }
-    }
-  ]);
+    },
+    {
+      $group: {
+        _id: '$_id.date',
+        projects: {
+          $push: {
+            name: '$_id.project',
+            duration: '$totalDuration',
+            count: '$count',
+            avgDuration: '$avgDuration',
+            minDuration: '$minDuration',
+            maxDuration: '$maxDuration'
+          }
+        },
+        totalDuration: { $sum: '$totalDuration' },
+        totalCount: { $sum: '$count' }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        date: '$_id',
+        projects: 1,
+        totalHours: { $round: [{ $divide: ['$totalDuration', 3600] }, 2] },
+        totalMinutes: { $round: ['$totalDuration', 0] },
+        totalCount: 1,
+        averageMinutesPerEntry: {
+          $round: [{ $divide: ['$totalDuration', '$totalCount'] }, 0]
+        }
+      }
+    },
+    { $sort: { date: 1 } }
+  ];
+
+  return this.aggregate(pipeline);
 };
+
+// Optionen für virtuelle Felder
+timeEntrySchema.set('toJSON', { virtuals: true });
+timeEntrySchema.set('toObject', { virtuals: true });
 
 const TimeEntry = mongoose.model('TimeEntry', timeEntrySchema);
 
