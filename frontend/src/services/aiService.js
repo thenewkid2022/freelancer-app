@@ -4,10 +4,11 @@ class AIService {
   async analyzeActivity(description) {
     try {
       const token = localStorage.getItem('token');
-      console.log('AI Service - Token Check:', {
+      
+      // Debug-Logging für Token-Status
+      console.log('AI Service - Token Status:', {
         exists: !!token,
         length: token?.length || 0,
-        endpoint: '/api/ai/analyze',
         timestamp: new Date().toISOString()
       });
 
@@ -15,35 +16,39 @@ class AIService {
         throw new Error('Kein Authentifizierungstoken gefunden');
       }
 
-      // Konfiguration für die Anfrage
+      // Explizite Request-Konfiguration
       const config = {
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       };
 
-      console.log('Sende KI-Analyse-Anfrage:', {
+      // Debug-Logging für Request-Konfiguration
+      console.log('AI Service - Request Config:', {
         url: '/api/ai/analyze',
-        descriptionLength: description?.length || 0,
-        hasToken: !!token,
-        headerConfig: config.headers
+        headers: config.headers,
+        timestamp: new Date().toISOString()
       });
 
       const response = await api.post('/api/ai/analyze', { description }, config);
 
-      console.log('KI-Analyse erfolgreich:', {
+      // Debug-Logging für erfolgreiche Antwort
+      console.log('AI Service - Erfolgreiche Antwort:', {
         status: response.status,
-        dataReceived: !!response.data
+        headers: response.headers,
+        timestamp: new Date().toISOString()
       });
-      
+
       return response.data;
     } catch (error) {
-      console.error('Fehler bei der KI-Analyse:', {
+      // Erweitertes Error-Logging
+      console.error('AI Service - Fehler:', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
         requestConfig: error.config,
+        requestHeaders: error.config?.headers,
         timestamp: new Date().toISOString()
       });
       throw error;

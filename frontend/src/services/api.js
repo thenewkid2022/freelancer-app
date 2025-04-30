@@ -1,49 +1,23 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000'
 });
 
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    
-    // Debug-Logging vor der Header-Setzung
-    console.log('Request Interceptor - Vor Header-Setzung:', {
+    // Debug-Logging für jeden Request
+    console.log('API - Request Details:', {
       url: config.url,
       method: config.method,
-      tokenExists: !!token,
-      currentHeaders: JSON.stringify(config.headers),
+      headers: config.headers,
       timestamp: new Date().toISOString()
     });
-    
-    if (token) {
-      // Stelle sicher, dass headers existiert und initialisiere es neu
-      config.headers = {
-        ...config.headers,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-      
-      // Debug-Logging nach Header-Setzung
-      console.log('Request Interceptor - Nach Header-Setzung:', {
-        url: config.url,
-        method: config.method,
-        headers: JSON.stringify(config.headers),
-        timestamp: new Date().toISOString()
-      });
-    } else {
-      console.warn('Kein Token im localStorage gefunden');
-    }
-    
     return config;
   },
   (error) => {
-    console.error('Request Interceptor Error:', error);
+    console.error('API - Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -51,17 +25,25 @@ api.interceptors.request.use(
 // Response Interceptor
 api.interceptors.response.use(
   (response) => {
+    // Debug-Logging für erfolgreiche Antworten
+    console.log('API - Response Success:', {
+      url: response.config.url,
+      status: response.status,
+      headers: response.headers,
+      timestamp: new Date().toISOString()
+    });
     return response;
   },
   (error) => {
-    console.error('Response Error:', {
+    // Debug-Logging für Fehler
+    console.error('API - Response Error:', {
+      url: error.config?.url,
       status: error.response?.status,
       data: error.response?.data,
-      config: error.config,
       headers: error.config?.headers,
       timestamp: new Date().toISOString()
     });
-    
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
