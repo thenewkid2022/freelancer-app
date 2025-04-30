@@ -9,6 +9,7 @@ const STORAGE_KEY = 'timeTracker';
 const LAST_PROJECT_KEY = 'lastProject';
 
 const TimeTracker = ({ onTimeEntrySaved }) => {
+  // State-Definitionen
   const [isTracking, setIsTracking] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -20,12 +21,12 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
   const [isInDialog, setIsInDialog] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [waitingForAnswer, setWaitingForAnswer] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [projectInfo, setProjectInfo] = useState({
     projectNumber: '',
     projectName: '',
     description: ''
   });
-  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
   // Lade gespeicherte Daten beim Start
   useEffect(() => {
@@ -102,7 +103,8 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
   // Sprachausgabe-Funktion
   const speak = useCallback((text) => {
-    window.speechSynthesis.cancel(); // Beende vorherige Sprachausgabe
+    if (!text) return;
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'de-DE';
     utterance.rate = 1.0;
@@ -110,85 +112,56 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
     window.speechSynthesis.speak(utterance);
   }, []);
 
+  // Zeit formatieren (Stunden, Minuten, Sekunden)
+  const formatTime = useCallback((time) => {
+    if (!time) return '0h 0m 0s';
+    const seconds = Math.floor((time / 1000) % 60);
+    const minutes = Math.floor((time / (1000 * 60)) % 60);
+    const hours = Math.floor(time / (1000 * 60 * 60));
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }, []);
+
   // Start-Button Handler
   const handleStart = useCallback(() => {
-    // Wenn useLastProject aktiv ist und kein Projekt geladen wurde, versuche das letzte Projekt zu laden
-    if (useLastProject && (!projectInfo.projectNumber || !projectInfo.projectName)) {
-      const lastProject = localStorage.getItem(LAST_PROJECT_KEY);
-      if (lastProject) {
-        const savedProject = JSON.parse(lastProject);
-        setProjectInfo(savedProject);
-        // Führe handleStart erneut aus, nachdem das Projekt geladen wurde
-        setTimeout(() => {
-          if (savedProject.projectNumber && savedProject.projectName) {
-            const newStartTime = Date.now() - elapsedTime;
-            setIsTracking(true);
-            setStartTime(newStartTime);
-            toast.success('Zeiterfassung gestartet');
-          } else {
-            toast.warning('Bitte geben Sie Projektnummer und Projektname ein');
-          }
-        }, 0);
-        return;
-      }
-    }
-
     if (!projectInfo.projectNumber || !projectInfo.projectName) {
       toast.warning('Bitte geben Sie Projektnummer und Projektname ein');
       return;
     }
 
-    // Speichere das aktuelle Projekt als letztes Projekt
     localStorage.setItem(LAST_PROJECT_KEY, JSON.stringify(projectInfo));
-
     const newStartTime = Date.now() - elapsedTime;
-    console.log('Zeiterfassung gestartet:', {
-      startTime: new Date(newStartTime).toISOString(),
-      elapsedTime
-    });
     setIsTracking(true);
     setStartTime(newStartTime);
     toast.success('Zeiterfassung gestartet');
-  }, [projectInfo, elapsedTime, useLastProject]);
+  }, [projectInfo, elapsedTime]);
 
   // Stop-Button Handler
   const handleStop = useCallback(async () => {
-    console.log('Zeiterfassung wird gestoppt...');
+    if (!isTracking) return;
+    
     setIsTracking(false);
     setLoading(true);
     const duration = Math.floor(elapsedTime / 1000);
     const endTime = new Date();
     
     const userId = localStorage.getItem('userId');
-    console.log('User ID aus localStorage:', userId);
-    
     if (!userId) {
       toast.error('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.');
       setLoading(false);
       return;
     }
 
-    if (!projectInfo.projectNumber || !projectInfo.projectName) {
-      toast.error('Bitte geben Sie Projektnummer und Projektname ein');
-      setLoading(false);
-      return;
-    }
-
-    if (!projectInfo.description) {
-      projectInfo.description = 'Keine Beschreibung';
-    }
-    
     const requestData = {
       startTime: new Date(startTime),
       endTime,
       duration,
       project: `${projectInfo.projectNumber} - ${projectInfo.projectName}`,
-      description: projectInfo.description,
+      description: projectInfo.description || 'Keine Beschreibung',
       userId: userId
     };
     
     try {
-      const response = await timeEntryService.create(requestData);
+      await timeEntryService.create(requestData);
       if (onTimeEntrySaved) {
         onTimeEntrySaved();
       }
@@ -216,7 +189,7 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
   // Interaktiver Dialog-Handler
   const handleDialog = useCallback((transcript) => {
-    if (!waitingForAnswer) return;
+    if (!waitingForAnswer || !transcript) return;
 
     if (currentQuestion === 'projekt_nummer') {
       const numberMatch = transcript.match(/\d+/);
@@ -259,11 +232,9 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
 
   // Separater Handler für Sprachbefehle
   const handleVoiceCommand = useCallback((transcript) => {
-    if (!transcript) return; // Schutz vor undefined/leeren Befehlen
+    if (!transcript) return;
 
     console.log('Sprachbefehl erkannt:', transcript);
-
-    // Normalisiere den Befehl
     const normalizedCommand = transcript.toLowerCase().trim();
 
     if (isInDialog) {
@@ -464,14 +435,6 @@ const TimeTracker = ({ onTimeEntrySaved }) => {
   const toggleVoiceControl = () => {
     setIsListening(!isListening);
     toast.info(isListening ? 'Sprachsteuerung deaktiviert' : 'Sprachsteuerung aktiviert');
-  };
-
-  // Zeit formatieren (Stunden, Minuten, Sekunden)
-  const formatTime = (time) => {
-    const seconds = Math.floor((time / 1000) % 60);
-    const minutes = Math.floor((time / (1000 * 60)) % 60);
-    const hours = Math.floor(time / (1000 * 60 * 60));
-    return `${hours}h ${minutes}m ${seconds}s`;
   };
 
   return (
