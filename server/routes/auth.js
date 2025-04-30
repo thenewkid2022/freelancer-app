@@ -7,8 +7,10 @@ const auth = require('../middleware/auth');
 const { validateUser, validateAuth } = require('../middleware/validator');
 require('dotenv').config();
 
-// JWT Secret aus der Umgebungsvariable oder Fallback
-const JWT_SECRET = process.env.JWT_SECRET || 'FreelancerApp2025SecretKey';
+// Strikter JWT Secret Check
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET Umgebungsvariable ist nicht gesetzt');
+}
 
 // Registrierung
 router.post('/register', validateUser, async (req, res) => {
@@ -58,7 +60,7 @@ router.post('/login', validateAuth, async (req, res) => {
     }
 
     // JWT generieren
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
 
