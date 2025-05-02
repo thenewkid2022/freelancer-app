@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import mongoose from 'mongoose';
 import { errorHandler } from './middleware/errorHandler';
 import { securityMiddleware } from './middleware/security';
 import authRoutes from './routes/auth';
@@ -75,11 +76,22 @@ app.get('/health', (req, res) => {
 // Error Handler
 app.use(errorHandler);
 
-// Start server
+// MongoDB-Verbindung und Serverstart
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`Server is running on port ${port}`);
-  });
+  mongoose.connect(process.env.MONGODB_URI || '', {
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+  })
+    .then(() => {
+      console.log('MongoDB verbunden!');
+      app.listen(port, '0.0.0.0', () => {
+        console.log(`Server is running on port ${port}`);
+      });
+    })
+    .catch(err => {
+      console.error('MongoDB Fehler beim Start:', err);
+      process.exit(1);
+    });
 }
 
 export { app }; 
