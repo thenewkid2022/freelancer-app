@@ -19,11 +19,10 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAuth } from '../contexts/AuthContext';
 
 const pages = [
-  { name: 'Time Tracker', path: '/time-tracker' },
-  { name: 'Time Entries', path: '/time-entries' },
-  { name: 'Payments', path: '/payments' },
-  { name: 'Statistics', path: '/statistics' },
-  { name: 'Profile', path: '/profile' },
+  { name: 'Zeiteinträge', path: '/time-entries' },
+  { name: 'Zahlungen', path: '/payments' },
+  { name: 'Statistiken', path: '/statistics' },
+  { name: 'Profil', path: '/profile' },
 ];
 
 const Navbar: React.FC = () => {

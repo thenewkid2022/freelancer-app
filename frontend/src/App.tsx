@@ -8,7 +8,6 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/Dashboard';
-import TimeTracker from './components/TimeTracker';
 import TimeEntries from './components/TimeEntries';
 import Payments from './components/Payments';
 import Statistics from './components/Statistics';
@@ -27,14 +26,6 @@ const App: React.FC = () => {
             element={
               <PrivateRoute>
                 <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/time-tracker"
-            element={
-              <PrivateRoute>
-                <TimeTracker />
               </PrivateRoute>
             }
           />

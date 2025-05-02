@@ -16,7 +16,7 @@ const Dashboard: React.FC = () => {
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Willkommen, {user?.name}!
+          {user?.name ? `Willkommen, ${user.name}!` : 'Willkommen!'}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
           Hier ist Ihre Zeiterfassungsübersicht
