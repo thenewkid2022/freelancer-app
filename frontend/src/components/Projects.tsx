@@ -51,7 +51,6 @@ interface Project {
 interface ProjectFormData {
   name: string;
   description: string;
-  client: string;
   status: Project['status'];
   hourlyRate: number;
   startDate: string;
@@ -65,12 +64,10 @@ const Projects: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [filterClient, setFilterClient] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [formData, setFormData] = useState<ProjectFormData>({
     name: '',
     description: '',
-    client: '',
     status: 'active',
     hourlyRate: 0,
     startDate: '',
@@ -190,9 +187,8 @@ const Projects: React.FC = () => {
 
   // Filtere Projekte
   const filteredProjects = projects?.filter((project: Project) => {
-    const matchesClient = !filterClient || project.client._id === filterClient;
     const matchesStatus = !filterStatus || project.status === filterStatus;
-    return matchesClient && matchesStatus;
+    return matchesStatus;
   });
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -210,7 +206,6 @@ const Projects: React.FC = () => {
       setFormData({
         name: project.name,
         description: project.description,
-        client: project.client._id,
         status: project.status,
         hourlyRate: project.hourlyRate,
         startDate: new Date(project.startDate).toISOString().split('T')[0],
@@ -223,7 +218,6 @@ const Projects: React.FC = () => {
       setFormData({
         name: '',
         description: '',
-        client: '',
         status: 'active',
         hourlyRate: 0,
         startDate: '',
@@ -239,7 +233,6 @@ const Projects: React.FC = () => {
     setFormData({
       name: '',
       description: '',
-      client: '',
       status: 'active',
       hourlyRate: 0,
       startDate: '',
@@ -287,22 +280,6 @@ const Projects: React.FC = () => {
             <TextField
               select
               fullWidth
-              label="Kunde filtern"
-              value={filterClient}
-              onChange={(e) => setFilterClient(e.target.value)}
-            >
-              <MenuItem value="">Alle Kunden</MenuItem>
-              {clients?.map((client: Client) => (
-                <MenuItem key={client._id} value={client._id}>
-                  {client.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              select
-              fullWidth
               label="Status filtern"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -326,7 +303,6 @@ const Projects: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
-                <TableCell>Kunde</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Startdatum</TableCell>
                 <TableCell>Enddatum</TableCell>
@@ -340,7 +316,6 @@ const Projects: React.FC = () => {
                 .map((project: Project) => (
                   <TableRow key={project._id}>
                     <TableCell>{project.name}</TableCell>
-                    <TableCell>{project.client.name}</TableCell>
                     <TableCell>
                       <Chip
                         label={getStatusText(project.status)}
@@ -410,18 +385,13 @@ const Projects: React.FC = () => {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  select
                   fullWidth
-                  label="Kunde"
-                  value={formData.client}
-                  onChange={(e) => handleFormChange('client', e.target.value)}
-                >
-                  {clients?.map((client: Client) => (
-                    <MenuItem key={client._id} value={client._id}>
-                      {client.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  label="Beschreibung"
+                  multiline
+                  rows={4}
+                  value={formData.description}
+                  onChange={(e) => handleFormChange('description', e.target.value)}
+                />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -469,28 +439,18 @@ const Projects: React.FC = () => {
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Beschreibung"
-                  value={formData.description}
-                  onChange={(e) =>
-                    handleFormChange('description', e.target.value)
-                  }
-                />
-              </Grid>
             </Grid>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Abbrechen</Button>
           <Button
+            type="submit"
             variant="contained"
             onClick={() => saveProject.mutate(formData)}
+            disabled={!formData.name}
           >
-            Speichern
+            {selectedProject ? 'Aktualisieren' : 'Erstellen'}
           </Button>
         </DialogActions>
       </Dialog>

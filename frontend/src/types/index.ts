@@ -13,10 +13,10 @@ export interface Project {
   id: string;
   name: string;
   description?: string;
-  client?: string;
   status: 'active' | 'completed' | 'on-hold';
   startDate?: Date;
   endDate?: Date;
+  hourlyRate?: number;
 }
 
 export interface TimeEntry {
