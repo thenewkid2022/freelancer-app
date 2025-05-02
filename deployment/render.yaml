@@ -2,8 +2,8 @@ services:
   - type: web
     name: freelancer-app-backend
     env: node
-    buildCommand: cd ../server && npm install && npm run build
-    startCommand: cd ../server && npm start
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -15,6 +15,8 @@ services:
         sync: false
       - key: CORS_ORIGIN
         value: https://freelancer-app-chi.vercel.app
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=512
     healthCheckPath: /api/health
     autoDeploy: true
     plan: free
@@ -24,7 +26,4 @@ services:
       sizeGB: 1
     scaling:
       minInstances: 1
-      maxInstances: 1
-    envVars:
-      - key: NODE_OPTIONS
-        value: --max-old-space-size=512 
+      maxInstances: 1 

@@ -9,7 +9,7 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "frontend/build"
+        "distDir": "build"
       }
     }
   ],
@@ -22,7 +22,8 @@
         "Access-Control-Allow-Origin": "https://freelancer-app-chi.vercel.app",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept, Origin",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Credentials": "true"
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Max-Age": "86400"
       }
     },
     {
