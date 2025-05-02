@@ -40,17 +40,17 @@ interface TimeEntryModel extends Model<TimeEntryDocument> {
 
 export const timeEntrySchema = new Schema<TimeEntryDocument>({
   project: {
-    type: Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Project',
     required: true,
   },
   freelancer: {
-    type: Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
   client: {
-    type: Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
