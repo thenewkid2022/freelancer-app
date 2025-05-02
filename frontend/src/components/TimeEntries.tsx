@@ -78,8 +78,8 @@ const TimeEntries: React.FC = () => {
   const { data: timeEntries = [], isLoading } = useQuery<TimeEntry[]>({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      const response = await apiClient.get<{ data: TimeEntry[] }>('/api/time-entries');
-      return response.data.data;
+      const response = await apiClient.get<TimeEntry[]>('/api/time-entries');
+      return response.data;
     },
   });
 
@@ -87,8 +87,8 @@ const TimeEntries: React.FC = () => {
   const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ['projects'],
     queryFn: async () => {
-      const response = await apiClient.get<{ data: Project[] }>('/api/projects');
-      return response.data.data;
+      const response = await apiClient.get<Project[]>('/api/projects');
+      return response.data;
     },
   });
 
@@ -100,8 +100,8 @@ const TimeEntries: React.FC = () => {
         : '/api/time-entries';
       const method = selectedEntry ? 'put' : 'post';
       
-      const response = await apiClient[method]<{ data: TimeEntry }>(url, entryData);
-      return response.data.data;
+      const response = await apiClient[method]<TimeEntry>(url, entryData);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
@@ -115,8 +115,8 @@ const TimeEntries: React.FC = () => {
   // Zeiteintrag löschen
   const deleteTimeEntry = useMutation({
     mutationFn: async (entryId: string) => {
-      const response = await apiClient.delete<{ data: TimeEntry }>(`/api/time-entries/${entryId}`);
-      return response.data.data;
+      const response = await apiClient.delete<TimeEntry>(`/api/time-entries/${entryId}`);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
