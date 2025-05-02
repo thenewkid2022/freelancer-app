@@ -1,6 +1,8 @@
 import { User, IUser } from '../models/User';
 import { AuthError } from '../utils/errors';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
+import { config } from '../config';
+import { Document } from 'mongoose';
 
 export interface LoginCredentials {
   email: string;
@@ -8,7 +10,8 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData extends LoginCredentials {
-  name: string;
+  firstName: string;
+  lastName: string;
   role: 'admin' | 'freelancer' | 'client';
 }
 
@@ -33,11 +36,11 @@ export class AuthService {
     try {
       const existingUser = await User.findOne({ email: data.email });
       if (existingUser) {
-        throw new AuthError('Benutzer mit dieser E-Mail existiert bereits');
+        throw new AuthError('E-Mail-Adresse wird bereits verwendet');
       }
 
       const user = await User.create(data);
-      const token = user.generateAuthToken();
+      const token = this.generateToken(user);
 
       return {
         user: this.sanitizeUser(user),
@@ -53,22 +56,22 @@ export class AuthService {
     try {
       const user = await User.findOne({ email: credentials.email });
       if (!user) {
-        throw new AuthError('Ungültige Anmeldedaten');
+        throw new AuthError('Ungültige Anmeldedaten', 401);
       }
 
       const isPasswordValid = await user.comparePassword(credentials.password);
       if (!isPasswordValid) {
-        throw new AuthError('Ungültige Anmeldedaten');
+        throw new AuthError('Ungültige Anmeldedaten', 401);
       }
 
       if (!user.isActive) {
-        throw new AuthError('Konto ist deaktiviert');
+        throw new AuthError('Konto ist deaktiviert', 403);
       }
 
       user.lastLogin = new Date();
       await user.save();
 
-      const token = user.generateAuthToken();
+      const token = this.generateToken(user);
 
       return {
         user: this.sanitizeUser(user),
@@ -80,22 +83,28 @@ export class AuthService {
     }
   }
 
+  private generateToken(user: IUser): string {
+    const payload = { id: user._id };
+    const options: SignOptions = { expiresIn: config.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] };
+    return jwt.sign(payload, config.JWT_SECRET as jwt.Secret, options);
+  }
+
   async validateToken(token: string): Promise<IUser> {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { id: string };
+      const decoded = jwt.verify(token, config.JWT_SECRET) as { id: string };
       const user = await User.findById(decoded.id);
       
       if (!user || !user.isActive) {
-        throw new AuthError('Ungültiger Token');
+        throw new AuthError('Ungültiger Token', 401);
       }
 
       return user;
     } catch (error) {
-      throw new AuthError('Ungültiger Token');
+      throw new AuthError('Ungültiger Token', 401);
     }
   }
 
-  private sanitizeUser(user: IUser): Omit<IUser, 'password'> {
+  private sanitizeUser(user: IUser & Document): Omit<IUser, 'password'> {
     const sanitized = user.toObject();
     delete sanitized.password;
     return sanitized;

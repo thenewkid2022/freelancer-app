@@ -11,8 +11,8 @@ export class AppError extends Error {
 }
 
 export class AuthError extends AppError {
-  constructor(message: string) {
-    super(message, 401, 'AUTH_ERROR');
+  constructor(message: string, statusCode: number = 401) {
+    super(message, statusCode, 'AUTH_ERROR');
   }
 }
 
@@ -37,5 +37,12 @@ export class ForbiddenError extends AppError {
 export class ConflictError extends AppError {
   constructor(message: string) {
     super(message, 409, 'CONFLICT');
+  }
+}
+
+export class BadRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'BadRequestError';
   }
 } 

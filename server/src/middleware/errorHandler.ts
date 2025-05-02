@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/errors';
-import { ZodError } from 'zod';
 import mongoose from 'mongoose';
+import { ValidationError, AuthError, NotFoundError, ForbiddenError, BadRequestError } from '../utils/errors';
 
 export const errorHandler = (
   err: Error,
@@ -14,53 +13,50 @@ export const errorHandler = (
   // Mongoose Validierungsfehler
   if (err instanceof mongoose.Error.ValidationError) {
     return res.status(400).json({
-      status: 'error',
-      code: 'VALIDATION_ERROR',
-      message: 'Validierungsfehler',
-      errors: Object.values(err.errors).map(e => ({
-        path: e.path,
-        message: e.message
-      }))
+      message: err.message,
+      code: 'VALIDATION_ERROR'
     });
   }
 
-  // Mongoose Cast-Fehler (z.B. ungültige ObjectId)
-  if (err instanceof mongoose.Error.CastError) {
+  // Eigene Fehlertypen
+  if (err instanceof ValidationError) {
     return res.status(400).json({
-      status: 'error',
-      code: 'INVALID_ID',
-      message: 'Ungültige ID'
+      message: err.message,
+      code: 'VALIDATION_ERROR'
     });
   }
 
-  // Zod Validierungsfehler
-  if (err instanceof ZodError) {
+  if (err instanceof AuthError) {
+    return res.status(401).json({
+      message: err.message,
+      code: 'AUTH_ERROR'
+    });
+  }
+
+  if (err instanceof NotFoundError) {
+    return res.status(404).json({
+      message: err.message,
+      code: 'NOT_FOUND'
+    });
+  }
+
+  if (err instanceof ForbiddenError) {
+    return res.status(403).json({
+      message: err.message,
+      code: 'FORBIDDEN'
+    });
+  }
+
+  if (err instanceof BadRequestError) {
     return res.status(400).json({
-      status: 'error',
-      code: 'VALIDATION_ERROR',
-      message: 'Validierungsfehler',
-      errors: err.errors.map(e => ({
-        path: e.path.join('.'),
-        message: e.message
-      }))
+      message: err.message,
+      code: 'BAD_REQUEST'
     });
   }
 
-  // Anwendungsfehler
-  if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      status: 'error',
-      code: err.code,
-      message: err.message
-    });
-  }
-
-  // Unerwartete Fehler
+  // Unbekannte Fehler
   return res.status(500).json({
-    status: 'error',
-    code: 'INTERNAL_SERVER_ERROR',
-    message: process.env.NODE_ENV === 'production' 
-      ? 'Ein interner Serverfehler ist aufgetreten'
-      : err.message
+    message: 'Ein interner Serverfehler ist aufgetreten',
+    code: 'INTERNAL_SERVER_ERROR'
   });
 }; 

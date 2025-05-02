@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
-import { AuthError } from '../utils/errors';
+import { AuthError, ForbiddenError } from '../utils/errors';
+import { IUser } from '../models/User';
 
 export interface AuthRequest extends Request {
-  user?: any;
+  user: IUser;
 }
 
 export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -31,7 +32,7 @@ export const requireRole = (roles: string[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(new AuthError('Keine Berechtigung für diese Aktion'));
+      return next(new ForbiddenError('Keine Berechtigung für diese Aktion'));
     }
 
     next();

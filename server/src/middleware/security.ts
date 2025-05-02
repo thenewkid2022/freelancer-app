@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { logger } from '../utils/logger';
+import { RequestHandler } from 'express';
 
 // Rate Limiter für Auth-Endpunkte
 export const authLimiter = rateLimit({
@@ -36,37 +37,19 @@ export const apiLimiter = rateLimit({
   }
 });
 
-// Helmet Konfiguration
-const helmetConfig = {
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'", 'https://api.freelancer-app.com']
-    }
-  },
-  crossOriginEmbedderPolicy: true,
-  crossOriginOpenerPolicy: true,
-  crossOriginResourcePolicy: { policy: 'same-site' },
-  dnsPrefetchControl: true,
-  frameguard: { action: 'deny' },
-  hidePoweredBy: true,
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  },
-  ieNoOpen: true,
-  noSniff: true,
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  xssFilter: true
-};
-
 // Security Middleware
-export const securityMiddleware = [
-  helmet(helmetConfig),
+export const securityMiddleware: RequestHandler[] = [
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https://api.stripe.com']
+      }
+    }
+  }),
   (req: Request, res: Response, next: NextFunction) => {
     // XSS Protection
     res.setHeader('X-XSS-Protection', '1; mode=block');

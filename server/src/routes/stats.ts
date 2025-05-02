@@ -1,8 +1,19 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { auth, requireRole } from '../middleware/auth';
+import { auth } from '../middleware/auth';
 import { TimeEntry } from '../models/TimeEntry';
 import { Payment } from '../models/Payment';
-import { ForbiddenError } from '../utils/errors';
+import { BadRequestError, ForbiddenError } from '../utils/errors';
+import { Types } from 'mongoose';
+import { IUser } from '../models/User';
+
+// Erweitere die Express Request-Definition
+declare module 'express-serve-static-core' {
+  interface Request {
+    user: IUser & {
+      _id: Types.ObjectId;
+    };
+  }
+}
 
 const router = Router();
 
@@ -37,23 +48,34 @@ router.get('/time',
   auth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        throw new ForbiddenError('Nicht authentifiziert');
-      }
-
       const { startDate, endDate } = req.query;
 
       if (!startDate || !endDate) {
-        throw new ForbiddenError('Start- und Enddatum sind erforderlich');
+        throw new BadRequestError('Start- und Enddatum sind erforderlich');
       }
 
-      const stats = await TimeEntry.getStats(
-        req.user._id,
-        new Date(startDate as string),
-        new Date(endDate as string)
-      );
+      const query: any = {
+        $or: [
+          { freelancer: req.user._id },
+          { client: req.user._id }
+        ],
+        startTime: {
+          $gte: new Date(startDate as string),
+          $lte: new Date(endDate as string)
+        }
+      };
 
-      res.json(stats);
+      const timeEntries = await TimeEntry.find(query);
+
+      const totalHours = timeEntries.reduce((acc, entry) => {
+        return acc + (entry.duration / 3600);
+      }, 0);
+
+      res.json({
+        totalHours,
+        totalEntries: timeEntries.length,
+        entries: timeEntries
+      });
     } catch (error) {
       next(error);
     }
@@ -91,50 +113,40 @@ router.get('/payments',
   auth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        throw new ForbiddenError('Nicht authentifiziert');
-      }
-
       const { startDate, endDate } = req.query;
 
       if (!startDate || !endDate) {
-        throw new ForbiddenError('Start- und Enddatum sind erforderlich');
+        throw new BadRequestError('Start- und Enddatum sind erforderlich');
       }
 
       const query: any = {
+        $or: [
+          { freelancer: req.user._id },
+          { client: req.user._id }
+        ],
         createdAt: {
           $gte: new Date(startDate as string),
           $lte: new Date(endDate as string)
         }
       };
 
-      if (req.user.role === 'freelancer') {
-        query.freelancer = req.user._id;
-      } else if (req.user.role === 'client') {
-        query.client = req.user._id;
-      }
-
-      const [totalAmount, pendingAmount, completedAmount] = await Promise.all([
-        Payment.aggregate([
-          { $match: query },
-          { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]),
-        Payment.aggregate([
-          { $match: { ...query, status: 'pending' } },
-          { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]),
-        Payment.aggregate([
-          { $match: { ...query, status: 'completed' } },
-          { $group: { _id: null, total: { $sum: '$amount' } } }
-        ])
-      ]);
+      const payments = await Payment.find(query);
 
       const stats = {
-        totalAmount: totalAmount[0]?.total || 0,
-        pendingAmount: pendingAmount[0]?.total || 0,
-        completedAmount: completedAmount[0]?.total || 0,
+        totalAmount: 0,
+        pendingAmount: 0,
+        completedAmount: 0,
         currency: 'EUR'
       };
+
+      payments.forEach(payment => {
+        stats.totalAmount += payment.amount;
+        if (payment.status === 'pending') {
+          stats.pendingAmount += payment.amount;
+        } else if (payment.status === 'completed') {
+          stats.completedAmount += payment.amount;
+        }
+      });
 
       res.json(stats);
     } catch (error) {
@@ -161,65 +173,201 @@ router.get('/overview',
   auth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        throw new ForbiddenError('Nicht authentifiziert');
-      }
+      const query: any = {
+        $or: [
+          { freelancer: req.user._id },
+          { client: req.user._id }
+        ]
+      };
 
-      const query: any = {};
-      if (req.user.role === 'freelancer') {
-        query.freelancer = req.user._id;
-      } else if (req.user.role === 'client') {
-        query.client = req.user._id;
-      }
+      const timeEntries = await TimeEntry.find(query);
+      const payments = await Payment.find(query);
 
-      const [timeStats, paymentStats] = await Promise.all([
-        TimeEntry.aggregate([
-          { $match: query },
-          {
-            $group: {
-              _id: null,
-              totalHours: { $sum: { $divide: ['$duration', 3600] } },
-              totalEntries: { $sum: 1 },
-              avgDuration: { $avg: '$duration' }
-            }
-          }
-        ]),
-        Payment.aggregate([
-          { $match: query },
-          {
-            $group: {
-              _id: null,
-              totalAmount: { $sum: '$amount' },
-              pendingAmount: {
-                $sum: {
-                  $cond: [{ $eq: ['$status', 'pending'] }, '$amount', 0]
-                }
-              },
-              completedAmount: {
-                $sum: {
-                  $cond: [{ $eq: ['$status', 'completed'] }, '$amount', 0]
-                }
-              }
-            }
-          }
-        ])
-      ]);
+      let totalHours = 0;
+      let totalDuration = 0;
+
+      timeEntries.forEach(entry => {
+        totalDuration += entry.duration;
+        totalHours += entry.duration / 3600;
+      });
+
+      const avgDuration = timeEntries.length > 0 ? totalDuration / timeEntries.length : 0;
 
       const stats = {
         time: {
-          totalHours: Math.round((timeStats[0]?.totalHours || 0) * 100) / 100,
-          totalEntries: timeStats[0]?.totalEntries || 0,
-          avgDuration: Math.round(timeStats[0]?.avgDuration || 0)
+          totalHours: Math.round(totalHours * 100) / 100,
+          totalEntries: timeEntries.length,
+          avgDuration: Math.round(avgDuration)
         },
         payments: {
-          totalAmount: paymentStats[0]?.totalAmount || 0,
-          pendingAmount: paymentStats[0]?.pendingAmount || 0,
-          completedAmount: paymentStats[0]?.completedAmount || 0,
+          totalAmount: 0,
+          pendingAmount: 0,
+          completedAmount: 0,
           currency: 'EUR'
         }
       };
 
+      payments.forEach(payment => {
+        stats.payments.totalAmount += payment.amount;
+        if (payment.status === 'pending') {
+          stats.payments.pendingAmount += payment.amount;
+        } else if (payment.status === 'completed') {
+          stats.payments.completedAmount += payment.amount;
+        }
+      });
+
       res.json(stats);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/stats/freelancer:
+ *   get:
+ *     summary: Get freelancer statistics
+ *     tags: [Stats]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Freelancer statistics
+ */
+router.get('/freelancer',
+  auth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const timeEntries = await TimeEntry.find({ freelancer: req.user._id });
+      const payments = await Payment.find({ freelancer: req.user._id });
+
+      const totalHours = timeEntries.reduce((acc, entry) => {
+        return acc + (entry.duration / 3600);
+      }, 0);
+
+      const totalEarnings = payments.reduce((acc, payment) => acc + payment.amount, 0);
+
+      const projectStats = await TimeEntry.aggregate([
+        { $match: { freelancer: req.user._id } },
+        {
+          $group: {
+            _id: '$project',
+            totalHours: {
+              $sum: { $divide: ['$duration', 3600] }
+            },
+            totalEarnings: { $sum: { $multiply: ['$hourlyRate', { $divide: ['$duration', 3600] }] } }
+          }
+        }
+      ]);
+
+      res.json({
+        totalHours,
+        totalEarnings,
+        projectStats
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/stats/client:
+ *   get:
+ *     summary: Get client statistics
+ *     tags: [Stats]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Client statistics
+ */
+router.get('/client',
+  auth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const timeEntries = await TimeEntry.find({ client: req.user._id });
+      const payments = await Payment.find({ client: req.user._id });
+
+      const totalHours = timeEntries.reduce((acc, entry) => {
+        return acc + (entry.duration / 3600);
+      }, 0);
+
+      const totalPayments = payments.reduce((acc, payment) => acc + payment.amount, 0);
+
+      const projectStats = await TimeEntry.aggregate([
+        { $match: { client: req.user._id } },
+        {
+          $group: {
+            _id: '$project',
+            totalHours: {
+              $sum: { $divide: ['$duration', 3600] }
+            },
+            totalPayments: { $sum: { $multiply: ['$hourlyRate', { $divide: ['$duration', 3600] }] } }
+          }
+        }
+      ]);
+
+      res.json({
+        totalHours,
+        totalPayments,
+        projectStats
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/stats/project/{projectId}:
+ *   get:
+ *     summary: Get project statistics
+ *     tags: [Stats]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Project statistics
+ */
+router.get('/project/:projectId',
+  auth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const timeEntries = await TimeEntry.find({
+        $or: [
+          { freelancer: req.user._id, project: req.params.projectId },
+          { client: req.user._id, project: req.params.projectId }
+        ]
+      }).populate('freelancer client');
+
+      const payments = await Payment.find({
+        $or: [
+          { freelancer: req.user._id, project: req.params.projectId },
+          { client: req.user._id, project: req.params.projectId }
+        ]
+      });
+
+      const totalHours = timeEntries.reduce((acc, entry) => {
+        return acc + (entry.duration / 3600);
+      }, 0);
+
+      const totalPayments = payments.reduce((acc, payment) => acc + payment.amount, 0);
+
+      res.json({
+        totalHours,
+        totalPayments,
+        timeEntries
+      });
     } catch (error) {
       next(error);
     }

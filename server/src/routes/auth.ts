@@ -5,7 +5,7 @@ import { validateRequest } from '../middleware/validation';
 import { z } from 'zod';
 import { User } from '../models/User';
 import { generateToken } from '../utils/auth';
-import { ValidationError, ForbiddenError } from '../utils/errors';
+import { ValidationError, AuthError } from '../utils/errors';
 import bcrypt from 'bcryptjs';
 
 const router = Router();
@@ -16,7 +16,8 @@ const registerSchema = z.object({
   body: z.object({
     email: z.string().email('Ungültige E-Mail-Adresse'),
     password: z.string().min(8, 'Passwort muss mindestens 8 Zeichen lang sein'),
-    name: z.string().min(2, 'Name muss mindestens 2 Zeichen lang sein'),
+    firstName: z.string().min(2, 'Vorname muss mindestens 2 Zeichen lang sein'),
+    lastName: z.string().min(2, 'Nachname muss mindestens 2 Zeichen lang sein'),
     role: z.enum(['freelancer', 'client'], {
       errorMap: () => ({ message: 'Ungültige Rolle' })
     })
@@ -45,7 +46,8 @@ const loginSchema = z.object({
  *             required:
  *               - email
  *               - password
- *               - name
+ *               - firstName
+ *               - lastName
  *               - role
  *             properties:
  *               email:
@@ -54,7 +56,10 @@ const loginSchema = z.object({
  *               password:
  *                 type: string
  *                 minLength: 8
- *               name:
+ *               firstName:
+ *                 type: string
+ *                 minLength: 2
+ *               lastName:
  *                 type: string
  *                 minLength: 2
  *               role:
@@ -70,7 +75,7 @@ router.post('/register',
   validateRequest(registerSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, password, name, role } = req.body;
+      const { email, password, firstName, lastName, role } = req.body;
 
       // Überprüfe, ob E-Mail bereits existiert
       const existingUser = await User.findOne({ email });
@@ -86,7 +91,8 @@ router.post('/register',
       const user = await User.create({
         email,
         password: hashedPassword,
-        name,
+        firstName,
+        lastName,
         role
       });
 
@@ -98,7 +104,8 @@ router.post('/register',
         user: {
           _id: user._id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role
         }
       });
@@ -146,13 +153,13 @@ router.post('/login',
       // Finde Benutzer
       const user = await User.findOne({ email });
       if (!user) {
-        throw new ForbiddenError('Ungültige Anmeldedaten');
+        throw new AuthError('Ungültige Anmeldedaten');
       }
 
       // Überprüfe Passwort
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        throw new ForbiddenError('Ungültige Anmeldedaten');
+        throw new AuthError('Ungültige Anmeldedaten');
       }
 
       // Generiere Token
@@ -163,7 +170,8 @@ router.post('/login',
         user: {
           _id: user._id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role
         }
       });

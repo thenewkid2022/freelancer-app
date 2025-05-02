@@ -1,29 +1,32 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-export interface IUser extends Document {
-  name: string;
+export interface IUser {
+  _id: Types.ObjectId;
   email: string;
   password: string;
+  firstName: string;
+  lastName: string;
   role: 'admin' | 'freelancer' | 'client';
   isActive: boolean;
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
-  generateAuthToken(): string;
+  fullName: string;
 }
 
-const userSchema = new Schema<IUser>({
-  name: {
-    type: String,
-    required: [true, 'Name ist erforderlich'],
-    trim: true
-  },
+export interface UserDocument extends Omit<Document, '_id'>, IUser {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+  generateAuthToken(): string;
+  deactivate(): Promise<void>;
+  activate(): Promise<void>;
+}
+
+export const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: [true, 'E-Mail ist erforderlich'],
+    required: [true, 'Email ist erforderlich'],
     unique: true,
     trim: true,
     lowercase: true,
@@ -32,12 +35,25 @@ const userSchema = new Schema<IUser>({
   password: {
     type: String,
     required: [true, 'Passwort ist erforderlich'],
-    minlength: [8, 'Passwort muss mindestens 8 Zeichen lang sein']
+    minlength: [6, 'Passwort muss mindestens 6 Zeichen lang sein']
+  },
+  firstName: {
+    type: String,
+    required: [true, 'Vorname ist erforderlich'],
+    trim: true
+  },
+  lastName: {
+    type: String,
+    required: [true, 'Nachname ist erforderlich'],
+    trim: true
   },
   role: {
     type: String,
-    enum: ['admin', 'freelancer', 'client'],
-    default: 'freelancer'
+    enum: {
+      values: ['admin', 'freelancer', 'client'],
+      message: '{VALUE} ist keine gültige Rolle'
+    },
+    required: [true, 'Rolle ist erforderlich']
   },
   isActive: {
     type: Boolean,
@@ -45,31 +61,38 @@ const userSchema = new Schema<IUser>({
   },
   lastLogin: {
     type: Date
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
 }, {
-  timestamps: true
-});
-
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error as Error);
+  timestamps: true,
+  toJSON: {
+    transform: function(doc, ret) {
+      delete ret.password;
+      return ret;
+    }
+  },
+  toObject: {
+    transform: function(doc, ret) {
+      delete ret.password;
+      return ret;
+    }
   }
 });
 
+// Virtuelle Eigenschaften
+userSchema.virtual('fullName').get(function() {
+  return `${this.firstName} ${this.lastName}`;
+});
+
+// Pre-save Middleware
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Instanz-Methoden
 userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
@@ -86,6 +109,16 @@ userSchema.methods.generateAuthToken = function(): string {
   );
 };
 
-userSchema.index({ email: 1 });
+userSchema.methods.deactivate = async function(): Promise<void> {
+  this.isActive = false;
+  await this.save();
+};
 
-export const User = mongoose.model<IUser>('User', userSchema); 
+userSchema.methods.activate = async function(): Promise<void> {
+  this.isActive = true;
+  await this.save();
+};
+
+const User = mongoose.model<UserDocument>('User', userSchema);
+
+export default User; 

@@ -79,15 +79,11 @@ const updateTimeEntrySchema = z.object({
  *         description: Nicht authentifiziert
  */
 router.post('/', 
-  auth, 
+  auth,
   requireRole(['freelancer']),
   validateRequest(createTimeEntrySchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        throw new ForbiddenError('Nicht authentifiziert');
-      }
-
       const timeEntry = await TimeEntry.create({
         ...req.body,
         freelancer: req.user._id,
@@ -134,10 +130,6 @@ router.get('/',
   auth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        throw new ForbiddenError('Nicht authentifiziert');
-      }
-
       const query: any = {};
       
       if (req.user.role === 'freelancer') {
@@ -166,6 +158,57 @@ router.get('/',
         .populate('client', 'name email');
 
       res.json(timeEntries);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/time-entries/{id}:
+ *   get:
+ *     tags: [TimeEntries]
+ *     summary: Gibt einen spezifischen Zeiteintrag zurück
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Zeiteintrag gefunden
+ *       401:
+ *         description: Nicht authentifiziert
+ *       403:
+ *         description: Keine Berechtigung
+ *       404:
+ *         description: Zeiteintrag nicht gefunden
+ */
+router.get('/:id',
+  auth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const timeEntry = await TimeEntry.findById(req.params.id)
+        .populate('freelancer', 'name email')
+        .populate('client', 'name email');
+      
+      if (!timeEntry) {
+        throw new NotFoundError('Zeiteintrag nicht gefunden');
+      }
+
+      if (req.user.role === 'freelancer' && timeEntry.freelancer._id.toString() !== req.user._id.toString()) {
+        throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
+      }
+
+      if (req.user.role === 'client' && timeEntry.client._id.toString() !== req.user._id.toString()) {
+        throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
+      }
+
+      res.json(timeEntry);
     } catch (error) {
       next(error);
     }
@@ -228,11 +271,7 @@ router.put('/:id',
   validateRequest(updateTimeEntrySchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        throw new ForbiddenError('Nicht authentifiziert');
-      }
-
-      const timeEntry = await TimeEntry.findById(req.params.id) as TimeEntryDocument;
+      const timeEntry = await TimeEntry.findById(req.params.id);
       
       if (!timeEntry) {
         throw new NotFoundError('Zeiteintrag nicht gefunden');
@@ -244,6 +283,10 @@ router.put('/:id',
 
       if (req.user.role === 'client' && timeEntry.client.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
+      }
+
+      if (timeEntry.status === 'approved') {
+        throw new ForbiddenError('Genehmigte Zeiteinträge können nicht bearbeitet werden');
       }
 
       Object.assign(timeEntry, req.body);
@@ -285,11 +328,7 @@ router.delete('/:id',
   requireRole(['freelancer']),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        throw new ForbiddenError('Nicht authentifiziert');
-      }
-
-      const timeEntry = await TimeEntry.findById(req.params.id) as TimeEntryDocument;
+      const timeEntry = await TimeEntry.findById(req.params.id);
       
       if (!timeEntry) {
         throw new NotFoundError('Zeiteintrag nicht gefunden');
@@ -297,6 +336,10 @@ router.delete('/:id',
 
       if (timeEntry.freelancer.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
+      }
+
+      if (timeEntry.status === 'approved') {
+        throw new ForbiddenError('Genehmigte Zeiteinträge können nicht gelöscht werden');
       }
 
       await timeEntry.deleteOne();

@@ -1,24 +1,22 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { IUser } from '../models/User';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+import { config } from '../config';
 
 export const generateToken = (user: IUser): string => {
-  return jwt.sign(
-    {
-      _id: user._id,
-      email: user.email,
-      role: user.role
-    },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
+  const payload = {
+    id: user._id
+  };
+  
+  const options: SignOptions = {
+    expiresIn: config.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn']
+  };
+  
+  return jwt.sign(payload, config.JWT_SECRET, options);
 };
 
 export const verifyToken = (token: string): any => {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, config.JWT_SECRET);
   } catch (error) {
     throw new Error('Ungültiger Token');
   }
