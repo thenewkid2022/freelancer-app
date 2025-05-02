@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { auth, requireRole } from '../middleware/auth';
-import { validateRequest } from '../middleware/validation';
+import { validateRequest } from '../middleware/validator';
 import { z } from 'zod';
 import { TimeEntry, TimeEntryDocument } from '../models/TimeEntry';
 import { NotFoundError, ForbiddenError } from '../utils/errors';
