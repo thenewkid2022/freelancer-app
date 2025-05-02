@@ -25,7 +25,7 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.post<{ user: AuthUser; token: string }>('/auth/login', data);
+      const response = await apiClient.post<{ user: AuthUser; token: string }>('/api/auth/login', data);
       setUser(response.user);
       localStorage.setItem('token', response.token);
     } catch (err) {
@@ -41,7 +41,7 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.post<{ user: AuthUser; token: string }>('/auth/register', data);
+      const response = await apiClient.post<{ user: AuthUser; token: string }>('/api/auth/register', data);
       setUser(response.user);
       localStorage.setItem('token', response.token);
     } catch (err) {
@@ -63,7 +63,7 @@ export const useAuth = () => {
     if (!token) return;
 
     try {
-      const response = await apiClient.get<AuthUser>('/auth/me');
+      const response = await apiClient.get<AuthUser>('/api/auth/me');
       setUser(response);
     } catch (err) {
       logout();
