@@ -2,33 +2,21 @@ import { useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Paper,
   Container,
   Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  TextField,
 } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedProject, setSelectedProject] = useState<string>('');
+  const [projectNumber, setProjectNumber] = useState('');
+  const [projectName, setProjectName] = useState('');
+  const [description, setDescription] = useState('');
   const [activeTimeEntry, setActiveTimeEntry] = useState<{ id: string; startTime: string } | null>(null);
-
-  // Projekte abrufen
-  const { data: projects } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const response = await fetch('/api/projects');
-      if (!response.ok) throw new Error('Fehler beim Laden der Projekte');
-      return response.json();
-    },
-  });
+  const [timer, setTimer] = useState(0);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
 
   // Starten der Zeiterfassung
   const startTimeEntry = useMutation({
@@ -36,13 +24,23 @@ const Dashboard: React.FC = () => {
       const response = await fetch('/api/time-entries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project: selectedProject, startTime: new Date().toISOString() }),
+        body: JSON.stringify({
+          projectNumber,
+          projectName,
+          description,
+          startTime: new Date().toISOString(),
+        }),
       });
       if (!response.ok) throw new Error('Fehler beim Starten der Zeiterfassung');
       return response.json();
     },
     onSuccess: (data) => {
       setActiveTimeEntry({ id: data._id, startTime: data.startTime });
+      setTimer(0);
+      const id = setInterval(() => {
+        setTimer((prev) => prev + 1);
+      }, 1000);
+      setIntervalId(id);
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
     },
   });
@@ -61,75 +59,83 @@ const Dashboard: React.FC = () => {
     },
     onSuccess: () => {
       setActiveTimeEntry(null);
+      if (intervalId) clearInterval(intervalId);
+      setIntervalId(null);
+      setTimer(0);
+      setProjectNumber('');
+      setProjectName('');
+      setDescription('');
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
     },
   });
 
+  // Zeitformatierung
+  const hours = Math.floor(timer / 3600);
+  const minutes = Math.floor((timer % 3600) / 60);
+  const seconds = timer % 60;
+
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {user?.name ? `Willkommen, ${user.name}!` : 'Willkommen!'}
+    <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <Typography variant="h4" align="center" sx={{ fontWeight: 700, mb: 4 }}>
+        Zeiterfassung
+      </Typography>
+      <Paper elevation={3} sx={{ p: 5, width: '100%', maxWidth: 500, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography variant="h5" align="center" sx={{ fontWeight: 700, mb: 2 }}>
+          Zeiterfassung
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Hier ist Ihre Zeiterfassungsübersicht
+        <Typography align="center" sx={{ mb: 3 }}>
+          Aktuelle Zeit: <b>{hours}h {minutes}m {seconds}s</b>
         </Typography>
-      </Box>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Neue Zeiterfassung
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>Projekt auswählen</InputLabel>
-                <Select
-                  value={selectedProject}
-                  label="Projekt auswählen"
-                  onChange={(e) => setSelectedProject(e.target.value)}
-                >
-                  {projects?.map((project: any) => (
-                    <MenuItem key={project._id} value={project._id}>
-                      {project.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              {!activeTimeEntry ? (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => startTimeEntry.mutate()}
-                  disabled={!selectedProject}
-                >
-                  Start
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => stopTimeEntry.mutate()}
-                >
-                  Stop
-                </Button>
-              )}
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={4}></Grid>
-
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Letzte Zeiteinträge
-            </Typography>
-            {/* Hier können später die letzten Zeiteinträge angezeigt werden */}
-          </Paper>
-        </Grid>
-      </Grid>
+        <TextField
+          label="Projektnummer"
+          placeholder="z.B. PRJ-001"
+          fullWidth
+          margin="normal"
+          value={projectNumber}
+          onChange={(e) => setProjectNumber(e.target.value)}
+          disabled={!!activeTimeEntry}
+        />
+        <TextField
+          label="Projektname"
+          placeholder="z.B. Website-Relaunch"
+          fullWidth
+          margin="normal"
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          disabled={!!activeTimeEntry}
+        />
+        <TextField
+          label="Beschreibung"
+          placeholder="Kurze Beschreibung der Tätigkeit"
+          fullWidth
+          margin="normal"
+          multiline
+          minRows={2}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          disabled={!!activeTimeEntry}
+        />
+        <Box sx={{ display: 'flex', gap: 2, mt: 3, width: '100%', justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => startTimeEntry.mutate()}
+            disabled={!!activeTimeEntry || !projectNumber || !projectName || !description}
+            sx={{ minWidth: 100 }}
+          >
+            Start
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => stopTimeEntry.mutate()}
+            disabled={!activeTimeEntry}
+            sx={{ minWidth: 100 }}
+          >
+            Stop
+          </Button>
+        </Box>
+      </Paper>
     </Container>
   );
 };
