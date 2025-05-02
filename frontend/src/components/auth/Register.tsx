@@ -15,7 +15,7 @@ import {
   MenuItem,
   SelectChangeEvent,
 } from '@mui/material';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ const Register: React.FC = () => {
 
     try {
       await register(formData);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
     }
@@ -138,7 +138,7 @@ const Register: React.FC = () => {
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link component={RouterLink} to="/login" variant="body2">
-                {"Bereits ein Konto? Anmelden"}
+                Bereits ein Konto? Anmelden
               </Link>
             </Box>
           </Box>

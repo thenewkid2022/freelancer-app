@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { toast } from 'react-toastify';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-1g8o.onrender.com/api';
@@ -9,31 +9,32 @@ interface RetryConfig {
   retryableStatusCodes: number[];
 }
 
-const defaultRetryConfig: RetryConfig = {
-  retries: 5,
-  retryDelay: 2000,
-  retryableStatusCodes: [408, 429, 500, 502, 503, 504]
-};
-
 interface ErrorResponse {
   message: string;
 }
 
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+const defaultRetryConfig: RetryConfig = {
+  retries: 3,
+  retryDelay: 1000,
+  retryableStatusCodes: [408, 429, 500, 502, 503, 504],
+};
+
 class ApiClient {
-  private client: AxiosInstance;
+  private instance: AxiosInstance;
   private retryConfig: RetryConfig;
 
-  constructor(config: Partial<RetryConfig> = {}) {
-    this.retryConfig = { ...defaultRetryConfig, ...config };
-    this.client = axios.create({
+  constructor(config: RetryConfig = defaultRetryConfig) {
+    this.retryConfig = config;
+    this.instance = axios.create({
       baseURL: API_URL,
-      timeout: 30000,
-      withCredentials: true,
+      timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+      },
     });
 
     this.setupInterceptors();
@@ -41,9 +42,8 @@ class ApiClient {
 
   private setupInterceptors() {
     // Request Interceptor
-    this.client.interceptors.request.use(
+    this.instance.interceptors.request.use(
       (config) => {
-        console.log(`Sende ${config.method?.toUpperCase()} Anfrage an: ${config.url}`);
         const token = localStorage.getItem('token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -51,120 +51,79 @@ class ApiClient {
         return config;
       },
       (error) => {
-        console.error('Request Interceptor Fehler:', error);
         return Promise.reject(error);
       }
     );
 
     // Response Interceptor
-    this.client.interceptors.response.use(
-      (response) => {
-        console.log(`Erfolgreiche Antwort von ${response.config.url}:`, response.status);
-        return response;
-      },
+    this.instance.interceptors.response.use(
+      (response) => response,
       async (error: AxiosError<ErrorResponse>) => {
-        console.error('Response Interceptor Fehler:', {
-          url: error.config?.url,
-          method: error.config?.method,
-          status: error.response?.status,
-          message: error.message,
-          response: error.response?.data,
-          headers: error.response?.headers
-        });
+        const originalRequest = error.config as RetryableRequestConfig;
+        if (!originalRequest) {
+          return Promise.reject(error);
+        }
 
-        const message = error.response?.data?.message || error.message;
-        
-        if (error.response?.status === 403) {
-          toast.error('Sie haben keine Berechtigung für diese Aktion');
-        } else if (error.response?.status === 401) {
-          toast.error('Bitte melden Sie sich an');
-        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-          toast.error('Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.');
-        } else if (error.message.includes('Network Error')) {
-          toast.error('Keine Verbindung zum Server möglich. Bitte überprüfen Sie Ihre Internetverbindung.');
-        } else {
+        // Wenn der Fehler 401 ist und wir noch keine Retry-Versuche gemacht haben
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+          return Promise.reject(error);
+        }
+
+        // Retry-Logik für andere Fehler
+        if (
+          error.response &&
+          this.retryConfig.retryableStatusCodes.includes(error.response.status) &&
+          !originalRequest._retry
+        ) {
+          originalRequest._retry = true;
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(this.instance(originalRequest));
+            }, this.retryConfig.retryDelay);
+          });
+        }
+
+        // Fehlerbehandlung
+        if (error.response) {
+          const message = error.response.data?.message || 'Ein Fehler ist aufgetreten';
           toast.error(message);
+        } else if (error.request) {
+          toast.error('Keine Antwort vom Server. Bitte überprüfen Sie Ihre Internetverbindung.');
+        } else {
+          toast.error('Ein unerwarteter Fehler ist aufgetreten.');
         }
 
-        // Retry-Logik für Timeouts und Server-Fehler
-        if (this.shouldRetry(error)) {
-          const config = error.config;
-          if (config) {
-            try {
-              console.log(`Versuche erneut: ${config.url} (${(config as any).__retryCount || 0 + 1}/${this.retryConfig.retries})`);
-              return await this.retryRequest(config);
-            } catch (retryError) {
-              console.error('Retry fehlgeschlagen:', retryError);
-              return Promise.reject(retryError);
-            }
-          }
-        }
-        
         return Promise.reject(error);
       }
     );
   }
 
-  private shouldRetry(error: AxiosError): boolean {
-    const shouldRetry = error.code === 'ECONNABORTED' ||
-      error.message.includes('timeout') ||
-      (error.response !== undefined &&
-        this.retryConfig.retryableStatusCodes.includes(error.response.status));
-    
-    console.log('Soll retry durchgeführt werden?', {
-      error: error.message,
-      shouldRetry,
-      status: error.response?.status
-    });
-    
-    return shouldRetry;
-  }
-
-  private async retryRequest(config: AxiosRequestConfig): Promise<AxiosResponse> {
-    const retryCount = (config as any).__retryCount || 0;
-
-    if (retryCount >= this.retryConfig.retries) {
-      console.log('Maximale Anzahl an Retries erreicht');
-      return Promise.reject(new Error('Max retries reached'));
-    }
-
-    (config as any).__retryCount = retryCount + 1;
-    const delay = this.retryConfig.retryDelay * (retryCount + 1);
-    
-    console.log(`Warte ${delay}ms vor dem nächsten Versuch...`);
-    await new Promise((resolve) => setTimeout(resolve, delay));
-
-    return this.client(config);
-  }
-
-  // Generic request methods
-  async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    console.log(`GET Anfrage an: ${url}`);
-    const response = await this.client.get<T>(url, config);
+  public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.instance.get<T>(url, config);
     return response.data;
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    console.log(`POST Anfrage an: ${url}`, data);
-    const response = await this.client.post<T>(url, data, config);
+  public async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.instance.post<T>(url, data, config);
     return response.data;
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    console.log(`PUT Anfrage an: ${url}`, data);
-    const response = await this.client.put<T>(url, data, config);
+  public async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.instance.put<T>(url, data, config);
     return response.data;
   }
 
-  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    console.log(`DELETE Anfrage an: ${url}`);
-    const response = await this.client.delete<T>(url, config);
+  public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.instance.delete<T>(url, config);
     return response.data;
   }
 
   async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     console.log(`PATCH Anfrage an: ${url}`, data);
-    const response = await this.client.patch<T>(url, data, config);
+    const response = await this.instance.patch<T>(url, data, config);
     return response.data;
   }
 }

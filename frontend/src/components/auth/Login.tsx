@@ -10,7 +10,7 @@ import {
   Box,
   Alert,
 } from '@mui/material';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface LocationState {
   from: {
@@ -35,7 +35,7 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const from = (location.state as LocationState)?.from?.pathname || '/';
+      const from = (location.state as LocationState)?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, location, navigate]);
@@ -129,7 +129,7 @@ const Login: React.FC = () => {
             </Button>
             <Box sx={{ textAlign: 'center' }}>
               <Link component={RouterLink} to="/register" variant="body2">
-                {"Noch kein Konto? Registrieren"}
+                Noch kein Konto? Registrieren
               </Link>
             </Box>
           </Box>

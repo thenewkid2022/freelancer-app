@@ -6,7 +6,7 @@ import {
   Paper,
   Container,
 } from '@mui/material';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import TimeEntry from './TimeEntry/TimeEntry';
 
 const Dashboard: React.FC = () => {
