@@ -118,25 +118,8 @@ const Dashboard: React.FC = () => {
             </Box>
           </Paper>
         </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Statistiken
-            </Typography>
-            <Box>
-              <Typography variant="body1">
-                Gesamtarbeitszeit heute: 0 Std.
-              </Typography>
-              <Typography variant="body1">
-                Gesamtarbeitszeit diese Woche: 0 Std.
-              </Typography>
-              <Typography variant="body1">
-                Gesamtarbeitszeit diesen Monat: 0 Std.
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
+
+        <Grid item xs={12} md={4}></Grid>
 
         <Grid item xs={12}>
           <Paper sx={{ p: 2 }}>
