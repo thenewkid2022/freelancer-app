@@ -34,7 +34,7 @@
     "NODE_ENV": "production",
     "CORS_ORIGIN": "https://freelancer-app-chi.vercel.app",
     "API_URL": "https://freelancer-app-chi.vercel.app/api",
-    "MONGO_URI": "@mongo_uri",
+    "MONGODB_URI": "@mongo_uri",
     "JWT_SECRET": "@jwt_secret"
   }
 } 
