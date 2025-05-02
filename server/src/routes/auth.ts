@@ -166,14 +166,13 @@ router.post('/login',
       const token = generateToken(user);
 
       res.json({
-        token,
         user: {
-          _id: user._id,
+          id: user._id,
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          name: `${user.firstName} ${user.lastName}`,
           role: user.role
-        }
+        },
+        token
       });
     } catch (error) {
       next(error);

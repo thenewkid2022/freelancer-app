@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import axios from 'axios';
+import { apiClient } from '../services/api/client';
 
 interface AuthUser {
   id: string;
@@ -25,9 +25,9 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('/api/auth/login', data);
-      setUser(response.data.user);
-      localStorage.setItem('token', response.data.token);
+      const response = await apiClient.post<{ user: AuthUser; token: string }>('/auth/login', data);
+      setUser(response.user);
+      localStorage.setItem('token', response.token);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
       setError(message);
@@ -41,9 +41,9 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('/api/auth/register', data);
-      setUser(response.data.user);
-      localStorage.setItem('token', response.data.token);
+      const response = await apiClient.post<{ user: AuthUser; token: string }>('/auth/register', data);
+      setUser(response.user);
+      localStorage.setItem('token', response.token);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
       setError(message);
@@ -63,10 +63,8 @@ export const useAuth = () => {
     if (!token) return;
 
     try {
-      const response = await axios.get('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUser(response.data);
+      const response = await apiClient.get<AuthUser>('/auth/me');
+      setUser(response);
     } catch (err) {
       logout();
     }
