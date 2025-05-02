@@ -16,24 +16,26 @@ const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 // Trust Proxy für Render
 app.set('trust proxy', 1);
 
-// CORS Pre-flight Handler
-app.options('*', cors());
+// KORREKTE CORS-KONFIGURATION
+const allowedOrigins = [
+  'https://freelancer-app-chi.vercel.app',
+  'http://localhost:3000'
+];
 
-// CORS Konfiguration - muss vor allen anderen Middleware kommen
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://freelancer-app-chi.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Max-Age', '86400');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-  next();
-});
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, origin);
+    } else {
+      callback(new Error('Nicht erlaubte Origin: ' + origin), false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+  maxAge: 86400
+}));
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -53,10 +55,13 @@ app.use(helmet({
   }
 }));
 
+// Logging
 app.use(morgan('dev'));
+
+// Security Middleware
 app.use(securityMiddleware);
 
-// Routes
+// Routen
 app.use('/api/auth', authRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/stats', statsRoutes);
