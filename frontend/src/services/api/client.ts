@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { toast } from 'react-toastify';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-chi.vercel.app/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-1g8o.onrender.com/api';
 
 interface RetryConfig {
   retries: number;

@@ -17,7 +17,11 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: [config.CORS_ORIGIN, 'http://localhost:3000'],
+  origin: [
+    'https://freelancer-app-chi.vercel.app',
+    'https://freelancer-app-1g8o.onrender.com',
+    'http://localhost:3000'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
