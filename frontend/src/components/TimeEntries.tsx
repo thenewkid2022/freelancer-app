@@ -31,6 +31,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../services/api/client';
+import { AxiosResponse } from 'axios';
 
 interface Project {
   _id: string;
@@ -75,19 +76,19 @@ const TimeEntries: React.FC = () => {
   const [error, setError] = useState('');
 
   // Zeiteinträge abrufen
-  const { data: timeEntries = [], isLoading } = useQuery<TimeEntry[]>({
+  const { data: timeEntries = [], isLoading } = useQuery({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      const response = await apiClient.get<TimeEntry[]>('/api/time-entries');
+      const response: AxiosResponse<TimeEntry[]> = await apiClient.get('/api/time-entries');
       return response.data;
     },
   });
 
   // Projekte abrufen
-  const { data: projects = [] } = useQuery<Project[]>({
+  const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
-      const response = await apiClient.get<Project[]>('/api/projects');
+      const response: AxiosResponse<Project[]> = await apiClient.get('/api/projects');
       return response.data;
     },
   });
@@ -100,7 +101,7 @@ const TimeEntries: React.FC = () => {
         : '/api/time-entries';
       const method = selectedEntry ? 'put' : 'post';
       
-      const response = await apiClient[method]<TimeEntry>(url, entryData);
+      const response: AxiosResponse<TimeEntry> = await apiClient[method](url, entryData);
       return response.data;
     },
     onSuccess: () => {
@@ -115,7 +116,7 @@ const TimeEntries: React.FC = () => {
   // Zeiteintrag löschen
   const deleteTimeEntry = useMutation({
     mutationFn: async (entryId: string) => {
-      const response = await apiClient.delete<TimeEntry>(`/api/time-entries/${entryId}`);
+      const response: AxiosResponse<TimeEntry> = await apiClient.delete(`/api/time-entries/${entryId}`);
       return response.data;
     },
     onSuccess: () => {
