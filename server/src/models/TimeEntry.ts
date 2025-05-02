@@ -3,21 +3,31 @@ import { IUser } from './User';
 
 export interface ITimeEntry {
   _id: Types.ObjectId;
-  user: Types.ObjectId | IUser;
+  project: Types.ObjectId;
+  freelancer: Types.ObjectId | IUser;
+  client: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
   endTime: Date;
   duration: number;
+  status: 'pending' | 'approved' | 'rejected' | 'billed';
+  hourlyRate: number;
+  totalAmount: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface TimeEntryDocument extends Document {
-  user: Types.ObjectId | IUser;
+  project: Types.ObjectId;
+  freelancer: Types.ObjectId | IUser;
+  client: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
   endTime: Date;
   duration: number;
+  status: 'pending' | 'approved' | 'rejected' | 'billed';
+  hourlyRate: number;
+  totalAmount: number;
   createdAt: Date;
   updatedAt: Date;
   formattedDuration: string;
@@ -29,28 +39,50 @@ interface TimeEntryModel extends Model<TimeEntryDocument> {
 }
 
 export const timeEntrySchema = new Schema<TimeEntryDocument>({
-  user: {
+  project: {
+    type: Types.ObjectId,
+    ref: 'Project',
+    required: true,
+  },
+  freelancer: {
     type: Types.ObjectId,
     ref: 'User',
-    required: [true, 'Benutzer ist erforderlich']
+    required: true,
+  },
+  client: {
+    type: Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
   description: {
     type: String,
-    required: [true, 'Beschreibung ist erforderlich'],
-    trim: true
+    required: true,
   },
   startTime: {
     type: Date,
-    required: [true, 'Startzeit ist erforderlich']
+    required: true,
   },
   endTime: {
     type: Date,
-    required: [true, 'Endzeit ist erforderlich']
+    required: true,
   },
   duration: {
     type: Number,
-    default: 0
-  }
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'billed'],
+    default: 'pending',
+  },
+  hourlyRate: {
+    type: Number,
+    required: true,
+  },
+  totalAmount: {
+    type: Number,
+    required: true,
+  },
 }, {
   timestamps: true
 });
@@ -85,7 +117,7 @@ timeEntrySchema.statics.getStats = async function(userId: Types.ObjectId, startD
   return this.aggregate([
     {
       $match: {
-        user: userId,
+        freelancer: userId,
         startTime: {
           $gte: startDate,
           $lte: endDate
