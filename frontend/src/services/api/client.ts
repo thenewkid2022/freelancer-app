@@ -31,7 +31,8 @@ class ApiClient {
       withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       }
     });
 
@@ -67,7 +68,8 @@ class ApiClient {
           method: error.config?.method,
           status: error.response?.status,
           message: error.message,
-          response: error.response?.data
+          response: error.response?.data,
+          headers: error.response?.headers
         });
 
         const message = error.response?.data?.message || error.message;

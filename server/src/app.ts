@@ -13,29 +13,17 @@ import { config } from './config';
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// CORS Konfiguration
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://freelancer-app-chi.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-  next();
-});
-
+// CORS Konfiguration - muss vor allen anderen Middleware kommen
 app.use(cors({
-  origin: 'https://freelancer-app-chi.vercel.app',
+  origin: true, // Erlaubt alle Origins für die Entwicklung
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Helmet Konfiguration
 app.use(helmet({
