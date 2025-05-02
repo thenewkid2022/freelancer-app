@@ -70,6 +70,14 @@ const App: React.FC = () => {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </Box>
       <ToastContainer
