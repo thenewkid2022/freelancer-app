@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { AnyZodObject, ZodError } from 'zod';
 import { ValidationError } from '../utils/errors';
+import { z } from 'zod';
 
-export const validateRequest = (schema: AnyZodObject) => {
+export const validateRequest = (schema: z.ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       await schema.parseAsync({
@@ -12,7 +12,7 @@ export const validateRequest = (schema: AnyZodObject) => {
       });
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
+      if (error instanceof z.ZodError) {
         const errors = error.errors.map((err) => ({
           field: err.path.join('.'),
           message: err.message,
@@ -28,16 +28,20 @@ export const validateRequest = (schema: AnyZodObject) => {
 export const validateUser = (req: Request, res: Response, next: NextFunction) => {
   const { email, password, name } = req.body;
 
-  if (!email || !password || !name) {
-    return res.status(400).json({ message: 'Alle Felder sind erforderlich' });
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email und Passwort sind erforderlich' });
   }
 
-  if (password.length < 6) {
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ message: 'Ungültige Email-Adresse' });
+  }
+
+  if (password && password.length < 6) {
     return res.status(400).json({ message: 'Passwort muss mindestens 6 Zeichen lang sein' });
   }
 
-  if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-    return res.status(400).json({ message: 'Ungültige E-Mail-Adresse' });
+  if (name && name.length < 2) {
+    return res.status(400).json({ message: 'Name muss mindestens 2 Zeichen lang sein' });
   }
 
   next();
@@ -47,29 +51,25 @@ export const validateAuth = (req: Request, res: Response, next: NextFunction) =>
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'E-Mail und Passwort sind erforderlich' });
+    return res.status(400).json({ message: 'Email und Passwort sind erforderlich' });
   }
 
   next();
 };
 
 export const validatePayment = (req: Request, res: Response, next: NextFunction) => {
-  const { timeEntryIds, amount, currency, paymentMethod } = req.body;
+  const { amount, currency, paymentMethod } = req.body;
 
-  if (!timeEntryIds || !Array.isArray(timeEntryIds) || timeEntryIds.length === 0) {
-    return res.status(400).json({ message: 'Mindestens ein TimeEntry muss angegeben werden' });
-  }
-
-  if (!amount || typeof amount !== 'number' || amount <= 0) {
+  if (!amount || amount <= 0) {
     return res.status(400).json({ message: 'Ungültiger Betrag' });
   }
 
-  if (!currency || typeof currency !== 'string') {
-    return res.status(400).json({ message: 'Währung muss angegeben werden' });
+  if (!currency || !['EUR', 'USD'].includes(currency)) {
+    return res.status(400).json({ message: 'Ungültige Währung' });
   }
 
-  if (!paymentMethod || typeof paymentMethod !== 'string') {
-    return res.status(400).json({ message: 'Zahlungsmethode muss angegeben werden' });
+  if (!paymentMethod || !['stripe', 'bank_transfer', 'paypal'].includes(paymentMethod)) {
+    return res.status(400).json({ message: 'Ungültige Zahlungsmethode' });
   }
 
   next();

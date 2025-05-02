@@ -3,49 +3,62 @@ import { Payment, IPayment } from '../models/Payment';
 import { TimeEntry } from '../models/TimeEntry';
 import { AuthenticatedRequest } from '../types';
 import { logger } from '../utils/logger';
+import { AppError } from '../utils/errors';
+import { Types } from 'mongoose';
 
 export const paymentController = {
   // Neue Zahlung erstellen
   async create(req: AuthenticatedRequest, res: Response) {
     try {
-      const { timeEntryIds, amount, currency, paymentMethod } = req.body;
-      const freelancerId = req.user?.userId;
+      const { timeEntryId, amount, currency, paymentMethod } = req.body;
+      const timeEntry = await TimeEntry.findById(timeEntryId);
 
-      // Überprüfe, ob alle TimeEntries existieren und dem Freelancer gehören
-      const timeEntries = await TimeEntry.find({
-        _id: { $in: timeEntryIds },
-        userId: freelancerId
-      });
-
-      if (timeEntries.length !== timeEntryIds.length) {
-        return res.status(400).json({ message: 'Ungültige TimeEntries' });
+      if (!timeEntry) {
+        throw new AppError('Zeiteintrag nicht gefunden', 404);
       }
 
       const payment = new Payment({
-        freelancer: freelancerId,
-        client: timeEntries[0].clientId, // Annahme: Alle TimeEntries gehören zum gleichen Client
-        timeEntries: timeEntryIds,
+        project: timeEntry.project,
+        freelancer: timeEntry.freelancer,
+        client: timeEntry.client,
         amount,
         currency,
-        paymentMethod
+        paymentMethod,
+        status: 'pending'
       });
 
       await payment.save();
       logger.info('Neue Zahlung erstellt', { paymentId: payment._id });
       res.status(201).json(payment);
     } catch (error) {
-      logger.error('Fehler beim Erstellen der Zahlung', { error });
-      res.status(500).json({ message: 'Fehler beim Erstellen der Zahlung' });
+      if (error instanceof AppError) {
+        res.status(error.statusCode).json({ message: error.message });
+      } else {
+        logger.error('Fehler beim Erstellen der Zahlung', { error });
+        res.status(500).json({ message: 'Interner Serverfehler' });
+      }
     }
   },
 
   // Alle Zahlungen eines Freelancers abrufen
   async getFreelancerPayments(req: AuthenticatedRequest, res: Response) {
     try {
-      const freelancerId = req.user?.userId;
-      const payments = await Payment.find({ freelancer: freelancerId })
-        .populate('client', 'name email')
-        .populate('timeEntries')
+      const { startDate, endDate, status } = req.query;
+      const query: any = {
+        freelancer: req.user?.userId,
+        createdAt: {
+          $gte: startDate ? new Date(startDate as string) : undefined,
+          $lte: endDate ? new Date(endDate as string) : undefined
+        }
+      };
+
+      if (status) {
+        query.status = status;
+      }
+
+      const payments = await Payment.find(query)
+        .populate('project')
+        .populate('client')
         .sort({ createdAt: -1 });
 
       res.json(payments);
@@ -58,10 +71,22 @@ export const paymentController = {
   // Alle Zahlungen eines Clients abrufen
   async getClientPayments(req: AuthenticatedRequest, res: Response) {
     try {
-      const clientId = req.user?.userId;
-      const payments = await Payment.find({ client: clientId })
-        .populate('freelancer', 'name email')
-        .populate('timeEntries')
+      const { startDate, endDate, status } = req.query;
+      const query: any = {
+        client: req.user?.userId,
+        createdAt: {
+          $gte: startDate ? new Date(startDate as string) : undefined,
+          $lte: endDate ? new Date(endDate as string) : undefined
+        }
+      };
+
+      if (status) {
+        query.status = status;
+      }
+
+      const payments = await Payment.find(query)
+        .populate('project')
+        .populate('freelancer')
         .sort({ createdAt: -1 });
 
       res.json(payments);
@@ -75,12 +100,12 @@ export const paymentController = {
   async getPayment(req: AuthenticatedRequest, res: Response) {
     try {
       const payment = await Payment.findById(req.params.id)
-        .populate('freelancer', 'name email')
-        .populate('client', 'name email')
-        .populate('timeEntries');
+        .populate('project')
+        .populate('freelancer')
+        .populate('client');
 
       if (!payment) {
-        return res.status(404).json({ message: 'Zahlung nicht gefunden' });
+        throw new AppError('Zahlung nicht gefunden', 404);
       }
 
       // Überprüfe Berechtigung
@@ -91,19 +116,23 @@ export const paymentController = {
 
       res.json(payment);
     } catch (error) {
-      logger.error('Fehler beim Abrufen der Zahlung', { error });
-      res.status(500).json({ message: 'Fehler beim Abrufen der Zahlung' });
+      if (error instanceof AppError) {
+        res.status(error.statusCode).json({ message: error.message });
+      } else {
+        logger.error('Fehler beim Abrufen der Zahlung', { error });
+        res.status(500).json({ message: 'Fehler beim Abrufen der Zahlung' });
+      }
     }
   },
 
   // Zahlungsstatus aktualisieren
   async updateStatus(req: AuthenticatedRequest, res: Response) {
     try {
-      const { status } = req.body;
+      const { status, paymentIntentId, transferId } = req.body;
       const payment = await Payment.findById(req.params.id);
 
       if (!payment) {
-        return res.status(404).json({ message: 'Zahlung nicht gefunden' });
+        throw new AppError('Zahlung nicht gefunden', 404);
       }
 
       // Nur der Client kann den Status aktualisieren
@@ -111,17 +140,61 @@ export const paymentController = {
         return res.status(403).json({ message: 'Nicht autorisiert' });
       }
 
-      payment.status = status;
-      if (status === 'paid') {
-        payment.paymentDate = new Date();
-      }
+      if (status) payment.status = status;
+      if (paymentIntentId) payment.paymentIntentId = paymentIntentId;
+      if (transferId) payment.transferId = transferId;
 
       await payment.save();
       logger.info('Zahlungsstatus aktualisiert', { paymentId: payment._id, status });
       res.json(payment);
     } catch (error) {
-      logger.error('Fehler beim Aktualisieren des Zahlungsstatus', { error });
-      res.status(500).json({ message: 'Fehler beim Aktualisieren des Zahlungsstatus' });
+      if (error instanceof AppError) {
+        res.status(error.statusCode).json({ message: error.message });
+      } else {
+        logger.error('Fehler beim Aktualisieren des Zahlungsstatus', { error });
+        res.status(500).json({ message: 'Fehler beim Aktualisieren des Zahlungsstatus' });
+      }
+    }
+  },
+
+  async deletePayment(req: AuthenticatedRequest, res: Response) {
+    try {
+      const payment = await Payment.findById(req.params.id);
+
+      if (!payment) {
+        throw new AppError('Zahlung nicht gefunden', 404);
+      }
+
+      // Nur der Client kann die Zahlung löschen
+      if (payment.client.toString() !== req.user?.userId) {
+        return res.status(403).json({ message: 'Nicht autorisiert' });
+      }
+
+      await payment.deleteOne();
+      res.status(204).send();
+    } catch (error) {
+      if (error instanceof AppError) {
+        res.status(error.statusCode).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: 'Interner Serverfehler' });
+      }
+    }
+  },
+
+  async getPaymentStats(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { startDate, endDate } = req.query;
+      const userId = new Types.ObjectId(req.user._id);
+
+      const stats = await Payment.getStats(
+        userId,
+        new Date(startDate as string),
+        new Date(endDate as string)
+      );
+
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: 'Interner Serverfehler' });
     }
   }
 }; 
