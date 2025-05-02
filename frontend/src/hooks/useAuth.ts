@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api/client';
 import { toast } from 'react-toastify';
@@ -35,7 +35,6 @@ export const useAuth = () => {
       setUser(response.user);
       localStorage.setItem('token', response.token);
       toast.success('Erfolgreich eingeloggt');
-      navigate('/dashboard');
     } catch (err) {
       console.error('Login-Fehler:', err);
       let message = 'Ein Fehler ist aufgetreten';
@@ -113,6 +112,10 @@ export const useAuth = () => {
       logout();
     }
   }, [logout]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   return {
     user,
