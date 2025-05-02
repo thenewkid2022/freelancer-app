@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { auth } from '../middleware/auth';
-import { validateRequest } from '../middleware/validation';
+import { validateRequest } from '../middleware/validator';
 import { z } from 'zod';
 import User from '../models/User';
 import { generateToken } from '../utils/auth';
