@@ -10,8 +10,8 @@ interface RetryConfig {
 }
 
 const defaultRetryConfig: RetryConfig = {
-  retries: 3,
-  retryDelay: 1000,
+  retries: 5,
+  retryDelay: 2000,
   retryableStatusCodes: [408, 429, 500, 502, 503, 504]
 };
 
@@ -27,7 +27,7 @@ class ApiClient {
     this.retryConfig = { ...defaultRetryConfig, ...config };
     this.client = axios.create({
       baseURL: API_URL,
-      timeout: 10000,
+      timeout: 30000,
       headers: {
         'Content-Type': 'application/json'
       }
@@ -54,15 +54,29 @@ class ApiClient {
     // Response Interceptor
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError<ErrorResponse>) => {
+      async (error: AxiosError<ErrorResponse>) => {
         const message = error.response?.data?.message || error.message;
         
         if (error.response?.status === 403) {
           toast.error('Sie haben keine Berechtigung für diese Aktion');
         } else if (error.response?.status === 401) {
           toast.error('Bitte melden Sie sich an');
+        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+          toast.error('Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.');
         } else {
           toast.error(message);
+        }
+
+        // Retry-Logik für Timeouts und Server-Fehler
+        if (this.shouldRetry(error)) {
+          const config = error.config;
+          if (config) {
+            try {
+              return await this.retryRequest(config);
+            } catch (retryError) {
+              return Promise.reject(retryError);
+            }
+          }
         }
         
         return Promise.reject(error);
@@ -72,8 +86,10 @@ class ApiClient {
 
   private shouldRetry(error: AxiosError): boolean {
     return (
-      error.response !== undefined &&
-      this.retryConfig.retryableStatusCodes.includes(error.response.status)
+      error.code === 'ECONNABORTED' ||
+      error.message.includes('timeout') ||
+      (error.response !== undefined &&
+        this.retryConfig.retryableStatusCodes.includes(error.response.status))
     );
   }
 
