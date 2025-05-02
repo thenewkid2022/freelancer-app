@@ -31,10 +31,6 @@ interface TimeEntry {
   project: {
     _id: string;
     name: string;
-    client: {
-      _id: string;
-      name: string;
-    };
   };
   duration: number;
   startTime: string;
@@ -45,10 +41,6 @@ interface Payment {
   project: {
     _id: string;
     name: string;
-    client: {
-      _id: string;
-      name: string;
-    };
   };
   amount: number;
   status: 'pending' | 'paid' | 'overdue';

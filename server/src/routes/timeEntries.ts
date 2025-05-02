@@ -134,8 +134,6 @@ router.get('/',
       
       if (req.user.role === 'freelancer') {
         query.freelancer = req.user._id;
-      } else if (req.user.role === 'client') {
-        query.client = req.user._id;
       }
 
       if (req.query.status) {
@@ -154,8 +152,7 @@ router.get('/',
 
       const timeEntries = await TimeEntry.find(query)
         .sort({ startTime: -1 })
-        .populate('freelancer', 'name email')
-        .populate('client', 'name email');
+        .populate('freelancer', 'name email');
 
       res.json(timeEntries);
     } catch (error) {
@@ -193,18 +190,13 @@ router.get('/:id',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const timeEntry = await TimeEntry.findById(req.params.id)
-        .populate('freelancer', 'name email')
-        .populate('client', 'name email');
+        .populate('freelancer', 'name email');
       
       if (!timeEntry) {
         throw new NotFoundError('Zeiteintrag nicht gefunden');
       }
 
       if (req.user.role === 'freelancer' && timeEntry.freelancer._id.toString() !== req.user._id.toString()) {
-        throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
-      }
-
-      if (req.user.role === 'client' && timeEntry.client._id.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
       }
 
@@ -278,10 +270,6 @@ router.put('/:id',
       }
 
       if (req.user.role === 'freelancer' && timeEntry.freelancer.toString() !== req.user._id.toString()) {
-        throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
-      }
-
-      if (req.user.role === 'client' && timeEntry.client.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
       }
 

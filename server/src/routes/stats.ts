@@ -55,10 +55,7 @@ router.get('/time',
       }
 
       const query: any = {
-        $or: [
-          { freelancer: req.user._id },
-          { client: req.user._id }
-        ],
+        freelancer: req.user._id,
         startTime: {
           $gte: new Date(startDate as string),
           $lte: new Date(endDate as string)
@@ -174,10 +171,7 @@ router.get('/overview',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query: any = {
-        $or: [
-          { freelancer: req.user._id },
-          { client: req.user._id }
-        ]
+        freelancer: req.user._id
       };
 
       const timeEntries = await TimeEntry.find(query);
@@ -295,17 +289,13 @@ router.get('/project/:projectId',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const timeEntries = await TimeEntry.find({
-        $or: [
-          { freelancer: req.user._id, project: req.params.projectId },
-          { client: req.user._id, project: req.params.projectId }
-        ]
-      }).populate('freelancer client');
+        freelancer: req.user._id,
+        project: req.params.projectId
+      }).populate('freelancer');
 
       const payments = await Payment.find({
-        $or: [
-          { freelancer: req.user._id, project: req.params.projectId },
-          { client: req.user._id, project: req.params.projectId }
-        ]
+        freelancer: req.user._id,
+        project: req.params.projectId
       });
 
       const totalHours = timeEntries.reduce((acc, entry) => {
