@@ -5,11 +5,12 @@ import { z } from 'zod';
 export const validateRequest = (schema: z.ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.parseAsync({
+      const data = {
         body: req.body,
         query: req.query,
         params: req.params,
-      });
+      };
+      await schema.parseAsync(data);
       next();
     } catch (error) {
       if (error instanceof z.ZodError) {

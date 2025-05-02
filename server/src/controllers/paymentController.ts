@@ -45,7 +45,7 @@ export const paymentController = {
     try {
       const { startDate, endDate, status } = req.query;
       const query: any = {
-        freelancer: req.user?.userId,
+        freelancer: req.user?._id,
         createdAt: {
           $gte: startDate ? new Date(startDate as string) : undefined,
           $lte: endDate ? new Date(endDate as string) : undefined
@@ -73,7 +73,7 @@ export const paymentController = {
     try {
       const { startDate, endDate, status } = req.query;
       const query: any = {
-        client: req.user?.userId,
+        client: req.user?._id,
         createdAt: {
           $gte: startDate ? new Date(startDate as string) : undefined,
           $lte: endDate ? new Date(endDate as string) : undefined
@@ -109,8 +109,8 @@ export const paymentController = {
       }
 
       // Überprüfe Berechtigung
-      if (payment.freelancer.toString() !== req.user?.userId && 
-          payment.client.toString() !== req.user?.userId) {
+      if (payment.freelancer.toString() !== req.user?._id.toString() && 
+          payment.client.toString() !== req.user?._id.toString()) {
         return res.status(403).json({ message: 'Nicht autorisiert' });
       }
 
@@ -136,7 +136,7 @@ export const paymentController = {
       }
 
       // Nur der Client kann den Status aktualisieren
-      if (payment.client.toString() !== req.user?.userId) {
+      if (payment.client.toString() !== req.user?._id.toString()) {
         return res.status(403).json({ message: 'Nicht autorisiert' });
       }
 
@@ -166,7 +166,7 @@ export const paymentController = {
       }
 
       // Nur der Client kann die Zahlung löschen
-      if (payment.client.toString() !== req.user?.userId) {
+      if (payment.client.toString() !== req.user?._id.toString()) {
         return res.status(403).json({ message: 'Nicht autorisiert' });
       }
 
