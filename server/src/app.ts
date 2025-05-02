@@ -18,44 +18,42 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS Konfiguration
-const corsOptions = {
-  origin: [
-    'https://freelancer-app-chi.vercel.app',
-    'https://freelancer-app-1g8o.onrender.com',
-    'http://localhost:3000'
-  ],
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://freelancer-app-chi.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
+
+app.use(cors({
+  origin: 'https://freelancer-app-chi.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin',
-    'Access-Control-Allow-Origin',
-    'Access-Control-Allow-Headers',
-    'Access-Control-Allow-Methods',
-    'Access-Control-Allow-Credentials'
-  ],
-  exposedHeaders: [
-    'Access-Control-Allow-Origin',
-    'Access-Control-Allow-Headers',
-    'Access-Control-Allow-Methods',
-    'Access-Control-Allow-Credentials'
-  ],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}));
 
-app.use(cors(corsOptions));
-
-// OPTIONS Handler für Preflight Requests
-app.options('*', cors(corsOptions));
-
+// Helmet Konfiguration
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginOpenerPolicy: { policy: "unsafe-none" }
+  crossOriginOpenerPolicy: { policy: "unsafe-none" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "https://freelancer-app-1g8o.onrender.com"],
+      frameSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      upgradeInsecureRequests: []
+    }
+  }
 }));
+
 app.use(morgan('dev'));
 app.use(securityMiddleware);
 
