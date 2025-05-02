@@ -20,7 +20,6 @@ export const paymentController = {
       const payment = new Payment({
         project: timeEntry.project,
         freelancer: timeEntry.freelancer,
-        client: timeEntry.client,
         amount,
         currency,
         paymentMethod,
@@ -58,35 +57,6 @@ export const paymentController = {
 
       const payments = await Payment.find(query)
         .populate('project')
-        .populate('client')
-        .sort({ createdAt: -1 });
-
-      res.json(payments);
-    } catch (error) {
-      logger.error('Fehler beim Abrufen der Zahlungen', { error });
-      res.status(500).json({ message: 'Fehler beim Abrufen der Zahlungen' });
-    }
-  },
-
-  // Alle Zahlungen eines Clients abrufen
-  async getClientPayments(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { startDate, endDate, status } = req.query;
-      const query: any = {
-        client: req.user?._id,
-        createdAt: {
-          $gte: startDate ? new Date(startDate as string) : undefined,
-          $lte: endDate ? new Date(endDate as string) : undefined
-        }
-      };
-
-      if (status) {
-        query.status = status;
-      }
-
-      const payments = await Payment.find(query)
-        .populate('project')
-        .populate('freelancer')
         .sort({ createdAt: -1 });
 
       res.json(payments);
@@ -101,16 +71,14 @@ export const paymentController = {
     try {
       const payment = await Payment.findById(req.params.id)
         .populate('project')
-        .populate('freelancer')
-        .populate('client');
+        .populate('freelancer');
 
       if (!payment) {
         throw new AppError('Zahlung nicht gefunden', 404);
       }
 
       // Überprüfe Berechtigung
-      if (payment.freelancer.toString() !== req.user?._id.toString() && 
-          payment.client.toString() !== req.user?._id.toString()) {
+      if (payment.freelancer.toString() !== req.user?._id.toString()) {
         return res.status(403).json({ message: 'Nicht autorisiert' });
       }
 
@@ -135,8 +103,8 @@ export const paymentController = {
         throw new AppError('Zahlung nicht gefunden', 404);
       }
 
-      // Nur der Client kann den Status aktualisieren
-      if (payment.client.toString() !== req.user?._id.toString()) {
+      // Nur der Freelancer kann den Status aktualisieren
+      if (payment.freelancer.toString() !== req.user?._id.toString()) {
         return res.status(403).json({ message: 'Nicht autorisiert' });
       }
 
@@ -165,8 +133,8 @@ export const paymentController = {
         throw new AppError('Zahlung nicht gefunden', 404);
       }
 
-      // Nur der Client kann die Zahlung löschen
-      if (payment.client.toString() !== req.user?._id.toString()) {
+      // Nur der Freelancer kann die Zahlung löschen
+      if (payment.freelancer.toString() !== req.user?._id.toString()) {
         return res.status(403).json({ message: 'Nicht autorisiert' });
       }
 

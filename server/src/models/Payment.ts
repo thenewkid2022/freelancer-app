@@ -5,7 +5,6 @@ export interface IPayment {
   _id: Types.ObjectId;
   project: Types.ObjectId;
   freelancer: Types.ObjectId | IUser;
-  client: Types.ObjectId | IUser;
   amount: number;
   currency: string;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
@@ -21,7 +20,6 @@ export interface IPayment {
 export interface PaymentDocument extends Document {
   project: Types.ObjectId;
   freelancer: Types.ObjectId | IUser;
-  client: Types.ObjectId | IUser;
   amount: number;
   currency: string;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
@@ -45,11 +43,6 @@ export const paymentSchema = new Schema<PaymentDocument>({
     required: true,
   },
   freelancer: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  client: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
