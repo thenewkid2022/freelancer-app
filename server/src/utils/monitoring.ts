@@ -1,22 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import client from 'prom-client';
 import { logger } from './logger';
+import { Express } from 'express';
 
 // Prometheus Metriken
 const collectDefaultMetrics = client.collectDefaultMetrics;
-collectDefaultMetrics({ timeout: 5000 });
+collectDefaultMetrics();
 
 // Custom Metriken
-export const httpRequestDurationMicroseconds = new client.Histogram({
+const httpRequestDurationMicroseconds = new client.Histogram({
   name: 'http_request_duration_seconds',
-  help: 'Dauer der HTTP-Anfragen in Sekunden',
+  help: 'Duration of HTTP requests in seconds',
   labelNames: ['method', 'route', 'status_code'],
   buckets: [0.1, 0.5, 1, 2, 5]
 });
 
-export const httpRequestsTotal = new client.Counter({
+const httpRequestsTotal = new client.Counter({
   name: 'http_requests_total',
-  help: 'Gesamtzahl der HTTP-Anfragen',
+  help: 'Total number of HTTP requests',
   labelNames: ['method', 'route', 'status_code']
 });
 
@@ -32,13 +33,14 @@ export const requestMetricsMiddleware = (req: Request, res: Response, next: Next
   res.on('finish', () => {
     const duration = Date.now() - start;
     const route = req.route?.path || req.path;
+    const statusCode = res.statusCode.toString();
     
     httpRequestDurationMicroseconds
-      .labels(req.method, route, res.statusCode.toString())
+      .labels(req.method, route, statusCode)
       .observe(duration / 1000);
 
     httpRequestsTotal
-      .labels(req.method, route, res.statusCode.toString())
+      .labels(req.method, route, statusCode)
       .inc();
   });
 
@@ -54,4 +56,33 @@ export const metricsHandler = async (_req: Request, res: Response) => {
     logger.error('Fehler beim Abrufen der Metriken:', error);
     res.status(500).json({ error: 'Interner Serverfehler' });
   }
+};
+
+export const setupMonitoring = (app: Express) => {
+  app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', client.register.contentType);
+    res.end(await client.register.metrics());
+  });
+
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      const route = req.route?.path || req.path;
+      const statusCode = res.statusCode.toString();
+
+      httpRequestDurationMicroseconds
+        .labels(req.method, route, statusCode)
+        .observe(duration / 1000);
+
+      httpRequestsTotal
+        .labels(req.method, route, statusCode)
+        .inc();
+    });
+    next();
+  });
+};
+
+export const getMetrics = async () => {
+  return client.register.metrics();
 }; 
