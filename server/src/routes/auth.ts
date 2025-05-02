@@ -3,7 +3,7 @@ import { AuthService } from '../services/AuthService';
 import { auth } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { z } from 'zod';
-import { User } from '../models/User';
+import User from '../models/User';
 import { generateToken } from '../utils/auth';
 import { ValidationError, AuthError } from '../utils/errors';
 import bcrypt from 'bcryptjs';

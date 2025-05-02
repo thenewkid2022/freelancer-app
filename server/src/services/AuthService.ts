@@ -1,4 +1,5 @@
-import { User, IUser } from '../models/User';
+import User from '../models/User';
+import { IUser } from '../models/User';
 import { AuthError } from '../utils/errors';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { config } from '../config';
