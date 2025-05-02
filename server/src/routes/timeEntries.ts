@@ -10,7 +10,8 @@ const router = Router();
 // Validierungsschemas
 const createTimeEntrySchema = z.object({
   body: z.object({
-    project: z.string().min(1, 'Projekt ist erforderlich'),
+    projectNumber: z.string().min(1, 'Projektnummer ist erforderlich'),
+    projectName: z.string().min(1, 'Projektname ist erforderlich'),
     description: z.string().min(1, 'Beschreibung ist erforderlich'),
     startTime: z.string().datetime(),
     endTime: z.string().datetime().optional(),
@@ -24,7 +25,8 @@ const updateTimeEntrySchema = z.object({
     id: z.string()
   }),
   body: z.object({
-    project: z.string().min(1).optional(),
+    projectNumber: z.string().min(1).optional(),
+    projectName: z.string().min(1).optional(),
     description: z.string().min(1).optional(),
     startTime: z.string().datetime().optional(),
     endTime: z.string().datetime().optional(),
@@ -49,12 +51,15 @@ const updateTimeEntrySchema = z.object({
  *           schema:
  *             type: object
  *             required:
- *               - project
+ *               - projectNumber
+ *               - projectName
  *               - description
  *               - startTime
  *               - hourlyRate
  *             properties:
- *               project:
+ *               projectNumber:
+ *                 type: string
+ *               projectName:
  *                 type: string
  *               description:
  *                 type: string
@@ -227,7 +232,9 @@ router.get('/:id',
  *           schema:
  *             type: object
  *             properties:
- *               project:
+ *               projectNumber:
+ *                 type: string
+ *               projectName:
  *                 type: string
  *               description:
  *                 type: string

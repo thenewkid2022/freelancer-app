@@ -3,7 +3,8 @@ import { IUser } from './User';
 
 export interface ITimeEntry {
   _id: Types.ObjectId;
-  project: Types.ObjectId;
+  projectNumber: string;
+  projectName: string;
   freelancer: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
@@ -17,7 +18,8 @@ export interface ITimeEntry {
 }
 
 export interface TimeEntryDocument extends Document {
-  project: Types.ObjectId;
+  projectNumber: string;
+  projectName: string;
   freelancer: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
@@ -37,9 +39,12 @@ interface TimeEntryModel extends Model<TimeEntryDocument> {
 }
 
 export const timeEntrySchema = new Schema<TimeEntryDocument>({
-  project: {
-    type: Schema.Types.ObjectId,
-    ref: 'Project',
+  projectNumber: {
+    type: String,
+    required: true,
+  },
+  projectName: {
+    type: String,
     required: true,
   },
   freelancer: {

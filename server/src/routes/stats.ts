@@ -246,7 +246,7 @@ router.get('/freelancer',
         { $match: { freelancer: req.user._id } },
         {
           $group: {
-            _id: '$project',
+            _id: { projectNumber: '$projectNumber', projectName: '$projectName' },
             totalHours: {
               $sum: { $divide: ['$duration', 3600] }
             },
@@ -268,7 +268,7 @@ router.get('/freelancer',
 
 /**
  * @swagger
- * /api/stats/project/{projectId}:
+ * /api/stats/project/{projectNumber}:
  *   get:
  *     summary: Get project statistics
  *     tags: [Stats]
@@ -276,7 +276,7 @@ router.get('/freelancer',
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: projectId
+ *         name: projectNumber
  *         required: true
  *         schema:
  *           type: string
@@ -284,29 +284,21 @@ router.get('/freelancer',
  *       200:
  *         description: Project statistics
  */
-router.get('/project/:projectId',
+router.get('/project/:projectNumber',
   auth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const timeEntries = await TimeEntry.find({
         freelancer: req.user._id,
-        project: req.params.projectId
-      }).populate('freelancer');
-
-      const payments = await Payment.find({
-        freelancer: req.user._id,
-        project: req.params.projectId
+        projectNumber: req.params.projectNumber
       });
 
       const totalHours = timeEntries.reduce((acc, entry) => {
         return acc + (entry.duration / 3600);
       }, 0);
 
-      const totalPayments = payments.reduce((acc, payment) => acc + payment.amount, 0);
-
       res.json({
         totalHours,
-        totalPayments,
         timeEntries
       });
     } catch (error) {
