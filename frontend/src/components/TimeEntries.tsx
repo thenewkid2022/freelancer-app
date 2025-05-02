@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
+import { apiClient } from '../services/api/client';
 
 interface Project {
   _id: string;
@@ -74,22 +75,20 @@ const TimeEntries: React.FC = () => {
   const [error, setError] = useState('');
 
   // Zeiteinträge abrufen
-  const { data: timeEntries, isLoading } = useQuery({
+  const { data: timeEntries = [], isLoading } = useQuery<TimeEntry[]>({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      const response = await fetch('/api/time-entries');
-      if (!response.ok) throw new Error('Fehler beim Laden der Zeiteinträge');
-      return response.json();
+      const response = await apiClient.get<{ data: TimeEntry[] }>('/api/time-entries');
+      return response.data.data;
     },
   });
 
   // Projekte abrufen
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ['projects'],
     queryFn: async () => {
-      const response = await fetch('/api/projects');
-      if (!response.ok) throw new Error('Fehler beim Laden der Projekte');
-      return response.json();
+      const response = await apiClient.get<{ data: Project[] }>('/api/projects');
+      return response.data.data;
     },
   });
 
@@ -99,18 +98,10 @@ const TimeEntries: React.FC = () => {
       const url = selectedEntry
         ? `/api/time-entries/${selectedEntry._id}`
         : '/api/time-entries';
-      const method = selectedEntry ? 'PUT' : 'POST';
+      const method = selectedEntry ? 'put' : 'post';
       
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(entryData),
-      });
-      
-      if (!response.ok) throw new Error('Fehler beim Speichern des Zeiteintrags');
-      return response.json();
+      const response = await apiClient[method]<{ data: TimeEntry }>(url, entryData);
+      return response.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
@@ -124,11 +115,8 @@ const TimeEntries: React.FC = () => {
   // Zeiteintrag löschen
   const deleteTimeEntry = useMutation({
     mutationFn: async (entryId: string) => {
-      const response = await fetch(`/api/time-entries/${entryId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Fehler beim Löschen des Zeiteintrags');
-      return response.json();
+      const response = await apiClient.delete<{ data: TimeEntry }>(`/api/time-entries/${entryId}`);
+      return response.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });

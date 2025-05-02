@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
           Willkommen, {user?.name}!
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Hier ist Ihre Zeiterfassungs-Übersicht
+          Hier ist Ihre Zeiterfassungsübersicht
         </Typography>
       </Box>
 
@@ -40,13 +40,13 @@ const Dashboard: React.FC = () => {
             </Typography>
             <Box>
               <Typography variant="body1">
-                Gesamtarbeitszeit heute: 0h
+                Gesamtarbeitszeit heute: 0 Std.
               </Typography>
               <Typography variant="body1">
-                Gesamtarbeitszeit diese Woche: 0h
+                Gesamtarbeitszeit diese Woche: 0 Std.
               </Typography>
               <Typography variant="body1">
-                Gesamtarbeitszeit diesen Monat: 0h
+                Gesamtarbeitszeit diesen Monat: 0 Std.
               </Typography>
             </Box>
           </Paper>
@@ -55,9 +55,9 @@ const Dashboard: React.FC = () => {
         <Grid item xs={12}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Letzte Einträge
+              Letzte Zeiteinträge
             </Typography>
-            {/* Hier können wir später eine Liste der letzten Einträge hinzufügen */}
+            {/* Hier können später die letzten Zeiteinträge angezeigt werden */}
           </Paper>
         </Grid>
       </Grid>

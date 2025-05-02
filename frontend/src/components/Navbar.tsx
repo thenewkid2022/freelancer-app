@@ -182,6 +182,13 @@ const Navbar: React.FC = () => {
                   {page.name}
                 </Button>
               ))}
+              <Button
+                color="inherit"
+                onClick={handleLogout}
+                sx={{ my: 2, ml: 2 }}
+              >
+                Abmelden
+              </Button>
             </Box>
           )}
 
