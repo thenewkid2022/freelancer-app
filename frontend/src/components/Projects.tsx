@@ -42,7 +42,6 @@ interface Project {
   _id: string;
   name: string;
   description: string;
-  client: Client;
   status: 'active' | 'completed' | 'on-hold';
   hourlyRate: number;
   startDate: string;

@@ -13,7 +13,7 @@ export interface LoginCredentials {
 export interface RegisterData extends LoginCredentials {
   firstName: string;
   lastName: string;
-  role: 'admin' | 'freelancer' | 'client';
+  role: 'admin' | 'freelancer';
 }
 
 export interface AuthResponse {

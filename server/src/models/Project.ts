@@ -4,7 +4,6 @@ import { IUser } from './User';
 export interface IProject extends Document {
   name: string;
   description: string;
-  client: Types.ObjectId | IUser;
   freelancer: Types.ObjectId | IUser;
   status: 'active' | 'completed' | 'cancelled';
   createdAt: Date;
@@ -22,11 +21,6 @@ export const projectSchema = new Schema({
     type: String,
     required: [true, 'Projektbeschreibung ist erforderlich'],
     trim: true
-  },
-  client: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Client ist erforderlich']
   },
   freelancer: {
     type: Schema.Types.ObjectId,

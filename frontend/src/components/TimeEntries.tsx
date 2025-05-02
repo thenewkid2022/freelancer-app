@@ -231,6 +231,7 @@ const TimeEntries: React.FC = () => {
               select
               fullWidth
               label="Projekt filtern"
+              id="filter-project"
               value={filterProject}
               onChange={(e) => setFilterProject(e.target.value)}
             >
@@ -247,6 +248,7 @@ const TimeEntries: React.FC = () => {
               fullWidth
               type="date"
               label="Datum filtern"
+              id="filter-date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
               InputLabelProps={{ shrink: true }}
@@ -265,7 +267,6 @@ const TimeEntries: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Projekt</TableCell>
-                <TableCell>Kunde</TableCell>
                 <TableCell>Startzeit</TableCell>
                 <TableCell>Endzeit</TableCell>
                 <TableCell align="right">Dauer</TableCell>
@@ -279,7 +280,6 @@ const TimeEntries: React.FC = () => {
                 .map((entry: TimeEntry) => (
                   <TableRow key={entry._id}>
                     <TableCell>{entry.project.name}</TableCell>
-                    <TableCell>{entry.project.client.name}</TableCell>
                     <TableCell>{formatDateTime(entry.startTime)}</TableCell>
                     <TableCell>{formatDateTime(entry.endTime)}</TableCell>
                     <TableCell align="right">{formatDuration(entry.duration)}</TableCell>
@@ -332,6 +332,7 @@ const TimeEntries: React.FC = () => {
                   select
                   fullWidth
                   label="Projekt"
+                  id="dialog-project"
                   value={formData.project}
                   onChange={(e) => handleFormChange('project', e.target.value)}
                 >
@@ -347,6 +348,7 @@ const TimeEntries: React.FC = () => {
                   fullWidth
                   type="datetime-local"
                   label="Startzeit"
+                  id="dialog-starttime"
                   value={formData.startTime}
                   onChange={(e) => handleFormChange('startTime', e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -357,6 +359,7 @@ const TimeEntries: React.FC = () => {
                   fullWidth
                   type="datetime-local"
                   label="Endzeit"
+                  id="dialog-endtime"
                   value={formData.endTime}
                   onChange={(e) => handleFormChange('endTime', e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -368,6 +371,7 @@ const TimeEntries: React.FC = () => {
                   multiline
                   rows={3}
                   label="Beschreibung"
+                  id="dialog-description"
                   value={formData.description}
                   onChange={(e) =>
                     handleFormChange('description', e.target.value)

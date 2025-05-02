@@ -5,7 +5,6 @@ export interface ITimeEntry {
   _id: Types.ObjectId;
   project: Types.ObjectId;
   freelancer: Types.ObjectId | IUser;
-  client: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
   endTime: Date;
@@ -20,7 +19,6 @@ export interface ITimeEntry {
 export interface TimeEntryDocument extends Document {
   project: Types.ObjectId;
   freelancer: Types.ObjectId | IUser;
-  client: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
   endTime: Date;
@@ -45,11 +43,6 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
     required: true,
   },
   freelancer: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  client: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,

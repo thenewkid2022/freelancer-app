@@ -274,55 +274,6 @@ router.get('/freelancer',
 
 /**
  * @swagger
- * /api/stats/client:
- *   get:
- *     summary: Get client statistics
- *     tags: [Stats]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Client statistics
- */
-router.get('/client',
-  auth,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const timeEntries = await TimeEntry.find({ client: req.user._id });
-      const payments = await Payment.find({ client: req.user._id });
-
-      const totalHours = timeEntries.reduce((acc, entry) => {
-        return acc + (entry.duration / 3600);
-      }, 0);
-
-      const totalPayments = payments.reduce((acc, payment) => acc + payment.amount, 0);
-
-      const projectStats = await TimeEntry.aggregate([
-        { $match: { client: req.user._id } },
-        {
-          $group: {
-            _id: '$project',
-            totalHours: {
-              $sum: { $divide: ['$duration', 3600] }
-            },
-            totalPayments: { $sum: { $multiply: ['$hourlyRate', { $divide: ['$duration', 3600] }] } }
-          }
-        }
-      ]);
-
-      res.json({
-        totalHours,
-        totalPayments,
-        projectStats
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/**
- * @swagger
  * /api/stats/project/{projectId}:
  *   get:
  *     summary: Get project statistics

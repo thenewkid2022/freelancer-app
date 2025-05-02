@@ -3,7 +3,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'freelancer' | 'client';
+  role: 'freelancer';
   createdAt: Date;
   updatedAt: Date;
 }

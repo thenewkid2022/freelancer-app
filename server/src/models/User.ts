@@ -8,7 +8,7 @@ export interface IUser {
   password: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'freelancer' | 'client';
+  role: 'admin' | 'freelancer';
   isActive: boolean;
   lastLogin?: Date;
   createdAt: Date;
@@ -50,7 +50,7 @@ export const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: {
-      values: ['admin', 'freelancer', 'client'],
+      values: ['admin', 'freelancer'],
       message: '{VALUE} ist keine gültige Rolle'
     },
     required: [true, 'Rolle ist erforderlich']
