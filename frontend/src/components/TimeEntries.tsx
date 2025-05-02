@@ -29,7 +29,7 @@ import {
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 
 interface Project {
   _id: string;

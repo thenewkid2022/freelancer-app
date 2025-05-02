@@ -1,5 +1,10 @@
-import { apiClient } from './ApiClient';
+import { apiClient } from './api/client';
 import { Payment } from '../types';
+
+interface ApiResponse<T> {
+  data: T;
+  message: string;
+}
 
 export class PaymentService {
   private static instance: PaymentService;
@@ -14,32 +19,32 @@ export class PaymentService {
   }
 
   async createPayment(data: {
-    timeEntryIds: string[];
+    project: string;
     amount: number;
-    currency: string;
-    paymentMethod: string;
+    description: string;
+    dueDate: Date;
   }): Promise<Payment> {
-    const response = await apiClient.post<Payment>('/payments', data);
+    const response = await apiClient.post<ApiResponse<Payment>>('/payments', data);
     return response.data;
   }
 
   async getFreelancerPayments(): Promise<Payment[]> {
-    const response = await apiClient.get<Payment[]>('/payments/freelancer');
+    const response = await apiClient.get<ApiResponse<Payment[]>>('/payments/freelancer');
     return response.data;
   }
 
   async getClientPayments(): Promise<Payment[]> {
-    const response = await apiClient.get<Payment[]>('/payments/client');
+    const response = await apiClient.get<ApiResponse<Payment[]>>('/payments/client');
     return response.data;
   }
 
   async getPayment(id: string): Promise<Payment> {
-    const response = await apiClient.get<Payment>(`/payments/${id}`);
+    const response = await apiClient.get<ApiResponse<Payment>>(`/payments/${id}`);
     return response.data;
   }
 
-  async updatePaymentStatus(id: string, status: 'pending' | 'paid' | 'failed'): Promise<Payment> {
-    const response = await apiClient.patch<Payment>(`/payments/${id}/status`, { status });
+  async updatePaymentStatus(id: string, status: Payment['status']): Promise<Payment> {
+    const response = await apiClient.patch<ApiResponse<Payment>>(`/payments/${id}/status`, { status });
     return response.data;
   }
 } 

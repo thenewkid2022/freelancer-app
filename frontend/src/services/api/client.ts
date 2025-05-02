@@ -15,6 +15,10 @@ const defaultRetryConfig: RetryConfig = {
   retryableStatusCodes: [408, 429, 500, 502, 503, 504]
 };
 
+interface ErrorResponse {
+  message: string;
+}
+
 class ApiClient {
   private client: AxiosInstance;
   private retryConfig: RetryConfig;
@@ -50,23 +54,17 @@ class ApiClient {
     // Response Interceptor
     this.client.interceptors.response.use(
       (response) => response,
-      async (error: AxiosError) => {
-        const originalRequest = error.config;
+      (error: AxiosError<ErrorResponse>) => {
+        const message = error.response?.data?.message || error.message;
         
-        // Handle 401 Unauthorized
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-          return Promise.reject(error);
+        if (error.response?.status === 403) {
+          toast.error('Sie haben keine Berechtigung für diese Aktion');
+        } else if (error.response?.status === 401) {
+          toast.error('Bitte melden Sie sich an');
+        } else {
+          toast.error(message);
         }
-
-        // Handle retry logic
-        if (originalRequest && this.shouldRetry(error)) {
-          return this.retryRequest(originalRequest);
-        }
-
-        // Handle other errors
-        this.handleError(error);
+        
         return Promise.reject(error);
       }
     );
@@ -93,20 +91,6 @@ class ApiClient {
     );
 
     return this.client(config);
-  }
-
-  private handleError(error: AxiosError) {
-    const message = error.response?.data?.message || error.message;
-    
-    if (error.response?.status === 403) {
-      toast.error('Sie haben keine Berechtigung für diese Aktion');
-    } else if (error.response?.status === 404) {
-      toast.error('Die angeforderte Ressource wurde nicht gefunden');
-    } else if (error.response?.status === 422) {
-      toast.error('Ungültige Eingabedaten');
-    } else {
-      toast.error(`Ein Fehler ist aufgetreten: ${message}`);
-    }
   }
 
   // Generic request methods

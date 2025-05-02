@@ -1,6 +1,12 @@
-import { apiClient } from './api/client';
+import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+
+interface User {
+  id: string;
+  email: string;
+  role: string;
+}
 
 interface LoginCredentials {
   email: string;
@@ -9,13 +15,6 @@ interface LoginCredentials {
 
 interface RegisterData extends LoginCredentials {
   name: string;
-  role: 'freelancer' | 'client';
-}
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
   role: 'freelancer' | 'client';
 }
 
@@ -33,19 +32,24 @@ class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-    this.setAuthToken(response.token);
-    return response;
+    const response = await axios.post<AuthResponse>(`${API_URL}/auth/login`, credentials);
+    this.setAuthToken(response.data.token);
+    return response.data;
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/auth/register', data);
-    this.setAuthToken(response.token);
-    return response;
+    const response = await axios.post<AuthResponse>(`${API_URL}/auth/register`, data);
+    this.setAuthToken(response.data.token);
+    return response.data;
   }
 
   async getCurrentUser(): Promise<User> {
-    return apiClient.get<User>('/auth/me');
+    const response = await axios.get<User>(`${API_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+    });
+    return response.data;
   }
 
   logout() {

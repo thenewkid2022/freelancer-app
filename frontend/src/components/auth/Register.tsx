@@ -15,7 +15,7 @@ import {
   MenuItem,
   SelectChangeEvent,
 } from '@mui/material';
-import { useAuth } from '@hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -28,14 +28,12 @@ const Register: React.FC = () => {
     role: 'freelancer' as 'freelancer' | 'client',
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement> | SelectChangeEvent
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name as string]: value,
-    });
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

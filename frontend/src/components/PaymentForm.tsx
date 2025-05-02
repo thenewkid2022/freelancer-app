@@ -54,11 +54,18 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
     try {
       setLoading(true);
+      const selectedEntry = timeEntries.find(entry => entry.id === selectedEntries[0]);
+      if (!selectedEntry) {
+        throw new Error('Kein Projekt ausgewählt');
+      }
+
       await paymentService.createPayment({
-        timeEntryIds: selectedEntries,
+        project: typeof selectedEntry.project === 'string' 
+          ? selectedEntry.project 
+          : selectedEntry.project.name,
         amount: parseFloat(amount),
-        currency,
-        paymentMethod
+        description: `Zahlung für ${selectedEntries.length} Zeitbuchungen`,
+        dueDate: new Date()
       });
       onSuccess?.();
       onClose();
@@ -87,7 +94,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
               {timeEntries.map((entry) => (
                 <Chip
                   key={entry.id}
-                  label={`${entry.project} (${formatDate(entry.startTime)})`}
+                  label={`${entry.project} (${formatDate(new Date(entry.startTime))})`}
                   onClick={() => {
                     setSelectedEntries(prev =>
                       prev.includes(entry.id)

@@ -1,3 +1,9 @@
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
 export interface RegisterFormData {
   email: string;
   password: string;
@@ -6,9 +12,13 @@ export interface RegisterFormData {
 }
 
 export interface AuthContextType {
+  user: AuthUser | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   loading: boolean;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  error: string | null;
+  register: (data: RegisterFormData) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
 } 

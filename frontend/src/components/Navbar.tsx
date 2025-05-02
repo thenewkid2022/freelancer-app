@@ -12,9 +12,11 @@ import {
   MenuItem,
   useMediaQuery,
   useTheme,
+  Badge,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import { useAuth } from '@hooks/useAuth';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import { useAuth } from '../hooks/useAuth';
 
 const pages = [
   { name: 'Time Tracker', path: '/time-tracker' },
@@ -32,6 +34,8 @@ const Navbar: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
+  const [anchorElNotifications, setAnchorElNotifications] = useState<null | HTMLElement>(null);
+  const [notifications] = useState<string[]>([]); // Hier später mit echtem State ersetzen
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -49,6 +53,14 @@ const Navbar: React.FC = () => {
   const handleLogout = () => {
     logout();
     handleCloseNavMenu();
+  };
+
+  const handleOpenNotifications = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElNotifications(event.currentTarget);
+  };
+
+  const handleCloseNotifications = () => {
+    setAnchorElNotifications(null);
   };
 
   if (!user) {
@@ -172,11 +184,38 @@ const Navbar: React.FC = () => {
             </Box>
           )}
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              size="large"
+              aria-label="show notifications"
+              color="inherit"
+              onClick={handleOpenNotifications}
+            >
+              <Badge badgeContent={notifications.length} color="error">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+            <Menu
+              anchorEl={anchorElNotifications}
+              open={Boolean(anchorElNotifications)}
+              onClose={handleCloseNotifications}
+            >
+              {notifications.length === 0 ? (
+                <MenuItem>
+                  <Typography>Keine neuen Benachrichtigungen</Typography>
+                </MenuItem>
+              ) : (
+                notifications.map((notification, index) => (
+                  <MenuItem key={index}>
+                    <Typography>{notification}</Typography>
+                  </MenuItem>
+                ))
+              )}
+            </Menu>
             <Button
               color="inherit"
               onClick={handleLogout}
-              sx={{ display: { xs: 'none', md: 'block' } }}
+              sx={{ display: { xs: 'none', md: 'block' }, ml: 2 }}
             >
               Abmelden
             </Button>

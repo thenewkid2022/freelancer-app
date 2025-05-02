@@ -30,7 +30,6 @@ interface UserProfile {
 }
 
 const Profile: React.FC = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<Partial<UserProfile>>({
@@ -117,13 +116,13 @@ const Profile: React.FC = () => {
     }));
   };
 
-  const handleSettingsChange = (field: keyof UserProfile['settings'], value: any) => {
+  const handleSettingsChange = (field: keyof UserProfile['settings'], value: boolean | string) => {
     setProfile((prev) => ({
       ...prev,
       settings: {
         ...prev.settings,
         [field]: value,
-      },
+      } as UserProfile['settings'],
     }));
   };
 

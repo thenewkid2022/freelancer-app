@@ -1,4 +1,5 @@
 export interface User {
+  _id: string;
   id: string;
   email: string;
   name: string;
@@ -7,40 +8,56 @@ export interface User {
   updatedAt: Date;
 }
 
-export interface TimeEntry {
+export interface Project {
+  _id: string;
   id: string;
-  userId: string;
-  clientId: string;
-  project: string;
+  name: string;
+  description?: string;
+  client?: string;
+  status: 'active' | 'completed' | 'on-hold';
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export interface TimeEntry {
+  _id: string;
+  id: string;
+  project: Project | string;
   description: string;
-  startTime: Date;
-  endTime: Date;
+  startTime: string;
+  endTime: string;
+  user: string;
   duration: number;
-  tags: string[];
-  hourlyRate: number;
-  billable: boolean;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface Payment {
+  _id: string;
   id: string;
-  freelancer: User;
-  client: User;
-  timeEntries: TimeEntry[];
   amount: number;
   currency: string;
   status: 'pending' | 'paid' | 'failed';
+  project: Project;
+  dueDate: string;
+  paymentDate?: string;
   paymentMethod: string;
-  paymentDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  client: User;
+  freelancer: User;
+  timeEntries: TimeEntry[];
 }
 
 export interface ApiResponse<T> {
   success: boolean;
-  data?: T;
+  data: T;
   error?: string;
   message?: string;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  role: 'freelancer' | 'client';
 } 

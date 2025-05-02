@@ -4,33 +4,32 @@ import {
   Paper,
   Typography,
   Box,
+  Grid,
+  TextField,
+  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
   IconButton,
-  TextField,
-  MenuItem,
-  Grid,
-  CircularProgress,
-  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
-  Chip,
+  MenuItem,
+  Alert,
+  CircularProgress,
+  TablePagination,
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Add as AddIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 
 interface Project {
   _id: string;

@@ -8,7 +8,6 @@ import {
   TextField,
   MenuItem,
   CircularProgress,
-  Alert,
   Card,
   CardContent,
 } from '@mui/material';
@@ -26,7 +25,6 @@ import {
   Cell,
 } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@hooks/useAuth';
 
 interface TimeEntry {
   _id: string;
@@ -54,10 +52,10 @@ interface Payment {
   };
   amount: number;
   status: 'pending' | 'paid' | 'overdue';
+  dueDate: string;
 }
 
 const Statistics: React.FC = () => {
-  const { user } = useAuth();
   const [timeRange, setTimeRange] = useState('month');
   const [selectedProject, setSelectedProject] = useState('');
 

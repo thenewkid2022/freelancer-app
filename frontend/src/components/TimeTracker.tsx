@@ -13,9 +13,13 @@ import {
   Grid,
   CircularProgress,
   Alert,
+  Card,
+  CardContent,
+  CardActions,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { PlayArrow, Stop, Save } from '@mui/icons-material';
-import { useAuth } from '@hooks/useAuth';
+import { PlayArrow, Stop, Save, Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Project {
@@ -37,7 +41,6 @@ interface TimeEntry {
 }
 
 const TimeTracker: React.FC = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isRunning, setIsRunning] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
@@ -199,11 +202,10 @@ const TimeTracker: React.FC = () => {
                       onClick={() => {
                         if (startTime) {
                           saveTimeEntry.mutate({
-                            project: selectedProject,
+                            project: selectedProject as unknown as Project,
                             description,
                             startTime: startTime.toISOString(),
                             endTime: new Date().toISOString(),
-                            duration: elapsedTime,
                           });
                         }
                       }}

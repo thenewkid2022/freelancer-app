@@ -21,8 +21,6 @@
       "@components/*": ["components/*"],
       "@hooks/*": ["hooks/*"],
       "@services/*": ["services/*"],
-      "@utils/*": ["utils/*"],
-      "@context/*": ["context/*"],
       "@types/*": ["types/*"]
     }
   },

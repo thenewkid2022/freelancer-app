@@ -1,84 +1,86 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { authService } from '@services/authService';
+import { useState, useCallback } from 'react';
+import axios from 'axios';
 
-interface User {
-  _id: string;
-  name: string;
+interface AuthUser {
+  id: string;
   email: string;
-  role: 'freelancer' | 'client';
+  name: string;
 }
 
-interface LoginCredentials {
+interface LoginData {
   email: string;
   password: string;
 }
 
-interface RegisterData extends LoginCredentials {
+interface RegisterData extends LoginData {
   name: string;
-  role: 'freelancer' | 'client';
-}
-
-interface AuthResponse {
-  token: string;
-  user: User;
 }
 
 export const useAuth = () => {
-  const navigate = useNavigate();
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('token');
-  });
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: user, isLoading, error } = useQuery({
-    queryKey: ['user'],
-    queryFn: authService.getCurrentUser,
-    enabled: !!token,
-    retry: false,
-    onError: () => {
-      setToken(null);
-      localStorage.removeItem('token');
-    },
-  });
+  const login = async (data: LoginData): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post('/api/auth/login', data);
+      setUser(response.data.user);
+      localStorage.setItem('token', response.data.token);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const loginMutation = useMutation({
-    mutationFn: (credentials: LoginCredentials) => authService.login(credentials),
-    onSuccess: (data: AuthResponse) => {
-      setToken(data.token);
-      localStorage.setItem('token', data.token);
-      navigate('/');
-    },
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: (data: RegisterData) => authService.register(data),
-    onSuccess: (data: AuthResponse) => {
-      setToken(data.token);
-      localStorage.setItem('token', data.token);
-      navigate('/');
-    },
-  });
+  const register = async (data: RegisterData): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post('/api/auth/register', data);
+      setUser(response.data.user);
+      localStorage.setItem('token', response.data.token);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const logout = useCallback(() => {
-    setToken(null);
+    setUser(null);
     localStorage.removeItem('token');
-    navigate('/login');
-  }, [navigate]);
+  }, []);
 
-  useEffect(() => {
-    if (token) {
-      authService.setAuthToken(token);
+  const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const response = await axios.get('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser(response.data);
+    } catch (err) {
+      logout();
     }
-  }, [token]);
+  }, [logout]);
 
   return {
     user,
-    isLoading,
+    loading,
     error,
-    login: loginMutation.mutate,
-    register: registerMutation.mutate,
+    login,
+    register,
     logout,
-    isAuthenticated: !!token,
+    checkAuth,
+    isLoading: loading,
+    isAuthenticated: !!user
   };
 }; 

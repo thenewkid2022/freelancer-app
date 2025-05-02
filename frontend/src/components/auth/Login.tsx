@@ -10,7 +10,7 @@ import {
   Box,
   Alert,
 } from '@mui/material';
-import { useAuth } from '@hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 interface LocationState {
   from: {
@@ -79,12 +79,12 @@ const Login: React.FC = () => {
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
+            <Alert severity="error" sx={{ width: '100%', mt: 2 }} data-testid="login-error">
               {error}
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }} data-testid="login-form">
             <TextField
               margin="normal"
               required
@@ -96,6 +96,8 @@ const Login: React.FC = () => {
               autoFocus
               value={formData.email}
               onChange={handleChange}
+              inputProps={{ 'data-testid': 'email-input' }}
+              error={!!error}
             />
             <TextField
               margin="normal"
@@ -108,12 +110,15 @@ const Login: React.FC = () => {
               autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
+              inputProps={{ 'data-testid': 'password-input' }}
+              error={!!error}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              data-testid="login-button"
             >
               Anmelden
             </Button>
