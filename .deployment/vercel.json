@@ -2,10 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "../server/index.js",
+      "src": "../server/src/app.ts",
       "use": "@vercel/node",
       "config": {
-        "maxLambdaSize": "15mb"
+        "maxLambdaSize": "15mb",
+        "buildCommand": "cd ../server && npm install && npm run build"
       }
     },
     {
@@ -31,7 +32,7 @@
         "X-Frame-Options": "DENY",
         "X-XSS-Protection": "1; mode=block"
       },
-      "dest": "../server/index.js"
+      "dest": "../server/src/app.ts"
     },
     {
       "handle": "filesystem"
