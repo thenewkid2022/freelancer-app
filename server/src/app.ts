@@ -11,6 +11,7 @@ import healthRoutes from './routes/health';
 import { config } from './config';
 
 const app = express();
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
@@ -38,5 +39,12 @@ app.get('/health', (req, res) => {
 
 // Error Handler
 app.use(errorHandler);
+
+// Start server
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
 
 export { app }; 
