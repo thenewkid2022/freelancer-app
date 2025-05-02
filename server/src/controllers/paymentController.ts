@@ -18,7 +18,7 @@ export const paymentController = {
       }
 
       const payment = new Payment({
-        project: timeEntry.project,
+        projectNumber: timeEntry.projectNumber,
         freelancer: timeEntry.freelancer,
         amount,
         currency,
@@ -56,7 +56,6 @@ export const paymentController = {
       }
 
       const payments = await Payment.find(query)
-        .populate('project')
         .sort({ createdAt: -1 });
 
       res.json(payments);
@@ -70,7 +69,6 @@ export const paymentController = {
   async getPayment(req: AuthenticatedRequest, res: Response) {
     try {
       const payment = await Payment.findById(req.params.id)
-        .populate('project')
         .populate('freelancer');
 
       if (!payment) {

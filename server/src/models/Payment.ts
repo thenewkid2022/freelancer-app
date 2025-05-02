@@ -3,7 +3,7 @@ import { IUser } from './User';
 
 export interface IPayment {
   _id: Types.ObjectId;
-  project: Types.ObjectId;
+  projectNumber: string;
   freelancer: Types.ObjectId | IUser;
   amount: number;
   currency: string;
@@ -18,7 +18,7 @@ export interface IPayment {
 }
 
 export interface PaymentDocument extends Document {
-  project: Types.ObjectId;
+  projectNumber: string;
   freelancer: Types.ObjectId | IUser;
   amount: number;
   currency: string;
@@ -37,9 +37,8 @@ interface PaymentModel extends Model<PaymentDocument> {
 }
 
 export const paymentSchema = new Schema<PaymentDocument>({
-  project: {
-    type: Schema.Types.ObjectId,
-    ref: 'Project',
+  projectNumber: {
+    type: String,
     required: true,
   },
   freelancer: {
