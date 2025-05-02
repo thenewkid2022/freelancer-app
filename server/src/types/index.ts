@@ -41,8 +41,8 @@ export interface Payment {
   updatedAt: Date;
 }
 
-export interface AuthenticatedRequest extends Request {
-  user?: IUser & { _id: Types.ObjectId };
+export interface AuthenticatedRequest extends Omit<Request, 'user'> {
+  user: IUser & { _id: Types.ObjectId };
 }
 
 export interface ApiResponse<T> {
