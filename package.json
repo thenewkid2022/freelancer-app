@@ -1,0 +1,20 @@
+{
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@types/cypress": "^0.1.6",
+    "@types/mocha": "^10.0.10",
+    "cypress": "^14.3.2"
+  },
+  "name": "freelancer-app",
+  "version": "1.0.0",
+  "scripts": {
+    "test:backend": "cd server && npm run test",
+    "test:backend:unit": "cd server && npm run test:unit",
+    "test:backend:int": "cd server && npm run test:int",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test:e2e": "cypress run --spec 'cypress/e2e/**/*.cy.ts'",
+    "test:component": "cypress run --component",
+    "test": "npm run test:backend && npm run test:e2e"
+  }
+}

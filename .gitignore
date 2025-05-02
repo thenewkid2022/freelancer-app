@@ -5,6 +5,8 @@ node_modules/
 
 # Testing
 /coverage
+/server/test-db/
+**/test-db/    # Zur Sicherheit, falls weitere test-db Ordner entstehen
 
 # Production
 /build
