@@ -79,8 +79,7 @@ const TimeEntries: React.FC = () => {
   const { data: timeEntries = [], isLoading } = useQuery({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      const response: AxiosResponse<TimeEntry[]> = await apiClient.get('/time-entries');
-      return response.data;
+      return await apiClient.get('/time-entries');
     },
   });
 
