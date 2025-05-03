@@ -408,4 +408,31 @@ router.delete('/:id',
   }
 );
 
+// Neue Route für laufenden Zeiteintrag
+router.get('/active', auth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const activeEntry = await TimeEntry.findOne({
+      freelancer: req.user._id,
+      endTime: { $exists: false }
+    }).sort({ startTime: -1 });
+
+    if (!activeEntry) {
+      return res.json(null);
+    }
+
+    // Mapping wie bei anderen Routen
+    const mappedEntry = {
+      ...activeEntry.toObject(),
+      project: {
+        _id: activeEntry.projectNumber,
+        name: activeEntry.projectName
+      }
+    };
+
+    res.json(mappedEntry);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router; 

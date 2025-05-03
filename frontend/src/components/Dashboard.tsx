@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -78,6 +78,32 @@ const Dashboard: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
     },
   });
+
+  useEffect(() => {
+    const fetchActiveEntry = async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/time-entries/active`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data._id && data.startTime) {
+          setActiveTimeEntry({ id: data._id, startTime: data.startTime });
+          // Timer auf Basis von startTime initialisieren
+          const start = new Date(data.startTime).getTime();
+          setTimer(Math.floor((Date.now() - start) / 1000));
+          const id = setInterval(() => {
+            setTimer((prev) => prev + 1);
+          }, 1000);
+          setIntervalId(id);
+        }
+      }
+    };
+    fetchActiveEntry();
+    // eslint-disable-next-line
+  }, []);
 
   // Zeitformatierung
   const hours = Math.floor(timer / 3600);

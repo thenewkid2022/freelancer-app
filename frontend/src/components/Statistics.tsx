@@ -99,9 +99,10 @@ const Statistics: React.FC = () => {
       });
     }
     return acc;
-  }, []);
+  }, []) || [];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  const totalHours = timeByProject.reduce((sum: number, entry: { name: string; value: number }) => sum + entry.value, 0);
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A020F0', '#FF6666'];
 
   if (isLoadingTimeEntries) {
     return (
@@ -112,87 +113,57 @@ const Statistics: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>Statistiken</Typography>
       <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Paper sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="h5" component="h1">
-                Statistiken
+        <Grid item xs={12} md={4}>
+          <Card elevation={3}>
+            <CardContent>
+              <Typography variant="h6" color="textSecondary" gutterBottom>
+                Gesamtstunden
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
+              <Typography variant="h3" color="primary" sx={{ fontWeight: 700 }}>
+                {totalHours.toFixed(2)} h
+              </Typography>
+              <Box sx={{ mt: 2 }}>
                 <TextField
                   select
                   label="Zeitraum"
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
+                  size="small"
                   sx={{ minWidth: 120 }}
                 >
                   <MenuItem value="week">Letzte Woche</MenuItem>
                   <MenuItem value="month">Letzter Monat</MenuItem>
                   <MenuItem value="year">Letztes Jahr</MenuItem>
                 </TextField>
-                <TextField
-                  select
-                  label="Projekt"
-                  value={selectedProject}
-                  onChange={(e) => setSelectedProject(e.target.value)}
-                  sx={{ minWidth: 200 }}
-                >
-                  <MenuItem value="">Alle Projekte</MenuItem>
-                </TextField>
               </Box>
-            </Box>
-
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={4}>
-                <Card>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      Gesamtstunden
-                    </Typography>
-                    <Typography variant="h4">
-                      {filteredTimeEntries?.reduce(
-                        (sum: number, entry: TimeEntry) => sum + entry.duration / 3600,
-                        0
-                      ).toFixed(1)}h
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Paper>
+            </CardContent>
+          </Card>
         </Grid>
-
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={8}>
           <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Zeitaufwand nach Projekt
-            </Typography>
-            <Box sx={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={timeByProject}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label
-                  >
-                    {timeByProject?.map((entry: any, index: number) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>Zeitaufwand nach Projekt</Typography>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={timeByProject}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  innerRadius={50}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                >
+                  {timeByProject.map((entry: { name: string; value: number }, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index as number % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number) => `${value.toFixed(2)} h`} />
+              </PieChart>
+            </ResponsiveContainer>
           </Paper>
         </Grid>
       </Grid>
