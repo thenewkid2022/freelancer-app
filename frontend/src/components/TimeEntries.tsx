@@ -76,13 +76,19 @@ const TimeEntries: React.FC = () => {
   const [error, setError] = useState('');
 
   // Zeiteinträge abrufen
-  const { data: timeEntries = [], isLoading } = useQuery<TimeEntry[]>({
+  const { data: timeEntriesRaw = [], isLoading } = useQuery({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      const response: AxiosResponse<TimeEntry[]> = await apiClient.get('/time-entries');
-      return response.data;
+      const response: AxiosResponse<any> = await apiClient.get('/time-entries');
+      console.log('API-Response:', response.data);
+      // Falls die Daten als Objekt mit data-Property kommen, gib dieses Array zurück
+      if (Array.isArray(response.data)) return response.data;
+      if (Array.isArray(response.data.data)) return response.data.data;
+      return [];
     },
   });
+  const timeEntries: TimeEntry[] = Array.isArray(timeEntriesRaw) ? timeEntriesRaw : [];
+  console.log('Geladene timeEntries:', timeEntries);
 
   // Zeiteintrag erstellen/aktualisieren
   const saveTimeEntry = useMutation({
