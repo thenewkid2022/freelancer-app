@@ -44,10 +44,10 @@ const Statistics: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState('');
 
   // Zeiteinträge abrufen
-  const { data: timeEntries, isLoading: isLoadingTimeEntries } = useQuery({
+  const { data: timeEntries, isLoading: isLoadingTimeEntries } = useQuery<TimeEntry[]>({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      return await apiClient.get('/time-entries');
+      return await apiClient.get<TimeEntry[]>('/time-entries');
     },
   });
 
