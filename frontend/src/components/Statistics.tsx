@@ -61,16 +61,16 @@ const Statistics: React.FC = () => {
     
     switch (timeRange) {
       case 'week':
-        start.setDate(now.getDate() - 7);
+        start.setUTCDate(now.getUTCDate() - 7);
         break;
       case 'month':
-        start.setMonth(now.getMonth() - 1);
+        start.setUTCMonth(now.getUTCMonth() - 1);
         break;
       case 'year':
-        start.setFullYear(now.getFullYear() - 1);
+        start.setUTCFullYear(now.getUTCFullYear() - 1);
         break;
       default:
-        start.setMonth(now.getMonth() - 1);
+        start.setUTCMonth(now.getUTCMonth() - 1);
     }
     
     return { start, end: now };
@@ -82,6 +82,7 @@ const Statistics: React.FC = () => {
     const entryDate = new Date(entry.startTime);
     const matchesDate = entryDate >= start && entryDate <= end;
     const matchesProject = !selectedProject || entry.project._id === selectedProject;
+    console.log('Start (UTC):', start.toISOString(), 'End (UTC):', end.toISOString(), 'Entry (UTC):', entryDate.toISOString(), 'matchesDate:', matchesDate, 'matchesProject:', matchesProject);
     return matchesDate && matchesProject;
   });
   console.log('Gefilterte Zeiteinträge:', filteredTimeEntries); // Debug-Ausgabe
