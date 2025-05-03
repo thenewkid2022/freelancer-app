@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 interface TimeEntry {
   id: string;
   projectId: string;
@@ -25,7 +27,7 @@ export const useTimeEntry = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('/time-entries', data);
+      const response = await axios.post(`${API_URL}/time-entries`, data);
       return response.data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
@@ -40,7 +42,7 @@ export const useTimeEntry = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.put(`/time-entries/${id}`, data);
+      const response = await axios.put(`${API_URL}/time-entries/${id}`, data);
       return response.data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
@@ -55,7 +57,7 @@ export const useTimeEntry = () => {
     setLoading(true);
     setError(null);
     try {
-      await axios.delete(`/time-entries/${id}`);
+      await axios.delete(`${API_URL}/time-entries/${id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
       setError(message);

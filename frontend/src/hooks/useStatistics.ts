@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { Statistics } from '../types/statistics';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 interface UseStatisticsReturn {
   statistics: Statistics;
   loading: boolean;
@@ -21,7 +23,7 @@ export const useStatistics = (): UseStatisticsReturn => {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const response = await fetch('/api/statistics');
+        const response = await fetch(`${API_URL}/statistics`);
         if (!response.ok) {
           throw new Error('Failed to fetch statistics');
         }
