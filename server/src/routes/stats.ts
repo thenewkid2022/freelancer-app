@@ -64,7 +64,7 @@ router.get('/time',
       const timeEntries = await TimeEntry.find(query);
 
       const totalHours = timeEntries.reduce((acc, entry) => {
-        return acc + (entry.duration / 3600);
+        return acc + ((entry.duration ?? 0) / 3600);
       }, 0);
 
       res.json({
@@ -124,8 +124,8 @@ router.get('/payments',
       };
 
       const timeEntries = await TimeEntry.find(query);
-      const totalHours = timeEntries.reduce((acc, entry) => acc + (entry.duration / 3600), 0);
-      const totalDuration = timeEntries.reduce((acc, entry) => acc + entry.duration, 0);
+      const totalHours = timeEntries.reduce((acc, entry) => acc + ((entry.duration ?? 0) / 3600), 0);
+      const totalDuration = timeEntries.reduce((acc, entry) => acc + (entry.duration ?? 0), 0);
       const avgDuration = timeEntries.length > 0 ? totalDuration / timeEntries.length : 0;
 
       const stats = {
@@ -171,8 +171,8 @@ router.get('/overview',
       let totalDuration = 0;
 
       timeEntries.forEach(entry => {
-        totalDuration += entry.duration;
-        totalHours += entry.duration / 3600;
+        totalDuration += (entry.duration ?? 0);
+        totalHours += (entry.duration ?? 0) / 3600;
       });
 
       const avgDuration = timeEntries.length > 0 ? totalDuration / timeEntries.length : 0;
@@ -211,7 +211,7 @@ router.get('/freelancer',
       const timeEntries = await TimeEntry.find({ freelancer: req.user._id });
 
       const totalHours = timeEntries.reduce((acc, entry) => {
-        return acc + (entry.duration / 3600);
+        return acc + ((entry.duration ?? 0) / 3600);
       }, 0);
 
       const projectStats = await TimeEntry.aggregate([
@@ -265,7 +265,7 @@ router.get('/project/:projectNumber',
       });
 
       const totalHours = timeEntries.reduce((acc, entry) => {
-        return acc + (entry.duration / 3600);
+        return acc + ((entry.duration ?? 0) / 3600);
       }, 0);
 
       res.json({

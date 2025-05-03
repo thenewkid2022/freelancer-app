@@ -75,13 +75,13 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
 
 // Virtuelle Felder für formatierte Zeit
 timeEntrySchema.virtual('formattedDuration').get(function(this: TimeEntryDocument) {
-  const hours = Math.floor(this.duration / 3600);
-  const minutes = Math.floor((this.duration % 3600) / 60);
+  const hours = Math.floor((this.duration ?? 0) / 3600);
+  const minutes = Math.floor(((this.duration ?? 0) % 3600) / 60);
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 });
 
 timeEntrySchema.virtual('durationInHours').get(function(this: TimeEntryDocument) {
-  return this.duration / 3600;
+  return (this.duration ?? 0) / 3600;
 });
 
 // Pre-save Middleware für automatische Berechnungen
