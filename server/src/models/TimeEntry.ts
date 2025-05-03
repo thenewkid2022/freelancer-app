@@ -9,7 +9,7 @@ export interface ITimeEntry {
   description: string;
   startTime: Date;
   endTime: Date;
-  duration: number;
+  duration?: number;
   status: 'pending' | 'approved' | 'rejected' | 'billed';
   createdAt: Date;
   updatedAt: Date;
@@ -22,7 +22,7 @@ export interface TimeEntryDocument extends Document {
   description: string;
   startTime: Date;
   endTime: Date;
-  duration: number;
+  duration?: number;
   status: 'pending' | 'approved' | 'rejected' | 'billed';
   createdAt: Date;
   updatedAt: Date;
