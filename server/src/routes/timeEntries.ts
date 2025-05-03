@@ -295,6 +295,71 @@ router.put('/:id',
 /**
  * @swagger
  * /api/time-entries/{id}:
+ *   patch:
+ *     tags: [TimeEntries]
+ *     summary: Aktualisiert Felder eines Zeiteintrags (z.B. zum Stoppen)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               endTime:
+ *                 type: string
+ *                 format: date-time
+ *               status:
+ *                 type: string
+ *                 enum: [pending, approved, rejected]
+ *     responses:
+ *       200:
+ *         description: Zeiteintrag erfolgreich aktualisiert
+ *       400:
+ *         description: Validierungsfehler
+ *       401:
+ *         description: Nicht authentifiziert
+ *       403:
+ *         description: Keine Berechtigung
+ *       404:
+ *         description: Zeiteintrag nicht gefunden
+ */
+router.patch('/:id',
+  auth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const timeEntry = await TimeEntry.findById(req.params.id);
+
+      if (!timeEntry) {
+        throw new NotFoundError('Zeiteintrag nicht gefunden');
+      }
+
+      if (req.user.role === 'freelancer' && timeEntry.freelancer.toString() !== req.user._id.toString()) {
+        throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
+      }
+
+      // Nur erlaubte Felder aktualisieren (z.B. endTime, status)
+      if (req.body.endTime) timeEntry.endTime = req.body.endTime;
+      if (req.body.status) timeEntry.status = req.body.status;
+
+      await timeEntry.save();
+
+      res.json(timeEntry);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/time-entries/{id}:
  *   delete:
  *     tags: [TimeEntries]
  *     summary: Löscht einen Zeiteintrag
