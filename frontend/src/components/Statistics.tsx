@@ -48,7 +48,9 @@ const Statistics: React.FC = () => {
     queryFn: async () => {
       const response = await fetch(`${API_URL}/time-entries`);
       if (!response.ok) throw new Error('Fehler beim Laden der Zeiteinträge');
-      return response.json();
+      const data = await response.json();
+      console.log('API-Response:', data); // Debug-Ausgabe
+      return data;
     },
   });
 
@@ -82,6 +84,7 @@ const Statistics: React.FC = () => {
     const matchesProject = !selectedProject || entry.project._id === selectedProject;
     return matchesDate && matchesProject;
   });
+  console.log('Gefilterte Zeiteinträge:', filteredTimeEntries); // Debug-Ausgabe
 
   // Daten für Diagramme
   const timeByProject = filteredTimeEntries?.reduce((acc: any[], entry: TimeEntry) => {
