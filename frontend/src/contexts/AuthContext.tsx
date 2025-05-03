@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.post<{ user: AuthUser; token: string }>('/api/auth/login', data);
+      const response = await apiClient.post<{ user: AuthUser; token: string }>('/auth/login', data);
       setUser(response.user);
       localStorage.setItem('token', response.token);
       toast.success('Erfolgreich eingeloggt');
@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.post<{ user: AuthUser; token: string }>('/api/auth/register', data);
+      const response = await apiClient.post<{ user: AuthUser; token: string }>('/auth/register', data);
       setUser(response.user);
       localStorage.setItem('token', response.token);
       toast.success('Erfolgreich registriert');

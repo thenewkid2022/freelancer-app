@@ -30,7 +30,7 @@ export const useAuth = () => {
     console.log('Starte Login-Versuch...');
     try {
       console.log('Sende Login-Anfrage...');
-      const response = await apiClient.post<{ user: AuthUser; token: string }>('/api/auth/login', data);
+      const response = await apiClient.post<{ user: AuthUser; token: string }>('/auth/login', data);
       console.log('Login erfolgreich:', response);
       setUser(response.user);
       localStorage.setItem('token', response.token);
@@ -62,7 +62,7 @@ export const useAuth = () => {
     console.log('Starte Registrierungs-Versuch...');
     try {
       console.log('Sende Registrierungs-Anfrage...');
-      const response = await apiClient.post<{ user: AuthUser; token: string }>('/api/auth/register', data);
+      const response = await apiClient.post<{ user: AuthUser; token: string }>('/auth/register', data);
       console.log('Registrierung erfolgreich:', response);
       setUser(response.user);
       localStorage.setItem('token', response.token);
