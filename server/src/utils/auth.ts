@@ -4,7 +4,7 @@ import { config } from '../config';
 
 export const generateToken = (user: IUser): string => {
   const payload = {
-    id: user._id,
+    userId: user._id,
     role: user.role
   };
   

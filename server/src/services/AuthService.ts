@@ -85,15 +85,15 @@ export class AuthService {
   }
 
   private generateToken(user: IUser): string {
-    const payload = { id: user._id, role: user.role };
+    const payload = { userId: user._id, role: user.role };
     const options: SignOptions = { expiresIn: config.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] };
     return jwt.sign(payload, config.JWT_SECRET as jwt.Secret, options);
   }
 
   async validateToken(token: string): Promise<IUser> {
     try {
-      const decoded = jwt.verify(token, config.JWT_SECRET) as { id: string };
-      const user = await User.findById(decoded.id);
+      const decoded = jwt.verify(token, config.JWT_SECRET) as { userId: string };
+      const user = await User.findById(decoded.userId);
       
       if (!user || !user.isActive) {
         throw new AuthError('Ungültiger Token', 401);

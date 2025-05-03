@@ -185,6 +185,11 @@ const TimeEntries: React.FC = () => {
     }));
   };
 
+  // Nur abgeschlossene Zeiteinträge anzeigen
+  const abgeschlosseneEintraege = Array.isArray(timeEntries)
+    ? timeEntries.filter(entry => entry.endTime && !isNaN(new Date(entry.endTime).getTime()))
+    : [];
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -221,38 +226,40 @@ const TimeEntries: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {Array.isArray(timeEntries) && timeEntries.map((entry: TimeEntry) => (
-                <TableRow key={entry._id}>
-                  <TableCell>
-                    {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
-                  </TableCell>
-                  <TableCell>{formatDateTime(entry.startTime)}</TableCell>
-                  <TableCell>{formatDateTime(entry.endTime)}</TableCell>
-                  <TableCell align="right">{formatDuration(entry.duration)}</TableCell>
-                  <TableCell>{entry.description}</TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDialog(entry)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => deleteTimeEntry.mutate(entry._id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {abgeschlosseneEintraege
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((entry: TimeEntry) => (
+                  <TableRow key={entry._id}>
+                    <TableCell>
+                      {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
+                    </TableCell>
+                    <TableCell>{formatDateTime(entry.startTime)}</TableCell>
+                    <TableCell>{formatDateTime(entry.endTime)}</TableCell>
+                    <TableCell align="right">{formatDuration(entry.duration)}</TableCell>
+                    <TableCell>{entry.description}</TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleOpenDialog(entry)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => deleteTimeEntry.mutate(entry._id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={Array.isArray(timeEntries) ? timeEntries.length : 0}
+          count={abgeschlosseneEintraege.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

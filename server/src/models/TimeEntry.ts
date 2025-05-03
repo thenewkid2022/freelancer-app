@@ -5,7 +5,7 @@ export interface ITimeEntry {
   _id: Types.ObjectId;
   projectNumber: string;
   projectName: string;
-  freelancer: Types.ObjectId | IUser;
+  userId: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
   endTime: Date;
@@ -17,7 +17,7 @@ export interface ITimeEntry {
 export interface TimeEntryDocument extends Document {
   projectNumber: string;
   projectName: string;
-  freelancer: Types.ObjectId | IUser;
+  userId: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
   endTime: Date;
@@ -41,7 +41,7 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
     type: String,
     required: true,
   },
-  freelancer: {
+  userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
@@ -100,7 +100,7 @@ timeEntrySchema.statics.getStats = async function(userId: Types.ObjectId, startD
   return this.aggregate([
     {
       $match: {
-        freelancer: userId,
+        userId: userId,
         startTime: {
           $gte: startDate,
           $lte: endDate

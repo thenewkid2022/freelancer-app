@@ -68,6 +68,29 @@ const loginSchema = z.object({
  *     responses:
  *       201:
  *         description: Benutzer erfolgreich registriert
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: string
+ *                       description: Die eindeutige ID des Benutzers
+ *                     email:
+ *                       type: string
+ *                       format: email
+ *                     firstName:
+ *                       type: string
+ *                     lastName:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                       enum: [freelancer]
+ *                 token:
+ *                   type: string
  *       400:
  *         description: Validierungsfehler
  */
@@ -139,6 +162,27 @@ router.post('/register',
  *     responses:
  *       200:
  *         description: Erfolgreich eingeloggt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: string
+ *                       description: Die eindeutige ID des Benutzers
+ *                     email:
+ *                       type: string
+ *                       format: email
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                       enum: [admin, freelancer]
+ *                 token:
+ *                   type: string
  *       400:
  *         description: Validierungsfehler
  *       401:
@@ -167,7 +211,7 @@ router.post('/login',
 
       res.json({
         user: {
-          id: user._id,
+          userId: user._id,
           email: user.email,
           name: `${user.firstName} ${user.lastName}`,
           role: user.role

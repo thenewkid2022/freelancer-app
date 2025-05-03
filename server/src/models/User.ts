@@ -100,7 +100,7 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
 userSchema.methods.generateAuthToken = function(): string {
   return jwt.sign(
     { 
-      id: this._id,
+      userId: this._id,
       email: this.email,
       role: this.role
     },
