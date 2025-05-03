@@ -8,8 +8,6 @@ import { securityMiddleware } from './middleware/security';
 import authRoutes from './routes/auth';
 import timeEntryRoutes from './routes/timeEntries';
 import statsRoutes from './routes/stats';
-import healthRoutes from './routes/health';
-import projectsRoutes from './routes/projects';
 import { config } from './config';
 
 const app = express();
@@ -67,8 +65,6 @@ app.use(securityMiddleware);
 app.use('/api/auth', authRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/stats', statsRoutes);
-app.use('/api/health', healthRoutes);
-app.use('/api/projects', projectsRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {

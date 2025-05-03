@@ -32,12 +32,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@hooks/useAuth';
 
-interface Client {
-  _id: string;
-  name: string;
-  email: string;
-}
-
 interface Project {
   _id: string;
   name: string;
@@ -81,16 +75,6 @@ const Projects: React.FC = () => {
     queryFn: async () => {
       const response = await fetch('/api/projects');
       if (!response.ok) throw new Error('Fehler beim Laden der Projekte');
-      return response.json();
-    },
-  });
-
-  // Kunden abrufen
-  const { data: clients } = useQuery({
-    queryKey: ['clients'],
-    queryFn: async () => {
-      const response = await fetch('/api/clients');
-      if (!response.ok) throw new Error('Fehler beim Laden der Kunden');
       return response.json();
     },
   });
