@@ -101,7 +101,13 @@ const Statistics: React.FC = () => {
     return acc;
   }, []) || [];
 
-  const totalHours = timeByProject.reduce((sum: number, entry: { name: string; value: number }) => sum + entry.value, 0);
+  const totalHours = Array.isArray(timeByProject)
+    ? timeByProject.reduce(
+        (sum: number, entry: { name: string; value: number }) =>
+          sum + (typeof entry.value === 'number' ? entry.value : 0),
+        0
+      )
+    : 0;
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A020F0', '#FF6666'];
 
   if (isLoadingTimeEntries) {
@@ -123,7 +129,7 @@ const Statistics: React.FC = () => {
                 Gesamtstunden
               </Typography>
               <Typography variant="h3" color="primary" sx={{ fontWeight: 700 }}>
-                {totalHours.toFixed(2)} h
+                {isNaN(totalHours) ? '0.00' : totalHours.toFixed(2)} h
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <TextField
