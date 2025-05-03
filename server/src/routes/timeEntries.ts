@@ -82,7 +82,6 @@ const updateTimeEntrySchema = z.object({
  */
 router.post('/', 
   auth,
-  requireRole(['freelancer']),
   validateRequest(createTimeEntrySchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -429,7 +428,6 @@ router.patch('/:id',
  */
 router.delete('/:id',
   auth,
-  requireRole(['freelancer']),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const timeEntry = await TimeEntry.findById(req.params.id);
