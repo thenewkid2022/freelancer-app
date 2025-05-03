@@ -76,11 +76,8 @@ const Statistics: React.FC = () => {
   // Gefilterte Daten
   const { start, end } = getDateRange();
   const filteredTimeEntries = timeEntries?.filter((entry: TimeEntry) => {
-    const entryDate = new Date(entry.startTime);
-    const matchesDate = entryDate >= start && entryDate <= end;
     const matchesProject = !selectedProject || entry.project._id === selectedProject;
-    console.log('Start (UTC):', start.toISOString(), 'End (UTC):', end.toISOString(), 'Entry (UTC):', entryDate.toISOString(), 'matchesDate:', matchesDate, 'matchesProject:', matchesProject);
-    return matchesDate && matchesProject;
+    return matchesProject;
   });
   console.log('Gefilterte Zeiteinträge:', filteredTimeEntries); // Debug-Ausgabe
 
