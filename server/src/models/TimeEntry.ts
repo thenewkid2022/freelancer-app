@@ -11,8 +11,6 @@ export interface ITimeEntry {
   endTime: Date;
   duration: number;
   status: 'pending' | 'approved' | 'rejected' | 'billed';
-  hourlyRate: number;
-  totalAmount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,8 +24,6 @@ export interface TimeEntryDocument extends Document {
   endTime: Date;
   duration: number;
   status: 'pending' | 'approved' | 'rejected' | 'billed';
-  hourlyRate: number;
-  totalAmount: number;
   createdAt: Date;
   updatedAt: Date;
   formattedDuration: string;
@@ -72,14 +68,6 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
     type: String,
     enum: ['pending', 'approved', 'rejected', 'billed'],
     default: 'pending',
-  },
-  hourlyRate: {
-    type: Number,
-    required: true,
-  },
-  totalAmount: {
-    type: Number,
-    required: true,
   },
 }, {
   timestamps: true

@@ -15,7 +15,6 @@ const createTimeEntrySchema = z.object({
     description: z.string().min(1, 'Beschreibung ist erforderlich'),
     startTime: z.string().datetime(),
     endTime: z.string().datetime().optional(),
-    hourlyRate: z.number().min(0, 'Stundensatz muss positiv sein'),
     tags: z.array(z.string()).optional()
   })
 });
@@ -30,7 +29,6 @@ const updateTimeEntrySchema = z.object({
     description: z.string().min(1).optional(),
     startTime: z.string().datetime().optional(),
     endTime: z.string().datetime().optional(),
-    hourlyRate: z.number().min(0).optional(),
     status: z.enum(['pending', 'approved', 'rejected']).optional(),
     tags: z.array(z.string()).optional()
   })

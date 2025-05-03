@@ -1,7 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { auth } from '../middleware/auth';
 import { TimeEntry } from '../models/TimeEntry';
-import { Payment } from '../models/Payment';
 import { BadRequestError, ForbiddenError } from '../utils/errors';
 import { Types } from 'mongoose';
 import { IUser } from '../models/User';
@@ -117,33 +116,25 @@ router.get('/payments',
       }
 
       const query: any = {
-        $or: [
-          { freelancer: req.user._id },
-          { client: req.user._id }
-        ],
-        createdAt: {
+        freelancer: req.user._id,
+        startTime: {
           $gte: new Date(startDate as string),
           $lte: new Date(endDate as string)
         }
       };
 
-      const payments = await Payment.find(query);
+      const timeEntries = await TimeEntry.find(query);
+      const totalHours = timeEntries.reduce((acc, entry) => acc + (entry.duration / 3600), 0);
+      const totalDuration = timeEntries.reduce((acc, entry) => acc + entry.duration, 0);
+      const avgDuration = timeEntries.length > 0 ? totalDuration / timeEntries.length : 0;
 
       const stats = {
-        totalAmount: 0,
-        pendingAmount: 0,
-        completedAmount: 0,
-        currency: 'EUR'
-      };
-
-      payments.forEach(payment => {
-        stats.totalAmount += payment.amount;
-        if (payment.status === 'pending') {
-          stats.pendingAmount += payment.amount;
-        } else if (payment.status === 'completed') {
-          stats.completedAmount += payment.amount;
+        time: {
+          totalHours: Math.round(totalHours * 100) / 100,
+          totalEntries: timeEntries.length,
+          avgDuration: Math.round(avgDuration)
         }
-      });
+      };
 
       res.json(stats);
     } catch (error) {
@@ -175,7 +166,6 @@ router.get('/overview',
       };
 
       const timeEntries = await TimeEntry.find(query);
-      const payments = await Payment.find(query);
 
       let totalHours = 0;
       let totalDuration = 0;
@@ -192,23 +182,8 @@ router.get('/overview',
           totalHours: Math.round(totalHours * 100) / 100,
           totalEntries: timeEntries.length,
           avgDuration: Math.round(avgDuration)
-        },
-        payments: {
-          totalAmount: 0,
-          pendingAmount: 0,
-          completedAmount: 0,
-          currency: 'EUR'
         }
       };
-
-      payments.forEach(payment => {
-        stats.payments.totalAmount += payment.amount;
-        if (payment.status === 'pending') {
-          stats.payments.pendingAmount += payment.amount;
-        } else if (payment.status === 'completed') {
-          stats.payments.completedAmount += payment.amount;
-        }
-      });
 
       res.json(stats);
     } catch (error) {
@@ -234,13 +209,10 @@ router.get('/freelancer',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const timeEntries = await TimeEntry.find({ freelancer: req.user._id });
-      const payments = await Payment.find({ freelancer: req.user._id });
 
       const totalHours = timeEntries.reduce((acc, entry) => {
         return acc + (entry.duration / 3600);
       }, 0);
-
-      const totalEarnings = payments.reduce((acc, payment) => acc + payment.amount, 0);
 
       const projectStats = await TimeEntry.aggregate([
         { $match: { freelancer: req.user._id } },
@@ -257,7 +229,6 @@ router.get('/freelancer',
 
       res.json({
         totalHours,
-        totalEarnings,
         projectStats
       });
     } catch (error) {

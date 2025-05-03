@@ -30,24 +30,6 @@ export interface TimeEntry {
   duration: number;
 }
 
-export interface Payment {
-  _id: string;
-  id: string;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'paid' | 'failed';
-  project: Project;
-  dueDate: string;
-  paymentDate?: string;
-  paymentMethod: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-  client: User;
-  freelancer: User;
-  timeEntries: TimeEntry[];
-}
-
 export interface ApiResponse<T> {
   success: boolean;
   data: T;

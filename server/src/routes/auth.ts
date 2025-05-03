@@ -18,7 +18,7 @@ const registerSchema = z.object({
     password: z.string().min(8, 'Passwort muss mindestens 8 Zeichen lang sein'),
     firstName: z.string().min(2, 'Vorname muss mindestens 2 Zeichen lang sein'),
     lastName: z.string().min(2, 'Nachname muss mindestens 2 Zeichen lang sein'),
-    role: z.enum(['freelancer', 'client'], {
+    role: z.enum(['freelancer'], {
       errorMap: () => ({ message: 'Ungültige Rolle' })
     })
   })
@@ -64,7 +64,7 @@ const loginSchema = z.object({
  *                 minLength: 2
  *               role:
  *                 type: string
- *                 enum: [freelancer, client]
+ *                 enum: [freelancer]
  *     responses:
  *       201:
  *         description: Benutzer erfolgreich registriert

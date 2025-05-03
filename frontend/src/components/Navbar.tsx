@@ -21,7 +21,6 @@ import { useAuth } from '../contexts/AuthContext';
 const pages = [
   { name: 'Dashboard', path: '/dashboard' },
   { name: 'Zeiteinträge', path: '/time-entries' },
-  { name: 'Zahlungen', path: '/payments' },
   { name: 'Statistiken', path: '/statistics' },
   { name: 'Profil', path: '/profile' },
 ];

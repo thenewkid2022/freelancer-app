@@ -16,27 +16,13 @@ export interface User {
 export interface TimeEntry {
   id: string;
   userId: Types.ObjectId;
-  clientId: Types.ObjectId;
   project: string;
   description: string;
   startTime: Date;
   endTime: Date;
   duration: number;
   tags: string[];
-  hourlyRate: number;
-  billable: boolean;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Payment {
-  id: string;
-  userId: string;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'completed' | 'failed';
-  stripePaymentId?: string;
   createdAt: Date;
   updatedAt: Date;
 }

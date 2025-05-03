@@ -36,17 +36,6 @@ interface TimeEntry {
   startTime: string;
 }
 
-interface Payment {
-  _id: string;
-  project: {
-    _id: string;
-    name: string;
-  };
-  amount: number;
-  status: 'pending' | 'paid' | 'overdue';
-  dueDate: string;
-}
-
 const Statistics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('month');
   const [selectedProject, setSelectedProject] = useState('');
@@ -57,16 +46,6 @@ const Statistics: React.FC = () => {
     queryFn: async () => {
       const response = await fetch('/api/time-entries');
       if (!response.ok) throw new Error('Fehler beim Laden der Zeiteinträge');
-      return response.json();
-    },
-  });
-
-  // Zahlungen abrufen
-  const { data: payments, isLoading: isLoadingPayments } = useQuery({
-    queryKey: ['payments'],
-    queryFn: async () => {
-      const response = await fetch('/api/payments');
-      if (!response.ok) throw new Error('Fehler beim Laden der Zahlungen');
       return response.json();
     },
   });
@@ -112,28 +91,6 @@ const Statistics: React.FC = () => {
     return matchesDate && matchesProject;
   });
 
-  const filteredPayments = payments?.filter((payment: Payment) => {
-    const paymentDate = new Date(payment.dueDate);
-    const matchesDate = paymentDate >= start && paymentDate <= end;
-    const matchesProject = !selectedProject || payment.project._id === selectedProject;
-    return matchesDate && matchesProject;
-  });
-
-  // Statistiken berechnen
-  const totalHours = filteredTimeEntries?.reduce(
-    (sum: number, entry: TimeEntry) => sum + entry.duration / 3600,
-    0
-  ) || 0;
-
-  const totalPayments = filteredPayments?.reduce(
-    (sum: number, payment: Payment) => sum + payment.amount,
-    0
-  ) || 0;
-
-  const pendingPayments = filteredPayments?.filter(
-    (payment: Payment) => payment.status === 'pending'
-  ).length || 0;
-
   // Daten für Diagramme
   const timeByProject = filteredTimeEntries?.reduce((acc: any[], entry: TimeEntry) => {
     const existing = acc.find(item => item.name === entry.project.name);
@@ -148,22 +105,9 @@ const Statistics: React.FC = () => {
     return acc;
   }, []);
 
-  const paymentStatus = filteredPayments?.reduce((acc: any[], payment: Payment) => {
-    const existing = acc.find(item => item.name === payment.status);
-    if (existing) {
-      existing.value += payment.amount;
-    } else {
-      acc.push({
-        name: payment.status,
-        value: payment.amount,
-      });
-    }
-    return acc;
-  }, []);
-
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-  if (isLoadingTimeEntries || isLoadingPayments) {
+  if (isLoadingTimeEntries) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
         <CircularProgress />
@@ -217,33 +161,11 @@ const Statistics: React.FC = () => {
                       Gesamtstunden
                     </Typography>
                     <Typography variant="h4">
-                      {totalHours.toFixed(1)}h
+                      {filteredTimeEntries?.reduce(
+                        (sum: number, entry: TimeEntry) => sum + entry.duration / 3600,
+                        0
+                      ).toFixed(1)}h
                     </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Card>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      Gesamtzahlungen
-                    </Typography>
-                    <Typography variant="h4">
-                      {new Intl.NumberFormat('de-DE', {
-                        style: 'currency',
-                        currency: 'EUR',
-                      }).format(totalPayments)}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Card>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      Ausstehende Zahlungen
-                    </Typography>
-                    <Typography variant="h4">{pendingPayments}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
@@ -278,26 +200,6 @@ const Statistics: React.FC = () => {
                   <Tooltip />
                   <Legend />
                 </PieChart>
-              </ResponsiveContainer>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Zahlungen nach Status
-            </Typography>
-            <Box sx={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={paymentStatus}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="value" fill="#8884d8" />
-                </BarChart>
               </ResponsiveContainer>
             </Box>
           </Paper>

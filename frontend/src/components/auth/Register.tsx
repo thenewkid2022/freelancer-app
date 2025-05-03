@@ -25,7 +25,7 @@ const Register: React.FC = () => {
     name: '',
     email: '',
     password: '',
-    role: 'freelancer' as 'freelancer' | 'client',
+    role: 'freelancer' as 'freelancer',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
@@ -125,7 +125,6 @@ const Register: React.FC = () => {
                 onChange={handleChange}
               >
                 <MenuItem value="freelancer">Freelancer</MenuItem>
-                <MenuItem value="client">Kunde</MenuItem>
               </Select>
             </FormControl>
             <Button
