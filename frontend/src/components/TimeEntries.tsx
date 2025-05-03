@@ -207,13 +207,6 @@ const TimeEntries: React.FC = () => {
           <Typography variant="h5" component="h1">
             Zeiteinträge
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-          >
-            Neuer Zeiteintrag
-          </Button>
         </Box>
 
         <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -308,7 +301,7 @@ const TimeEntries: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          {selectedEntry ? 'Zeiteintrag bearbeiten' : 'Neuer Zeiteintrag'}
+          Zeiteintrag bearbeiten
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>

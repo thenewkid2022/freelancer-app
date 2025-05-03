@@ -23,21 +23,6 @@ export const useTimeEntry = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createTimeEntry = async (data: TimeEntryFormData): Promise<TimeEntry> => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.post(`${API_URL}/time-entries`, data);
-      return response.data;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const updateTimeEntry = async (id: string, data: Partial<TimeEntryFormData>): Promise<TimeEntry> => {
     setLoading(true);
     setError(null);
@@ -70,7 +55,6 @@ export const useTimeEntry = () => {
   return {
     loading,
     error,
-    createTimeEntry,
     updateTimeEntry,
     deleteTimeEntry,
   };
