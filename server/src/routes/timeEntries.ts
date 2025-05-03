@@ -157,7 +157,16 @@ router.get('/',
         .sort({ startTime: -1 })
         .populate('freelancer', 'name email');
 
-      res.json(timeEntries);
+      // Mapping: project-Objekt ergänzen
+      const mappedEntries = timeEntries.map(entry => ({
+        ...entry.toObject(),
+        project: {
+          _id: entry.projectNumber,
+          name: entry.projectName
+        }
+      }));
+
+      res.json(mappedEntries);
     } catch (error) {
       next(error);
     }
