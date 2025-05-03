@@ -44,7 +44,7 @@ const Statistics: React.FC = () => {
   const { data: timeEntries, isLoading: isLoadingTimeEntries } = useQuery({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      const response = await fetch('/api/time-entries');
+      const response = await fetch('/time-entries');
       if (!response.ok) throw new Error('Fehler beim Laden der Zeiteinträge');
       return response.json();
     },

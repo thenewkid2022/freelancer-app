@@ -25,7 +25,7 @@ export const useTimeEntry = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('/api/time-entries', data);
+      const response = await axios.post('/time-entries', data);
       return response.data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
@@ -40,7 +40,7 @@ export const useTimeEntry = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.put(`/api/time-entries/${id}`, data);
+      const response = await axios.put(`/time-entries/${id}`, data);
       return response.data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
@@ -55,7 +55,7 @@ export const useTimeEntry = () => {
     setLoading(true);
     setError(null);
     try {
-      await axios.delete(`/api/time-entries/${id}`);
+      await axios.delete(`/time-entries/${id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten';
       setError(message);

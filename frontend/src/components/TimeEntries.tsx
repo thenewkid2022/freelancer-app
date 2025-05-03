@@ -79,7 +79,7 @@ const TimeEntries: React.FC = () => {
   const { data: timeEntries = [], isLoading } = useQuery({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      const response: AxiosResponse<TimeEntry[]> = await apiClient.get('/api/time-entries');
+      const response: AxiosResponse<TimeEntry[]> = await apiClient.get('/time-entries');
       return response.data;
     },
   });
@@ -88,8 +88,8 @@ const TimeEntries: React.FC = () => {
   const saveTimeEntry = useMutation({
     mutationFn: async (entryData: TimeEntryFormData) => {
       const url = selectedEntry
-        ? `/api/time-entries/${selectedEntry._id}`
-        : '/api/time-entries';
+        ? `/time-entries/${selectedEntry._id}`
+        : '/time-entries';
       const method = selectedEntry ? 'put' : 'post';
       
       const response: AxiosResponse<TimeEntry> = await apiClient[method](url, entryData);
@@ -107,7 +107,7 @@ const TimeEntries: React.FC = () => {
   // Zeiteintrag löschen
   const deleteTimeEntry = useMutation({
     mutationFn: async (entryId: string) => {
-      const response: AxiosResponse<TimeEntry> = await apiClient.delete(`/api/time-entries/${entryId}`);
+      const response: AxiosResponse<TimeEntry> = await apiClient.delete(`/time-entries/${entryId}`);
       return response.data;
     },
     onSuccess: () => {
