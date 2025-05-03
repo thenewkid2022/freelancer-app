@@ -9,7 +9,6 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/Dashboard';
 import TimeEntries from './components/TimeEntries';
-import Payments from './components/Payments';
 import Statistics from './components/Statistics';
 import Profile from './components/Profile';
 
@@ -34,14 +33,6 @@ const App: React.FC = () => {
             element={
               <PrivateRoute>
                 <TimeEntries />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/payments"
-            element={
-              <PrivateRoute>
-                <Payments />
               </PrivateRoute>
             }
           />
