@@ -12,7 +12,7 @@ const createTimeEntrySchema = z.object({
   body: z.object({
     projectNumber: z.string().min(1, 'Projektnummer ist erforderlich'),
     projectName: z.string().min(1, 'Projektname ist erforderlich'),
-    description: z.string().min(1, 'Beschreibung ist erforderlich'),
+    description: z.string().optional(),
     startTime: z.string().datetime(),
     endTime: z.string().datetime().optional(),
     tags: z.array(z.string()).optional()

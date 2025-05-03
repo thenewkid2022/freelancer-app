@@ -21,9 +21,13 @@ const Dashboard: React.FC = () => {
   // Starten der Zeiterfassung
   const startTimeEntry = useMutation({
     mutationFn: async () => {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/time-entries', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           projectNumber,
           projectName,
@@ -49,9 +53,13 @@ const Dashboard: React.FC = () => {
   const stopTimeEntry = useMutation({
     mutationFn: async () => {
       if (!activeTimeEntry) return;
+      const token = localStorage.getItem('token');
       const response = await fetch(`/api/time-entries/${activeTimeEntry.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ endTime: new Date().toISOString() }),
       });
       if (!response.ok) throw new Error('Fehler beim Stoppen der Zeiterfassung');
@@ -120,7 +128,7 @@ const Dashboard: React.FC = () => {
             variant="contained"
             color="success"
             onClick={() => startTimeEntry.mutate()}
-            disabled={!!activeTimeEntry || !projectNumber || !projectName || !description}
+            disabled={!!activeTimeEntry || !projectNumber || !projectName}
             sx={{ minWidth: 100 }}
           >
             Start
