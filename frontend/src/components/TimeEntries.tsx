@@ -143,6 +143,13 @@ const TimeEntries: React.FC = () => {
     return matchesProject && matchesDate;
   });
 
+  // Projektliste für Filter dynamisch aus Zeiteinträgen generieren
+  const projectOptions = Array.from(
+    new Map(
+      timeEntries.map((entry: TimeEntry) => [entry.project._id, entry.project])
+    ).values()
+  );
+
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -220,6 +227,11 @@ const TimeEntries: React.FC = () => {
               onChange={(e) => setFilterProject(e.target.value)}
             >
               <MenuItem value="">Alle Projekte</MenuItem>
+              {projectOptions.map((project) => (
+                <MenuItem key={project._id} value={project._id}>
+                  {project.name}
+                </MenuItem>
+              ))}
             </TextField>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
