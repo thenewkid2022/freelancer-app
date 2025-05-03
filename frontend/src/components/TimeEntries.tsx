@@ -65,8 +65,6 @@ const TimeEntries: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedEntry, setSelectedEntry] = useState<TimeEntry | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [filterProject, setFilterProject] = useState('');
-  const [filterDate, setFilterDate] = useState('');
   const [formData, setFormData] = useState<TimeEntryFormData>({
     project: '',
     startTime: '',
@@ -76,10 +74,11 @@ const TimeEntries: React.FC = () => {
   const [error, setError] = useState('');
 
   // Zeiteinträge abrufen
-  const { data: timeEntries = [], isLoading } = useQuery({
+  const { data: timeEntries = [], isLoading } = useQuery<TimeEntry[]>({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      return await apiClient.get('/time-entries');
+      const response: AxiosResponse<TimeEntry[]> = await apiClient.get('/time-entries');
+      return response.data;
     },
   });
 
@@ -134,26 +133,6 @@ const TimeEntries: React.FC = () => {
       minute: '2-digit',
     });
   };
-
-  // Filtere Zeiteinträge
-  const filteredEntries = timeEntries?.filter((entry: TimeEntry) => {
-    const matchesProject = !filterProject || entry.project._id === filterProject;
-    const matchesDate = !filterDate || entry.startTime.startsWith(filterDate);
-    return matchesProject && matchesDate;
-  });
-
-  // Projektliste für Filter dynamisch aus Zeiteinträgen generieren
-  const projectOptions = Array.from(
-    new Map(
-      timeEntries.map((entry: TimeEntry) => [entry.project._id, entry.project])
-    ).values()
-  );
-
-  // Debug-Ausgaben
-  console.log('Alle Zeiteinträge:', timeEntries);
-  console.log('Gefilterte Einträge:', filteredEntries);
-  console.log('Projektfilter:', filterProject);
-  console.log('Projektoptionen:', projectOptions);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -221,37 +200,6 @@ const TimeEntries: React.FC = () => {
           </Typography>
         </Box>
 
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              select
-              fullWidth
-              label="Projekt filtern"
-              id="filter-project"
-              value={filterProject}
-              onChange={(e) => setFilterProject(e.target.value)}
-            >
-              <MenuItem value="">Alle Projekte</MenuItem>
-              {projectOptions.map((project) => (
-                <MenuItem key={project._id} value={project._id}>
-                  {project.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              fullWidth
-              type="date"
-              label="Datum filtern"
-              id="filter-date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-        </Grid>
-
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
@@ -271,7 +219,7 @@ const TimeEntries: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredEntries
+              {timeEntries
                 ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((entry: TimeEntry) => (
                   <TableRow key={entry._id}>
@@ -302,7 +250,7 @@ const TimeEntries: React.FC = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredEntries?.length || 0}
+          count={timeEntries?.length || 0}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

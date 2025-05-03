@@ -132,16 +132,6 @@ router.get('/',
         query.freelancer = req.user._id;
       }
 
-      if (req.query.startDate || req.query.endDate) {
-        query.startTime = {};
-        if (req.query.startDate) {
-          query.startTime.$gte = new Date(req.query.startDate as string);
-        }
-        if (req.query.endDate) {
-          query.startTime.$lte = new Date(req.query.endDate as string);
-        }
-      }
-
       const timeEntries = await TimeEntry.find(query)
         .sort({ startTime: -1 })
         .populate('freelancer', 'name email');
