@@ -85,7 +85,7 @@ export class AuthService {
   }
 
   private generateToken(user: IUser): string {
-    const payload = { id: user._id };
+    const payload = { id: user._id, role: user.role };
     const options: SignOptions = { expiresIn: config.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] };
     return jwt.sign(payload, config.JWT_SECRET as jwt.Secret, options);
   }

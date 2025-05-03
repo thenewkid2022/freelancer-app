@@ -4,7 +4,8 @@ import { config } from '../config';
 
 export const generateToken = (user: IUser): string => {
   const payload = {
-    id: user._id
+    id: user._id,
+    role: user.role
   };
   
   const options: SignOptions = {
