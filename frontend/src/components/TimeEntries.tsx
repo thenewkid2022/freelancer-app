@@ -150,6 +150,12 @@ const TimeEntries: React.FC = () => {
     ).values()
   );
 
+  // Debug-Ausgaben
+  console.log('Alle Zeiteinträge:', timeEntries);
+  console.log('Gefilterte Einträge:', filteredEntries);
+  console.log('Projektfilter:', filterProject);
+  console.log('Projektoptionen:', projectOptions);
+
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
