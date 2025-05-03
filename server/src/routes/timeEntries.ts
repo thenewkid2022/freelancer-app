@@ -128,9 +128,7 @@ router.get('/',
     try {
       const query: any = {};
       
-      if (req.user.role === 'freelancer') {
-        query.userId = req.user._id;
-      }
+      query.userId = req.user._id;
 
       const timeEntries = await TimeEntry.find(query)
         .sort({ startTime: -1 })
@@ -231,7 +229,7 @@ router.get('/:id',
         throw new NotFoundError('Zeiteintrag nicht gefunden');
       }
 
-      if (req.user.role === 'freelancer' && timeEntry.userId.toString() !== req.user._id.toString()) {
+      if (timeEntry.userId.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
       }
 
@@ -313,7 +311,7 @@ router.put('/:id',
         throw new NotFoundError('Zeiteintrag nicht gefunden');
       }
 
-      if (req.user.role === 'freelancer' && timeEntry.userId.toString() !== req.user._id.toString()) {
+      if (timeEntry.userId.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
       }
 
@@ -382,7 +380,7 @@ router.patch('/:id',
         throw new NotFoundError('Zeiteintrag nicht gefunden');
       }
 
-      if (req.user.role === 'freelancer' && timeEntry.userId.toString() !== req.user._id.toString()) {
+      if (timeEntry.userId.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
       }
 
