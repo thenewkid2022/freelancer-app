@@ -86,7 +86,11 @@ timeEntrySchema.virtual('durationInHours').get(function(this: TimeEntryDocument)
 
 // Pre-save Middleware für automatische Berechnungen
 timeEntrySchema.pre('save', function(this: TimeEntryDocument, next) {
-  this.duration = Math.round((this.endTime.getTime() - this.startTime.getTime()) / 1000);
+  if (this.endTime && this.startTime) {
+    this.duration = Math.round((this.endTime.getTime() - this.startTime.getTime()) / 1000);
+  } else {
+    this.duration = undefined;
+  }
   next();
 });
 

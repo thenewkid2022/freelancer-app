@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!token) return;
 
     try {
-      const response = await apiClient.get<AuthUser>('/api/auth/me');
+      const response = await apiClient.get<AuthUser>('/auth/me');
       setUser(response);
     } catch (err) {
       logout();

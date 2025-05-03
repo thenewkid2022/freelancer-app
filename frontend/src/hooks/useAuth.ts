@@ -104,7 +104,7 @@ export const useAuth = () => {
 
     try {
       console.log('Überprüfe Authentifizierung...');
-      const response = await apiClient.get<AuthUser>('/api/auth/me');
+      const response = await apiClient.get<AuthUser>('/auth/me');
       console.log('Authentifizierung erfolgreich:', response);
       setUser(response);
     } catch (err) {
