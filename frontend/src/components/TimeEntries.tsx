@@ -227,33 +227,31 @@ const TimeEntries: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {timeEntries
-                ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((entry: TimeEntry) => (
-                  <TableRow key={entry._id}>
-                    <TableCell>
-                      {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
-                    </TableCell>
-                    <TableCell>{formatDateTime(entry.startTime)}</TableCell>
-                    <TableCell>{formatDateTime(entry.endTime)}</TableCell>
-                    <TableCell align="right">{formatDuration(entry.duration)}</TableCell>
-                    <TableCell>{entry.description}</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDialog(entry)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => deleteTimeEntry.mutate(entry._id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {Array.isArray(timeEntries) && timeEntries.map((entry: TimeEntry) => (
+                <TableRow key={entry._id}>
+                  <TableCell>
+                    {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
+                  </TableCell>
+                  <TableCell>{formatDateTime(entry.startTime)}</TableCell>
+                  <TableCell>{formatDateTime(entry.endTime)}</TableCell>
+                  <TableCell align="right">{formatDuration(entry.duration)}</TableCell>
+                  <TableCell>{entry.description}</TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      size="small"
+                      onClick={() => handleOpenDialog(entry)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => deleteTimeEntry.mutate(entry._id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
