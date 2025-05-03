@@ -84,15 +84,6 @@ const TimeEntries: React.FC = () => {
     },
   });
 
-  // Projekte abrufen
-  const { data: projects = [] } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const response: AxiosResponse<Project[]> = await apiClient.get('/api/projects');
-      return response.data;
-    },
-  });
-
   // Zeiteintrag erstellen/aktualisieren
   const saveTimeEntry = useMutation({
     mutationFn: async (entryData: TimeEntryFormData) => {
@@ -236,11 +227,6 @@ const TimeEntries: React.FC = () => {
               onChange={(e) => setFilterProject(e.target.value)}
             >
               <MenuItem value="">Alle Projekte</MenuItem>
-              {projects?.map((project: Project) => (
-                <MenuItem key={project._id} value={project._id}>
-                  {project.name}
-                </MenuItem>
-              ))}
             </TextField>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
@@ -336,11 +322,6 @@ const TimeEntries: React.FC = () => {
                   value={formData.project}
                   onChange={(e) => handleFormChange('project', e.target.value)}
                 >
-                  {projects?.map((project: Project) => (
-                    <MenuItem key={project._id} value={project._id}>
-                      {project.name}
-                    </MenuItem>
-                  ))}
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={6}>

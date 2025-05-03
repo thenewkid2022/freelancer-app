@@ -50,16 +50,6 @@ const Statistics: React.FC = () => {
     },
   });
 
-  // Projekte abrufen
-  const { data: projects } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const response = await fetch('/api/projects');
-      if (!response.ok) throw new Error('Fehler beim Laden der Projekte');
-      return response.json();
-    },
-  });
-
   // Zeitraum filtern
   const getDateRange = () => {
     const now = new Date();
@@ -144,11 +134,6 @@ const Statistics: React.FC = () => {
                   sx={{ minWidth: 200 }}
                 >
                   <MenuItem value="">Alle Projekte</MenuItem>
-                  {projects?.map((project: any) => (
-                    <MenuItem key={project._id} value={project._id}>
-                      {project.name}
-                    </MenuItem>
-                  ))}
                 </TextField>
               </Box>
             </Box>

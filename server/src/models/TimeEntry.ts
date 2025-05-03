@@ -50,7 +50,7 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
   },
   description: {
     type: String,
-    required: true,
+    required: false,
   },
   startTime: {
     type: Date,
@@ -58,11 +58,11 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
   },
   endTime: {
     type: Date,
-    required: true,
+    required: false,
   },
   duration: {
     type: Number,
-    required: true,
+    required: false,
   },
   status: {
     type: String,
