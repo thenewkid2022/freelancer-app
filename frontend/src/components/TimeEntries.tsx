@@ -44,7 +44,9 @@ interface Project {
 
 interface TimeEntry {
   _id: string;
-  project: Project;
+  project?: Project;
+  projectName?: string;
+  projectNumber?: string;
   duration: number;
   startTime: string;
   endTime: string;
@@ -147,7 +149,7 @@ const TimeEntries: React.FC = () => {
     if (entry) {
       setSelectedEntry(entry);
       setFormData({
-        project: entry.project._id,
+        project: entry.project?._id || '',
         startTime: new Date(entry.startTime).toISOString().slice(0, 16),
         endTime: new Date(entry.endTime).toISOString().slice(0, 16),
         description: entry.description,
@@ -223,7 +225,9 @@ const TimeEntries: React.FC = () => {
                 ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((entry: TimeEntry) => (
                   <TableRow key={entry._id}>
-                    <TableCell>{entry.project.name}</TableCell>
+                    <TableCell>
+                      {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
+                    </TableCell>
                     <TableCell>{formatDateTime(entry.startTime)}</TableCell>
                     <TableCell>{formatDateTime(entry.endTime)}</TableCell>
                     <TableCell align="right">{formatDuration(entry.duration)}</TableCell>
