@@ -252,7 +252,7 @@ const TimeEntries: React.FC = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={timeEntries?.length || 0}
+          count={Array.isArray(timeEntries) ? timeEntries.length : 0}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
