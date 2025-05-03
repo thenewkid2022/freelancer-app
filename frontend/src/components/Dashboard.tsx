@@ -9,6 +9,8 @@ import {
 } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
   const [projectNumber, setProjectNumber] = useState('');
@@ -22,7 +24,7 @@ const Dashboard: React.FC = () => {
   const startTimeEntry = useMutation({
     mutationFn: async () => {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/time-entries', {
+      const response = await fetch(`${API_URL}/time-entries`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -54,7 +56,7 @@ const Dashboard: React.FC = () => {
     mutationFn: async () => {
       if (!activeTimeEntry) return;
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/time-entries/${activeTimeEntry.id}`, {
+      const response = await fetch(`${API_URL}/time-entries/${activeTimeEntry.id}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
