@@ -25,6 +25,7 @@ import {
   Cell,
 } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '../services/api/client';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -46,11 +47,7 @@ const Statistics: React.FC = () => {
   const { data: timeEntries, isLoading: isLoadingTimeEntries } = useQuery({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/time-entries`);
-      if (!response.ok) throw new Error('Fehler beim Laden der Zeiteinträge');
-      const data = await response.json();
-      console.log('API-Response:', data); // Debug-Ausgabe
-      return data;
+      return await apiClient.get('/time-entries');
     },
   });
 
