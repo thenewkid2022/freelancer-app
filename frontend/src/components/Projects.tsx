@@ -36,8 +36,6 @@ interface Project {
   _id: string;
   name: string;
   description: string;
-  status: 'active' | 'completed' | 'on-hold';
-  hourlyRate: number;
   startDate: string;
   endDate?: string;
 }
@@ -45,8 +43,6 @@ interface Project {
 interface ProjectFormData {
   name: string;
   description: string;
-  status: Project['status'];
-  hourlyRate: number;
   startDate: string;
   endDate?: string;
 }
@@ -58,12 +54,9 @@ const Projects: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('');
   const [formData, setFormData] = useState<ProjectFormData>({
     name: '',
     description: '',
-    status: 'active',
-    hourlyRate: 0,
     startDate: '',
     endDate: '',
   });
@@ -124,57 +117,6 @@ const Projects: React.FC = () => {
     },
   });
 
-  // Status-Chip-Farbe
-  const getStatusColor = (status: Project['status']) => {
-    switch (status) {
-      case 'active':
-        return 'success.main';
-      case 'completed':
-        return 'info.main';
-      case 'on-hold':
-        return 'warning.main';
-      default:
-        return 'text.secondary';
-    }
-  };
-
-  // Status-Text
-  const getStatusText = (status: Project['status']) => {
-    switch (status) {
-      case 'active':
-        return 'Aktiv';
-      case 'completed':
-        return 'Abgeschlossen';
-      case 'on-hold':
-        return 'Pausiert';
-      default:
-        return status;
-    }
-  };
-
-  // Datum formatieren
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
-
-  // Betrag formatieren
-  const formatAmount = (amount: number): string => {
-    return new Intl.NumberFormat('de-DE', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
-  };
-
-  // Filtere Projekte
-  const filteredProjects = projects?.filter((project: Project) => {
-    const matchesStatus = !filterStatus || project.status === filterStatus;
-    return matchesStatus;
-  });
-
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -190,8 +132,6 @@ const Projects: React.FC = () => {
       setFormData({
         name: project.name,
         description: project.description,
-        status: project.status,
-        hourlyRate: project.hourlyRate,
         startDate: new Date(project.startDate).toISOString().split('T')[0],
         endDate: project.endDate
           ? new Date(project.endDate).toISOString().split('T')[0]
@@ -202,8 +142,6 @@ const Projects: React.FC = () => {
       setFormData({
         name: '',
         description: '',
-        status: 'active',
-        hourlyRate: 0,
         startDate: '',
         endDate: '',
       });
@@ -217,8 +155,6 @@ const Projects: React.FC = () => {
     setFormData({
       name: '',
       description: '',
-      status: 'active',
-      hourlyRate: 0,
       startDate: '',
       endDate: '',
     });
@@ -259,23 +195,6 @@ const Projects: React.FC = () => {
           </Button>
         </Box>
 
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={4}>
-            <TextField
-              select
-              fullWidth
-              label="Status filtern"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <MenuItem value="">Alle Status</MenuItem>
-              <MenuItem value="active">Aktiv</MenuItem>
-              <MenuItem value="completed">Abgeschlossen</MenuItem>
-              <MenuItem value="on-hold">Pausiert</MenuItem>
-            </TextField>
-          </Grid>
-        </Grid>
-
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
@@ -287,34 +206,20 @@ const Projects: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
-                <TableCell>Status</TableCell>
                 <TableCell>Startdatum</TableCell>
                 <TableCell>Enddatum</TableCell>
-                <TableCell align="right">Stundensatz</TableCell>
                 <TableCell align="right">Aktionen</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredProjects
+              {projects
                 ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((project: Project) => (
                   <TableRow key={project._id}>
                     <TableCell>{project.name}</TableCell>
+                    <TableCell>{project.startDate}</TableCell>
                     <TableCell>
-                      <Chip
-                        label={getStatusText(project.status)}
-                        sx={{
-                          backgroundColor: getStatusColor(project.status),
-                          color: 'white',
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>{formatDate(project.startDate)}</TableCell>
-                    <TableCell>
-                      {project.endDate ? formatDate(project.endDate) : '-'}
-                    </TableCell>
-                    <TableCell align="right">
-                      {formatAmount(project.hourlyRate)}
+                      {project.endDate ? project.endDate : '-'}
                     </TableCell>
                     <TableCell align="right">
                       <IconButton
@@ -338,7 +243,7 @@ const Projects: React.FC = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredProjects?.length || 0}
+          count={projects?.length || 0}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -375,32 +280,6 @@ const Projects: React.FC = () => {
                   rows={4}
                   value={formData.description}
                   onChange={(e) => handleFormChange('description', e.target.value)}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Status"
-                  value={formData.status}
-                  onChange={(e) =>
-                    handleFormChange('status', e.target.value as Project['status'])
-                  }
-                >
-                  <MenuItem value="active">Aktiv</MenuItem>
-                  <MenuItem value="completed">Abgeschlossen</MenuItem>
-                  <MenuItem value="on-hold">Pausiert</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Stundensatz"
-                  value={formData.hourlyRate}
-                  onChange={(e) =>
-                    handleFormChange('hourlyRate', parseFloat(e.target.value))
-                  }
                 />
               </Grid>
               <Grid item xs={12} sm={6}>

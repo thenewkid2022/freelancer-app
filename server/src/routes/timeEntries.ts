@@ -29,7 +29,6 @@ const updateTimeEntrySchema = z.object({
     description: z.string().min(1).optional(),
     startTime: z.string().datetime().optional(),
     endTime: z.string().datetime().optional(),
-    status: z.enum(['pending', 'approved', 'rejected']).optional(),
     tags: z.array(z.string()).optional()
   })
 });
@@ -90,7 +89,6 @@ router.post('/',
       const timeEntry = await TimeEntry.create({
         ...req.body,
         freelancer: req.user._id,
-        status: 'pending'
       });
       res.status(201).json(timeEntry);
     } catch (error) {
@@ -108,11 +106,6 @@ router.post('/',
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [pending, approved, rejected]
  *       - in: query
  *         name: startDate
  *         schema:
@@ -137,10 +130,6 @@ router.get('/',
       
       if (req.user.role === 'freelancer') {
         query.freelancer = req.user._id;
-      }
-
-      if (req.query.status) {
-        query.status = req.query.status;
       }
 
       if (req.query.startDate || req.query.endDate) {
@@ -212,7 +201,14 @@ router.get('/:id',
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
       }
 
-      res.json(timeEntry);
+      const mappedEntry = {
+        ...timeEntry.toObject(),
+        project: {
+          _id: timeEntry.projectNumber,
+          name: timeEntry.projectName
+        }
+      };
+      res.json(mappedEntry);
     } catch (error) {
       next(error);
     }
@@ -287,14 +283,17 @@ router.put('/:id',
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
       }
 
-      if (timeEntry.status === 'approved') {
-        throw new ForbiddenError('Genehmigte Zeiteinträge können nicht bearbeitet werden');
-      }
-
       Object.assign(timeEntry, req.body);
       await timeEntry.save();
 
-      res.json(timeEntry);
+      const mappedEntryPut = {
+        ...timeEntry.toObject(),
+        project: {
+          _id: timeEntry.projectNumber,
+          name: timeEntry.projectName
+        }
+      };
+      res.json(mappedEntryPut);
     } catch (error) {
       next(error);
     }
@@ -355,11 +354,17 @@ router.patch('/:id',
 
       // Nur erlaubte Felder aktualisieren (z.B. endTime, status)
       if (req.body.endTime) timeEntry.endTime = req.body.endTime;
-      if (req.body.status) timeEntry.status = req.body.status;
 
       await timeEntry.save();
 
-      res.json(timeEntry);
+      const mappedEntryPatch = {
+        ...timeEntry.toObject(),
+        project: {
+          _id: timeEntry.projectNumber,
+          name: timeEntry.projectName
+        }
+      };
+      res.json(mappedEntryPatch);
     } catch (error) {
       next(error);
     }
@@ -403,10 +408,6 @@ router.delete('/:id',
 
       if (timeEntry.freelancer.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
-      }
-
-      if (timeEntry.status === 'approved') {
-        throw new ForbiddenError('Genehmigte Zeiteinträge können nicht gelöscht werden');
       }
 
       await timeEntry.deleteOne();

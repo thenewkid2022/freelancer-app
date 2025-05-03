@@ -10,7 +10,6 @@ export interface ITimeEntry {
   startTime: Date;
   endTime: Date;
   duration?: number;
-  status: 'pending' | 'approved' | 'rejected' | 'billed';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +22,6 @@ export interface TimeEntryDocument extends Document {
   startTime: Date;
   endTime: Date;
   duration?: number;
-  status: 'pending' | 'approved' | 'rejected' | 'billed';
   createdAt: Date;
   updatedAt: Date;
   formattedDuration: string;
@@ -63,11 +61,6 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
   duration: {
     type: Number,
     required: false,
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'approved', 'rejected', 'billed'],
-    default: 'pending',
   },
 }, {
   timestamps: true
