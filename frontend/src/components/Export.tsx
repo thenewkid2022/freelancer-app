@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Paper, Typography, Stack, Button } from '@mui/material';
+import { Container, Paper, Typography, Stack, Button, useTheme, useMediaQuery } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -12,6 +12,9 @@ import { saveAs } from 'file-saver';
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Export: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   // CSV-Export-Handler
   const handleExportCSV = async () => {
     try {
@@ -147,14 +150,17 @@ const Export: React.FC = () => {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 6, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-        <Typography variant="h5" align="center" sx={{ fontWeight: 700, mb: 3 }}>
-          Daten exportieren
-        </Typography>
+      <Stack spacing={3}>
+        {/* Überschrift nur auf Desktop anzeigen */}
+        {!isMobile && (
+          <Typography variant="h5" align="center" sx={{ fontWeight: 700, mb: 3 }}>
+            Daten exportieren
+          </Typography>
+        )}
         <Typography align="center" sx={{ mb: 4, color: 'text.secondary' }}>
           Wähle das gewünschte Format für den Export deiner Zeiteinträge.
         </Typography>
-        <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }} justifyContent="center">
+        <Stack spacing={2} direction={isMobile ? 'column' : { xs: 'column', sm: 'row' }} justifyContent="center" alignItems={isMobile ? 'center' : 'flex-start'}>
           <Button
             variant="contained"
             color="primary"
@@ -183,7 +189,7 @@ const Export: React.FC = () => {
             CSV
           </Button>
         </Stack>
-      </Paper>
+      </Stack>
     </Container>
   );
 };

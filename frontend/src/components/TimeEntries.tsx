@@ -467,7 +467,7 @@ const TimeEntries: React.FC = () => {
                   </Stack>
                 </Box>
 
-                <Stack spacing={1}>
+                <Stack spacing={1} alignItems="center">
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AccessTimeIcon fontSize="small" color="action" />
                     <Typography variant="body2" color="text.secondary">
@@ -482,7 +482,7 @@ const TimeEntries: React.FC = () => {
                   </Box>
                 </Stack>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 1 }}>
                   {renderDurationCell(entry)}
                 </Box>
 
@@ -611,11 +611,24 @@ const TimeEntries: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Stack spacing={3}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-            Zeiteinträge
-          </Typography>
-          <Stack direction="row" spacing={2}>
+        {!isMobile && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+              Zeiteinträge
+            </Typography>
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="contained"
+                onClick={handleAdjustmentDialogOpen}
+                sx={{ borderRadius: 2 }}
+              >
+                Tagesausgleich
+              </Button>
+            </Stack>
+          </Box>
+        )}
+        {isMobile && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant="contained"
               onClick={handleAdjustmentDialogOpen}
@@ -623,8 +636,8 @@ const TimeEntries: React.FC = () => {
             >
               Tagesausgleich
             </Button>
-          </Stack>
-        </Box>
+          </Box>
+        )}
         {hasCorrectionsForDay && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
             <Tooltip title="Tagesausgleich rückgängig machen">

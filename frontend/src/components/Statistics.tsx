@@ -16,6 +16,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Stack,
 } from '@mui/material';
 import {
   PieChart,
@@ -149,125 +150,132 @@ const Statistics: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>Statistiken</Typography>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Stack spacing={3}>
+        {/* Überschrift nur auf Desktop anzeigen */}
+        {!isMobile && (
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+            Statistiken
+          </Typography>
+        )}
 
-      {/* Projektverteilung */}
-      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 }, mb: 4 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Projektverteilung</Typography>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={topProjects}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={80}
-              innerRadius={50}
-              label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
-            >
-              {topProjects.map((entry: { name: string; value: number }, index: number) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value: number, name: string, props: any) => {
-              const project = topProjects[props.payload && props.payload.index];
-              return [`${value.toFixed(2)} h`, project ? project.name : name];
-            }} />
-          </PieChart>
-        </ResponsiveContainer>
-        {/* Eigene Legende als Liste */}
-        <Box sx={{ mt: 2, maxHeight: 120, overflowY: 'auto' }}>
-          {topProjects.map((entry, idx) => (
-            <Box key={entry.name} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box sx={{
-                width: 16, height: 16, bgcolor: COLORS[idx % COLORS.length], borderRadius: '50%', mr: 1
+        {/* Projektverteilung */}
+        <Paper sx={{ p: { xs: 1, sm: 2, md: 3 }, mb: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Projektverteilung</Typography>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={topProjects}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                innerRadius={50}
+                label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+              >
+                {topProjects.map((entry: { name: string; value: number }, index: number) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value: number, name: string, props: any) => {
+                const project = topProjects[props.payload && props.payload.index];
+                return [`${value.toFixed(2)} h`, project ? project.name : name];
               }} />
-              <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 180 }}>
-                {entry.name}: {totalHours > 0 ? (entry.value / totalHours * 100).toFixed(1) : '0.0'}%
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Paper>
+            </PieChart>
+          </ResponsiveContainer>
+          {/* Eigene Legende als Liste */}
+          <Box sx={{ mt: 2, maxHeight: 120, overflowY: 'auto' }}>
+            {topProjects.map((entry, idx) => (
+              <Box key={entry.name} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                <Box sx={{
+                  width: 16, height: 16, bgcolor: COLORS[idx % COLORS.length], borderRadius: '50%', mr: 1
+                }} />
+                <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 180 }}>
+                  {entry.name}: {totalHours > 0 ? (entry.value / totalHours * 100).toFixed(1) : '0.0'}%
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Paper>
 
-      {/* Gesamtübersicht */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={6} sm={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
-            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-              <Typography variant="subtitle2" color="primary" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                Zeiträume
-              </Typography>
-              <Typography variant="h5" color="primary" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{zeitraeume}</Typography>
-            </CardContent>
-          </Card>
+        {/* Gesamtübersicht */}
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={6} sm={3}>
+            <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
+              <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+                <Typography variant="subtitle2" color="primary" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                  Zeiträume
+                </Typography>
+                <Typography variant="h5" color="primary" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{zeitraeume}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
+              <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+                <Typography variant="subtitle2" color="success.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                  Gesamtstunden
+                </Typography>
+                <Typography variant="h5" color="success.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{isNaN(totalHours) ? '0.00' : totalHours.toFixed(2)} h</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
+              <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+                <Typography variant="subtitle2" color="secondary" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                  Durchschnitt/Eintrag
+                </Typography>
+                <Typography variant="h5" color="secondary" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{isNaN(avgPerEntry) ? '0.00' : avgPerEntry.toFixed(2)} h</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
+              <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+                <Typography variant="subtitle2" color="warning.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+                  Einträge
+                </Typography>
+                <Typography variant="h5" color="warning.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{totalEntries}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-        <Grid item xs={6} sm={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
-            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-              <Typography variant="subtitle2" color="success.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                Gesamtstunden
-              </Typography>
-              <Typography variant="h5" color="success.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{isNaN(totalHours) ? '0.00' : totalHours.toFixed(2)} h</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
-            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-              <Typography variant="subtitle2" color="secondary" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                Durchschnitt/Eintrag
-              </Typography>
-              <Typography variant="h5" color="secondary" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{isNaN(avgPerEntry) ? '0.00' : avgPerEntry.toFixed(2)} h</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
-            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-              <Typography variant="subtitle2" color="warning.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                Einträge
-              </Typography>
-              <Typography variant="h5" color="warning.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{totalEntries}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
 
-      {/* Tägliche Übersicht */}
-      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-        <Typography variant="h6" sx={{ mb: 1, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Tägliche Übersicht</Typography>
-        <Box sx={{ width: '100%', overflowX: 'auto' }}>
-          <TableContainer sx={{ minWidth: 320 }}>
-            <Table size="small" sx={{ minWidth: 320 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Zeitraum</TableCell>
-                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Gesamtstunden</TableCell>
-                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Einträge</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {dailyData.length === 0 ? (
+        {/* Tägliche Übersicht */}
+        <Paper sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+          <Typography variant="h6" sx={{ mb: 1, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Tägliche Übersicht</Typography>
+          <Box sx={{ width: '100%', overflowX: 'auto' }}>
+            <TableContainer sx={{ minWidth: 320 }}>
+              <Table size="small" sx={{ minWidth: 320 }}>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={3} align="center" sx={{ py: 1 }}>Keine Daten vorhanden</TableCell>
+                    <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Zeitraum</TableCell>
+                    <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Gesamtstunden</TableCell>
+                    <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Einträge</TableCell>
                   </TableRow>
-                ) : (
-                  dailyData.map((row) => (
-                    <TableRow key={row.date}>
-                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.date}</TableCell>
-                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.hours.toFixed(2)} h</TableCell>
-                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.entries}</TableCell>
+                </TableHead>
+                <TableBody>
+                  {dailyData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center" sx={{ py: 1 }}>Keine Daten vorhanden</TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      </Paper>
+                  ) : (
+                    dailyData.map((row) => (
+                      <TableRow key={row.date}>
+                        <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.date}</TableCell>
+                        <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.hours.toFixed(2)} h</TableCell>
+                        <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.entries}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        </Paper>
+      </Stack>
     </Container>
   );
 };

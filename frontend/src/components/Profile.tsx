@@ -13,6 +13,9 @@ import {
   CircularProgress,
   Switch,
   FormControlLabel,
+  Stack,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -46,6 +49,8 @@ const Profile: React.FC = () => {
     confirm: '',
   });
   const [error, setError] = useState('');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Profil abrufen
   const { data: userProfile, isLoading } = useQuery({
@@ -142,180 +147,187 @@ const Profile: React.FC = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Avatar
-            sx={{ width: 64, height: 64, mr: 2 }}
-            alt={userProfile?.name}
-          />
-          <Box>
-            <Typography variant="h5" component="h1">
-              {userProfile?.name}
-            </Typography>
-            <Typography color="textSecondary">
-              {userProfile?.email}
-            </Typography>
-          </Box>
-        </Box>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
+      <Stack spacing={3}>
+        {!isMobile && (
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
+            Profil
+          </Typography>
         )}
-
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>
-              Persönliche Informationen
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Name"
-                  value={profile.name}
-                  onChange={(e) => handleProfileChange('name', e.target.value)}
-                  disabled={!isEditing}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="E-Mail"
-                  value={profile.email}
-                  onChange={(e) => handleProfileChange('email', e.target.value)}
-                  disabled={!isEditing}
-                />
-              </Grid>
-            </Grid>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              Einstellungen
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={profile.settings?.emailNotifications}
-                      onChange={(e) =>
-                        handleSettingsChange('emailNotifications', e.target.checked)
-                      }
-                      disabled={!isEditing}
-                    />
-                  }
-                  label="E-Mail-Benachrichtigungen"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={profile.settings?.darkMode}
-                      onChange={(e) =>
-                        handleSettingsChange('darkMode', e.target.checked)
-                      }
-                      disabled={!isEditing}
-                    />
-                  }
-                  label="Dunkles Design"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Sprache"
-                  value={profile.settings?.language}
-                  onChange={(e) =>
-                    handleSettingsChange('language', e.target.value)
-                  }
-                  disabled={!isEditing}
-                >
-                  <option value="de">Deutsch</option>
-                  <option value="en">English</option>
-                </TextField>
-              </Grid>
-            </Grid>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              Passwort ändern
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="Aktuelles Passwort"
-                  value={password.current}
-                  onChange={(e) => handlePasswordChange('current', e.target.value)}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="Neues Passwort"
-                  value={password.new}
-                  onChange={(e) => handlePasswordChange('new', e.target.value)}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="Passwort bestätigen"
-                  value={password.confirm}
-                  onChange={(e) => handlePasswordChange('confirm', e.target.value)}
-                />
-              </Grid>
-            </Grid>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              {isEditing ? (
-                <>
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setProfile(userProfile);
-                    }}
-                  >
-                    Abbrechen
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => updateProfile.mutate(profile)}
-                  >
-                    Speichern
-                  </Button>
-                </>
-              ) : (
-                <Button variant="contained" onClick={() => setIsEditing(true)}>
-                  Bearbeiten
-                </Button>
-              )}
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => changePassword.mutate(password)}
-                disabled={!password.current || !password.new || !password.confirm}
-              >
-                Passwort ändern
-              </Button>
+        <Paper sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <Avatar
+              sx={{ width: 64, height: 64, mr: 2 }}
+              alt={userProfile?.name}
+            />
+            <Box>
+              <Typography variant="h5" component="h1">
+                {userProfile?.name}
+              </Typography>
+              <Typography color="textSecondary">
+                {userProfile?.email}
+              </Typography>
             </Box>
+          </Box>
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          )}
+
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                Persönliche Informationen
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    value={profile.name}
+                    onChange={(e) => handleProfileChange('name', e.target.value)}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="E-Mail"
+                    value={profile.email}
+                    onChange={(e) => handleProfileChange('email', e.target.value)}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+              </Grid>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                Einstellungen
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={profile.settings?.emailNotifications}
+                        onChange={(e) =>
+                          handleSettingsChange('emailNotifications', e.target.checked)
+                        }
+                        disabled={!isEditing}
+                      />
+                    }
+                    label="E-Mail-Benachrichtigungen"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={profile.settings?.darkMode}
+                        onChange={(e) =>
+                          handleSettingsChange('darkMode', e.target.checked)
+                        }
+                        disabled={!isEditing}
+                      />
+                    }
+                    label="Dunkles Design"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Sprache"
+                    value={profile.settings?.language}
+                    onChange={(e) =>
+                      handleSettingsChange('language', e.target.value)
+                    }
+                    disabled={!isEditing}
+                  >
+                    <option value="de">Deutsch</option>
+                    <option value="en">English</option>
+                  </TextField>
+                </Grid>
+              </Grid>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                Passwort ändern
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    type="password"
+                    label="Aktuelles Passwort"
+                    value={password.current}
+                    onChange={(e) => handlePasswordChange('current', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    type="password"
+                    label="Neues Passwort"
+                    value={password.new}
+                    onChange={(e) => handlePasswordChange('new', e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    type="password"
+                    label="Passwort bestätigen"
+                    value={password.confirm}
+                    onChange={(e) => handlePasswordChange('confirm', e.target.value)}
+                  />
+                </Grid>
+              </Grid>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                {isEditing ? (
+                  <>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setProfile(userProfile);
+                      }}
+                    >
+                      Abbrechen
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => updateProfile.mutate(profile)}
+                    >
+                      Speichern
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="contained" onClick={() => setIsEditing(true)}>
+                    Bearbeiten
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => changePassword.mutate(password)}
+                  disabled={!password.current || !password.new || !password.confirm}
+                >
+                  Passwort ändern
+                </Button>
+              </Box>
+            </Grid>
           </Grid>
-        </Grid>
-      </Paper>
+        </Paper>
+      </Stack>
     </Container>
   );
 };
