@@ -39,8 +39,16 @@ interface TimeEntry {
   startTime: string;
 }
 
+interface TimeEntryFormData {
+  project: string;
+  startTime: string;
+  endTime: string;
+  description: string;
+}
+
 const Statistics: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState('');
+  const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const theme = useTheme();
 
   // Zeiteinträge abrufen
