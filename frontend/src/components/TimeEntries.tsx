@@ -22,11 +22,19 @@ import {
   Alert,
   CircularProgress,
   TablePagination,
+  useTheme,
+  useMediaQuery,
+  Card,
+  CardContent,
+  Stack,
+  Chip,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  AccessTime as AccessTimeIcon,
+  Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
@@ -72,6 +80,8 @@ const TimeEntries: React.FC = () => {
     description: '',
   });
   const [error, setError] = useState('');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Zeiteinträge abrufen
   const { data: timeEntries = [], isLoading } = useQuery({
@@ -192,6 +202,205 @@ const TimeEntries: React.FC = () => {
     ? timeEntries.filter(entry => entry.endTime && !isNaN(new Date(entry.endTime).getTime()))
     : [];
 
+  const renderMobileView = () => (
+    <Stack spacing={2}>
+      {abgeschlosseneEintraege
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        .map((entry: TimeEntry) => (
+          <Card 
+            key={entry._id}
+            elevation={0}
+            sx={{ 
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              '&:hover': {
+                boxShadow: 1,
+                transition: 'box-shadow 0.2s'
+              }
+            }}
+          >
+            <CardContent>
+              <Stack spacing={2}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Chip
+                    label={entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
+                    size="small"
+                    sx={{ borderRadius: 1 }}
+                  />
+                  <Stack direction="row" spacing={1}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleOpenDialog(entry)}
+                      sx={{ 
+                        '&:hover': { 
+                          backgroundColor: 'primary.light',
+                          color: 'primary.contrastText'
+                        }
+                      }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => deleteTimeEntry.mutate(entry._id)}
+                      sx={{ 
+                        '&:hover': { 
+                          backgroundColor: 'error.light',
+                          color: 'error.contrastText'
+                        }
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                </Box>
+
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AccessTimeIcon fontSize="small" color="action" />
+                    <Typography variant="body2" color="text.secondary">
+                      Start: {formatDateTime(entry.startTime)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AccessTimeIcon fontSize="small" color="action" />
+                    <Typography variant="body2" color="text.secondary">
+                      Ende: {formatDateTime(entry.endTime)}
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Chip
+                    label={formatDuration(entry.duration)}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ borderRadius: 1 }}
+                  />
+                </Box>
+
+                {entry.description && (
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <DescriptionIcon fontSize="small" color="action" sx={{ mt: 0.5 }} />
+                    <Typography variant="body2">
+                      {entry.description}
+                    </Typography>
+                  </Box>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
+        ))}
+    </Stack>
+  );
+
+  const renderDesktopView = () => (
+    <Card elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+      <CardContent sx={{ p: 0 }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600 }}>Projekt</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Startzeit</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Endzeit</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }}>Dauer</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Beschreibung</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }}>Aktionen</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {abgeschlosseneEintraege
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((entry: TimeEntry) => (
+                  <TableRow 
+                    key={entry._id}
+                    sx={{ 
+                      '&:hover': { 
+                        backgroundColor: 'action.hover',
+                        transition: 'background-color 0.2s'
+                      }
+                    }}
+                  >
+                    <TableCell>
+                      <Chip
+                        label={entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
+                        size="small"
+                        sx={{ borderRadius: 1 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <AccessTimeIcon fontSize="small" color="action" />
+                        <Typography variant="body2">
+                          {formatDateTime(entry.startTime)}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <AccessTimeIcon fontSize="small" color="action" />
+                        <Typography variant="body2">
+                          {formatDateTime(entry.endTime)}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Chip
+                        label={formatDuration(entry.duration)}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ borderRadius: 1 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <DescriptionIcon fontSize="small" color="action" />
+                        <Typography variant="body2" noWrap>
+                          {entry.description}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenDialog(entry)}
+                          sx={{ 
+                            '&:hover': { 
+                              backgroundColor: 'primary.light',
+                              color: 'primary.contrastText'
+                            }
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => deleteTimeEntry.mutate(entry._id)}
+                          sx={{ 
+                            '&:hover': { 
+                              backgroundColor: 'error.light',
+                              color: 'error.contrastText'
+                            }
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
+  );
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -202,62 +411,29 @@ const TimeEntries: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h5" component="h1">
+      <Stack spacing={3}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
             Zeiteinträge
           </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+            sx={{ borderRadius: 2 }}
+          >
+            Neuer Eintrag
+          </Button>
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert severity="error" sx={{ borderRadius: 2 }}>
             {error}
           </Alert>
         )}
 
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Projekt</TableCell>
-                <TableCell>Startzeit</TableCell>
-                <TableCell>Endzeit</TableCell>
-                <TableCell align="right">Dauer</TableCell>
-                <TableCell>Beschreibung</TableCell>
-                <TableCell align="right">Aktionen</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {abgeschlosseneEintraege
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((entry: TimeEntry) => (
-                  <TableRow key={entry._id}>
-                    <TableCell>
-                      {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
-                    </TableCell>
-                    <TableCell>{formatDateTime(entry.startTime)}</TableCell>
-                    <TableCell>{formatDateTime(entry.endTime)}</TableCell>
-                    <TableCell align="right">{formatDuration(entry.duration)}</TableCell>
-                    <TableCell>{entry.description}</TableCell>
-                    <TableCell align="right">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDialog(entry)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => deleteTimeEntry.mutate(entry._id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {isMobile ? renderMobileView() : renderDesktopView()}
+
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
@@ -267,21 +443,31 @@ const TimeEntries: React.FC = () => {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           labelRowsPerPage="Einträge pro Seite"
+          sx={{ 
+            borderTop: '1px solid', 
+            borderColor: 'divider',
+            '.MuiTablePagination-select': {
+              borderRadius: 1
+            }
+          }}
         />
-      </Paper>
+      </Stack>
 
       <Dialog
         open={isDialogOpen}
         onClose={handleCloseDialog}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: { borderRadius: 2 }
+        }}
       >
-        <DialogTitle>
-          Zeiteintrag bearbeiten
+        <DialogTitle sx={{ pb: 1 }}>
+          {selectedEntry ? 'Zeiteintrag bearbeiten' : 'Neuer Zeiteintrag'}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
-            <Grid container spacing={2}>
+            <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -291,6 +477,7 @@ const TimeEntries: React.FC = () => {
                   value={formData.startTime}
                   onChange={(e) => handleFormChange('startTime', e.target.value)}
                   InputLabelProps={{ shrink: true }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -302,6 +489,7 @@ const TimeEntries: React.FC = () => {
                   value={formData.endTime}
                   onChange={(e) => handleFormChange('endTime', e.target.value)}
                   InputLabelProps={{ shrink: true }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -312,19 +500,24 @@ const TimeEntries: React.FC = () => {
                   label="Beschreibung"
                   id="dialog-description"
                   value={formData.description}
-                  onChange={(e) =>
-                    handleFormChange('description', e.target.value)
-                  }
+                  onChange={(e) => handleFormChange('description', e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
             </Grid>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Abbrechen</Button>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button 
+            onClick={handleCloseDialog}
+            sx={{ borderRadius: 2 }}
+          >
+            Abbrechen
+          </Button>
           <Button
             variant="contained"
             onClick={() => saveTimeEntry.mutate(formData)}
+            sx={{ borderRadius: 2 }}
           >
             Speichern
           </Button>
