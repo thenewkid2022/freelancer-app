@@ -11,6 +11,7 @@ export interface ITimeEntry {
   endTime: Date;
   duration?: number;
   correctedDuration?: number;
+  tags?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +25,7 @@ export interface TimeEntryDocument extends Document {
   endTime: Date;
   duration?: number;
   correctedDuration?: number;
+  tags?: string[];
   createdAt: Date;
   updatedAt: Date;
   formattedDuration: string;
