@@ -56,12 +56,16 @@ const Profile: React.FC = () => {
   const { data: userProfile, isLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/profile`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       if (!response.ok) throw new Error('Fehler beim Laden des Profils');
       return response.json();
     },
     onSuccess: (data) => {
-      setProfile(data);
+      setProfile(data.user);
     },
   });
 
@@ -69,7 +73,7 @@ const Profile: React.FC = () => {
   const updateProfile = useMutation({
     mutationFn: async (updatedProfile: Partial<UserProfile>) => {
       const API_URL = process.env.REACT_APP_API_URL || 'https://dein-backend-server.com';
-      const response = await fetch(`${API_URL}/users/profile`, {
+      const response = await fetch(`${API_URL}/auth/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

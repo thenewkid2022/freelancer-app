@@ -257,4 +257,60 @@ router.get('/me', auth, async (req, res, next) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   put:
+ *     tags: [Auth]
+ *     summary: Aktualisiert das Profil des aktuellen Benutzers
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               settings:
+ *                 type: object
+ *                 properties:
+ *                   emailNotifications:
+ *                     type: boolean
+ *                   darkMode:
+ *                     type: boolean
+ *                   language:
+ *                     type: string
+ *     responses:
+ *       200:
+ *         description: Profil erfolgreich aktualisiert
+ *       401:
+ *         description: Nicht authentifiziert
+ */
+router.put('/profile', auth, async (req, res, next) => {
+  try {
+    const { name, email, settings } = req.body;
+    const userId = req.user._id;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name, email, settings },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new Error('Benutzer nicht gefunden');
+    }
+
+    res.json({ user: updatedUser });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router; 
