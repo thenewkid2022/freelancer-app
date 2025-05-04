@@ -259,11 +259,11 @@ const Profile: React.FC = () => {
                     label={t('profile.language')}
                     value={profile.settings?.language}
                     onChange={(e) => handleSettingsChange('language', e.target.value)}
-                    disabled={!isEditing}
                     size={isMobile ? 'small' : 'medium'}
                   >
                     <option value="de">Deutsch</option>
                     <option value="en">English</option>
+                    <option value="es">Español</option>
                   </TextField>
                 </Grid>
               </Grid>

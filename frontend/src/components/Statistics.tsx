@@ -203,43 +203,15 @@ const Statistics: React.FC = () => {
 
         {/* Gesamtübersicht */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item xs={6} sm={3}>
-            <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
-              <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-                <Typography variant="subtitle2" color="primary" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                  Zeiträume
-                </Typography>
-                <Typography variant="h5" color="primary" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{zeitraeume}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid item xs={12} sm={4} md={3}>
             <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
               <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                 <Typography variant="subtitle2" color="success.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
                   Gesamtstunden
                 </Typography>
-                <Typography variant="h5" color="success.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{isNaN(totalHours) ? '0.00' : totalHours.toFixed(2)} h</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
-              <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-                <Typography variant="subtitle2" color="secondary" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                  Durchschnitt/Eintrag
+                <Typography variant="h5" color="success.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>
+                  {isNaN(totalHours) ? '0.00' : totalHours.toFixed(2)} h
                 </Typography>
-                <Typography variant="h5" color="secondary" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{isNaN(avgPerEntry) ? '0.00' : avgPerEntry.toFixed(2)} h</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
-              <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-                <Typography variant="subtitle2" color="warning.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                  Einträge
-                </Typography>
-                <Typography variant="h5" color="warning.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{totalEntries}</Typography>
               </CardContent>
             </Card>
           </Grid>
