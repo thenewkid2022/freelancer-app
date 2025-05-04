@@ -277,6 +277,25 @@ const TimeEntries: React.FC = () => {
     }
   };
 
+  const handleUndoAllAdjustments = async () => {
+    try {
+      const entriesWithCorrection = abgeschlosseneEintraege.filter(e => e.correctedDuration);
+      const undoPromises = entriesWithCorrection.map(entry =>
+        apiClient.put(`/time-entries/${entry._id}`, {
+          startTime: entry.startTime,
+          endTime: entry.endTime,
+          description: entry.description,
+          correctedDuration: undefined
+        })
+      );
+      await Promise.all(undoPromises);
+      queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
+    } catch (error) {
+      setError('Fehler beim Rückgängig machen des Tagesausgleichs');
+      console.error('Fehler beim Undo-All:', error);
+    }
+  };
+
   const renderMobileView = () => (
     <Stack spacing={2}>
       {abgeschlosseneEintraege
@@ -328,20 +347,6 @@ const TimeEntries: React.FC = () => {
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
-                    {entry.correctedDuration && (
-                      <IconButton
-                        size="small"
-                        onClick={() => handleUndoAdjustment(entry._id)}
-                        sx={{ 
-                          '&:hover': { 
-                            backgroundColor: 'warning.light',
-                            color: 'warning.contrastText'
-                          }
-                        }}
-                      >
-                        <UndoIcon fontSize="small" />
-                      </IconButton>
-                    )}
                   </Stack>
                 </Box>
 
@@ -361,13 +366,34 @@ const TimeEntries: React.FC = () => {
                 </Stack>
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Chip
-                    label={formatDuration(entry.duration)}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ borderRadius: 1 }}
-                  />
+                  {entry.correctedDuration && entry.correctedDuration !== entry.duration ? (
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Chip
+                        label={formatDuration(entry.duration)}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ borderRadius: 1 }}
+                      />
+                      <span style={{ color: '#888' }}>→</span>
+                      <Chip
+                        label={formatDuration(entry.correctedDuration)}
+                        size="small"
+                        color="warning"
+                        variant="filled"
+                        sx={{ borderRadius: 1 }}
+                        title="Korrigierte Zeit durch Tagesausgleich"
+                      />
+                    </Stack>
+                  ) : (
+                    <Chip
+                      label={formatDuration(entry.duration)}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ borderRadius: 1 }}
+                    />
+                  )}
                 </Box>
 
                 {entry.description && (
@@ -437,17 +463,33 @@ const TimeEntries: React.FC = () => {
                       </Stack>
                     </TableCell>
                     <TableCell align="right">
-                      <Chip
-                        label={formatDuration(entry.duration)}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ borderRadius: 1 }}
-                      />
-                      {entry.correctedDuration && (
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          Korrigiert: {formatDuration(entry.correctedDuration)}
-                        </Typography>
+                      {entry.correctedDuration && entry.correctedDuration !== entry.duration ? (
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Chip
+                            label={formatDuration(entry.duration)}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ borderRadius: 1 }}
+                          />
+                          <span style={{ color: '#888' }}>→</span>
+                          <Chip
+                            label={formatDuration(entry.correctedDuration)}
+                            size="small"
+                            color="warning"
+                            variant="filled"
+                            sx={{ borderRadius: 1 }}
+                            title="Korrigierte Zeit durch Tagesausgleich"
+                          />
+                        </Stack>
+                      ) : (
+                        <Chip
+                          label={formatDuration(entry.duration)}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ borderRadius: 1 }}
+                        />
                       )}
                     </TableCell>
                     <TableCell>
@@ -484,20 +526,6 @@ const TimeEntries: React.FC = () => {
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
-                        {entry.correctedDuration && (
-                          <IconButton
-                            size="small"
-                            onClick={() => handleUndoAdjustment(entry._id)}
-                            sx={{ 
-                              '&:hover': { 
-                                backgroundColor: 'warning.light',
-                                color: 'warning.contrastText'
-                              }
-                            }}
-                          >
-                            <UndoIcon fontSize="small" />
-                          </IconButton>
-                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -524,13 +552,24 @@ const TimeEntries: React.FC = () => {
           <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
             Zeiteinträge
           </Typography>
-          <Button
-            variant="contained"
-            onClick={handleAdjustmentDialogOpen}
-            sx={{ borderRadius: 2 }}
-          >
-            Tagesausgleich
-          </Button>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              onClick={handleAdjustmentDialogOpen}
+              sx={{ borderRadius: 2 }}
+            >
+              Tagesausgleich
+            </Button>
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={handleUndoAllAdjustments}
+              sx={{ borderRadius: 2 }}
+              disabled={!abgeschlosseneEintraege.some(e => e.correctedDuration)}
+            >
+              Tagesausgleich rückgängig
+            </Button>
+          </Stack>
         </Box>
 
         {error && (
