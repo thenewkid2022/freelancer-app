@@ -32,13 +32,13 @@ class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>(`${API_URL}/auth/login`, credentials);
+    const response = await axios.post<AuthResponse>(`${API_URL}/auth/login`, credentials, { withCredentials: true });
     this.setAuthToken(response.data.token);
     return response.data;
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await axios.post<AuthResponse>(`${API_URL}/auth/register`, data);
+    const response = await axios.post<AuthResponse>(`${API_URL}/auth/register`, data, { withCredentials: true });
     this.setAuthToken(response.data.token);
     return response.data;
   }
