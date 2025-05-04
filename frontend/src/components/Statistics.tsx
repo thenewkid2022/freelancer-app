@@ -61,8 +61,7 @@ const Statistics: React.FC = () => {
 
   // Gefilterte Daten (nur nach Projekt)
   const filteredTimeEntries = timeEntries?.filter((entry: TimeEntry) => {
-    const matchesProject = !selectedProject || entry.project._id === selectedProject;
-    return matchesProject;
+    return true;
   }) || [];
 
   // Projektverteilung für PieChart

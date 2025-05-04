@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api/client';
 import { toast } from 'react-toastify';
 
@@ -22,7 +21,6 @@ export const useAuth = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   const login = async (data: LoginData): Promise<void> => {
     setLoading(true);

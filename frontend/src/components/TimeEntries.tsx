@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Container,
-  Paper,
   Typography,
   Box,
   Grid,
@@ -18,7 +17,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  MenuItem,
   Alert,
   CircularProgress,
   TablePagination,
@@ -34,10 +32,8 @@ import {
   Delete as DeleteIcon,
   AccessTime as AccessTimeIcon,
   Description as DescriptionIcon,
-  Undo as UndoIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../services/api/client';
 import { AxiosResponse } from 'axios';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -70,7 +66,6 @@ interface TimeEntryFormData {
 }
 
 const TimeEntries: React.FC = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);

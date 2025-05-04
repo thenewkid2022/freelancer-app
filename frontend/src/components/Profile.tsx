@@ -15,7 +15,6 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@hooks/useAuth';
 
 interface UserProfile {
   _id: string;
