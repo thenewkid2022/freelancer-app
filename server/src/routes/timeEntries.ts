@@ -315,6 +315,10 @@ router.put('/:id',
         throw new ForbiddenError('Keine Berechtigung für diesen Zeiteintrag');
       }
 
+      // Korrigierte Dauer entfernen, wenn sie im Request nicht enthalten ist
+      if (!('correctedDuration' in req.body) && timeEntry.correctedDuration !== undefined) {
+        timeEntry.correctedDuration = undefined;
+      }
       Object.assign(timeEntry, req.body);
       await timeEntry.save();
 
