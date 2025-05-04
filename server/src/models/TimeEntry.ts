@@ -68,6 +68,7 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
     type: Number,
     required: false,
   },
+  tags: [{ type: String }]
 }, {
   timestamps: true
 });

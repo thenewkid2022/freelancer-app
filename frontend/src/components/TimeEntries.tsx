@@ -32,6 +32,7 @@ import {
   Delete as DeleteIcon,
   AccessTime as AccessTimeIcon,
   Description as DescriptionIcon,
+  Undo as UndoIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api/client';
@@ -325,7 +326,7 @@ const TimeEntries: React.FC = () => {
       const updatePromises = adjustedEntries.map(async entry => {
         try {
           await apiClient.put(`/time-entries/${entry.id}`, {
-            duration: entry.duration
+            correctedDuration: entry.duration
           });
         } catch (error) {
           console.error(`Fehler beim Aktualisieren des Zeiteintrags ${entry.id}:`, error);
@@ -339,6 +340,18 @@ const TimeEntries: React.FC = () => {
     } catch (error) {
       setError('Fehler beim Speichern der korrigierten Zeiten');
       console.error('Fehler beim Tagesausgleich:', error);
+    }
+  };
+
+  const handleUndoAdjustment = async (entryId: string) => {
+    try {
+      await apiClient.put(`/time-entries/${entryId}`, {
+        correctedDuration: null
+      });
+      queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
+    } catch (error) {
+      setError('Fehler beim Rückgängig-Machen des Tagesausgleichs');
+      console.error('Fehler beim Undo:', error);
     }
   };
 
@@ -430,6 +443,13 @@ const TimeEntries: React.FC = () => {
                         sx={{ borderRadius: 1 }}
                         title="Korrigierte Zeit durch Tagesausgleich"
                       />
+                      <IconButton
+                        size="small"
+                        onClick={() => handleUndoAdjustment(entry._id)}
+                        title="Tagesausgleich rückgängig machen"
+                      >
+                        <UndoIcon fontSize="small" />
+                      </IconButton>
                     </Stack>
                   ) : (
                     <Chip
@@ -527,6 +547,13 @@ const TimeEntries: React.FC = () => {
                             sx={{ borderRadius: 1 }}
                             title="Korrigierte Zeit durch Tagesausgleich"
                           />
+                          <IconButton
+                            size="small"
+                            onClick={() => handleUndoAdjustment(entry._id)}
+                            title="Tagesausgleich rückgängig machen"
+                          >
+                            <UndoIcon fontSize="small" />
+                          </IconButton>
                         </Stack>
                       ) : (
                         <Chip
