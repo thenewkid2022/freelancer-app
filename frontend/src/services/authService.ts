@@ -3,9 +3,9 @@ import axios from 'axios';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 interface User {
-  userId: string;
+  _id: string;
   email: string;
-  role: string;
+  role: 'admin' | 'freelancer';
 }
 
 interface LoginCredentials {
@@ -14,8 +14,9 @@ interface LoginCredentials {
 }
 
 interface RegisterData extends LoginCredentials {
-  name: string;
-  role: 'freelancer' | 'client';
+  firstName: string;
+  lastName: string;
+  role: 'admin' | 'freelancer';
 }
 
 interface AuthResponse {
@@ -38,6 +39,9 @@ class AuthService {
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
+    if (data.role !== 'admin' && data.role !== 'freelancer') {
+      throw new Error('Ungültige Rolle!');
+    }
     const response = await axios.post<AuthResponse>(`${API_URL}/auth/register`, data, { withCredentials: true });
     this.setAuthToken(response.data.token);
     return response.data;
