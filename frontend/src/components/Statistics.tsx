@@ -154,8 +154,8 @@ const Statistics: React.FC = () => {
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 700 }}>Statistiken</Typography>
 
       {/* Projektverteilung */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Projektverteilung</Typography>
+      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 }, mb: 4 }}>
+        <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Projektverteilung</Typography>
         <ResponsiveContainer width="100%" height={250}>
           <PieChart>
             <Pie
@@ -194,78 +194,80 @@ const Statistics: React.FC = () => {
       </Paper>
 
       {/* Gesamtübersicht */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper }}>
-            <CardContent>
-              <Typography variant="subtitle2" color="primary" gutterBottom>
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid item xs={6} sm={3}>
+          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
+            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+              <Typography variant="subtitle2" color="primary" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
                 Zeiträume
               </Typography>
-              <Typography variant="h4" color="primary" sx={{ fontWeight: 700 }}>{zeitraeume}</Typography>
+              <Typography variant="h5" color="primary" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{zeitraeume}</Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper }}>
-            <CardContent>
-              <Typography variant="subtitle2" color="success.main" gutterBottom>
+        <Grid item xs={6} sm={3}>
+          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
+            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+              <Typography variant="subtitle2" color="success.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
                 Gesamtstunden
               </Typography>
-              <Typography variant="h4" color="success.main" sx={{ fontWeight: 700 }}>{isNaN(totalHours) ? '0.00' : totalHours.toFixed(2)} h</Typography>
+              <Typography variant="h5" color="success.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{isNaN(totalHours) ? '0.00' : totalHours.toFixed(2)} h</Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper }}>
-            <CardContent>
-              <Typography variant="subtitle2" color="secondary" gutterBottom>
+        <Grid item xs={6} sm={3}>
+          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
+            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+              <Typography variant="subtitle2" color="secondary" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
                 Durchschnitt/Eintrag
               </Typography>
-              <Typography variant="h4" color="secondary" sx={{ fontWeight: 700 }}>{isNaN(avgPerEntry) ? '0.00' : avgPerEntry.toFixed(2)} h</Typography>
+              <Typography variant="h5" color="secondary" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{isNaN(avgPerEntry) ? '0.00' : avgPerEntry.toFixed(2)} h</Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper }}>
-            <CardContent>
-              <Typography variant="subtitle2" color="warning.main" gutterBottom>
+        <Grid item xs={6} sm={3}>
+          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
+            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+              <Typography variant="subtitle2" color="warning.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
                 Einträge
               </Typography>
-              <Typography variant="h4" color="warning.main" sx={{ fontWeight: 700 }}>{totalEntries}</Typography>
+              <Typography variant="h5" color="warning.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>{totalEntries}</Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
       {/* Tägliche Übersicht */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Tägliche Übersicht</Typography>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Zeitraum</TableCell>
-                <TableCell>Gesamtstunden</TableCell>
-                <TableCell>Einträge</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {dailyData.length === 0 ? (
+      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+        <Typography variant="h6" sx={{ mb: 1, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Tägliche Übersicht</Typography>
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <TableContainer sx={{ minWidth: 320 }}>
+            <Table size="small" sx={{ minWidth: 320 }}>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={3} align="center">Keine Daten vorhanden</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Zeitraum</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Gesamtstunden</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Einträge</TableCell>
                 </TableRow>
-              ) : (
-                dailyData.map((row) => (
-                  <TableRow key={row.date}>
-                    <TableCell>{row.date}</TableCell>
-                    <TableCell>{row.hours.toFixed(2)} h</TableCell>
-                    <TableCell>{row.entries}</TableCell>
+              </TableHead>
+              <TableBody>
+                {dailyData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center" sx={{ py: 1 }}>Keine Daten vorhanden</TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : (
+                  dailyData.map((row) => (
+                    <TableRow key={row.date}>
+                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.date}</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.hours.toFixed(2)} h</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.entries}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
       </Paper>
     </Container>
   );

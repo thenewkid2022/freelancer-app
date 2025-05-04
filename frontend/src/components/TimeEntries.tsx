@@ -54,7 +54,6 @@ interface TimeEntry {
 }
 
 interface TimeEntryFormData {
-  project: string;
   startTime: string;
   endTime: string;
   description: string;
@@ -68,7 +67,6 @@ const TimeEntries: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<TimeEntry | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<TimeEntryFormData>({
-    project: '',
     startTime: '',
     endTime: '',
     description: '',
@@ -156,7 +154,6 @@ const TimeEntries: React.FC = () => {
     if (entry) {
       setSelectedEntry(entry);
       setFormData({
-        project: entry.project?._id || '',
         startTime: new Date(entry.startTime).toISOString().slice(0, 16),
         endTime: new Date(entry.endTime).toISOString().slice(0, 16),
         description: entry.description,
@@ -164,7 +161,6 @@ const TimeEntries: React.FC = () => {
     } else {
       setSelectedEntry(null);
       setFormData({
-        project: '',
         startTime: '',
         endTime: '',
         description: '',
@@ -177,7 +173,6 @@ const TimeEntries: React.FC = () => {
     setIsDialogOpen(false);
     setSelectedEntry(null);
     setFormData({
-      project: '',
       startTime: '',
       endTime: '',
       description: '',
@@ -287,17 +282,6 @@ const TimeEntries: React.FC = () => {
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Projekt"
-                  id="dialog-project"
-                  value={formData.project}
-                  onChange={(e) => handleFormChange('project', e.target.value)}
-                >
-                </TextField>
-              </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
