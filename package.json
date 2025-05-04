@@ -2,6 +2,7 @@
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
     "@types/cypress": "^0.1.6",
+    "@types/file-saver": "^2.0.7",
     "@types/mocha": "^10.0.10",
     "cypress": "^14.3.2"
   },
@@ -16,5 +17,11 @@
     "test:e2e": "cypress run --spec 'cypress/e2e/**/*.cy.ts'",
     "test:component": "cypress run --component",
     "test": "npm run test:backend && npm run test:e2e"
+  },
+  "dependencies": {
+    "file-saver": "^2.0.5",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
+    "xlsx": "^0.18.5"
   }
 }

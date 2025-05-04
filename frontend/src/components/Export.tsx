@@ -3,11 +3,140 @@ import { Container, Paper, Typography, Stack, Button } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import axios from 'axios';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Export: React.FC = () => {
-  // Platzhalter für Export-Handler
-  const handleExport = (type: 'pdf' | 'excel' | 'csv') => {
-    alert(`Export als ${type.toUpperCase()} ist in Arbeit!`);
+  // CSV-Export-Handler
+  const handleExportCSV = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/time-entries`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const entries = response.data;
+      if (!Array.isArray(entries) || entries.length === 0) {
+        alert('Keine Zeiteinträge zum Exportieren gefunden.');
+        return;
+      }
+      const header = [
+        'Projektname',
+        'Projektnummer',
+        'Beschreibung',
+        'Startzeit',
+        'Endzeit',
+        'Dauer (Sekunden)'
+      ];
+      const rows = entries.map((e: any) => [
+        e.projectName || e.project?.name || '',
+        e.projectNumber || e.project?._id || '',
+        e.description || '',
+        e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
+        e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
+        e.duration || ''
+      ]);
+      const csvContent = [header, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'zeiteintraege.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Fehler beim Export: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    }
+  };
+
+  // PDF-Export-Handler
+  const handleExportPDF = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/time-entries`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const entries = response.data;
+      if (!Array.isArray(entries) || entries.length === 0) {
+        alert('Keine Zeiteinträge zum Exportieren gefunden.');
+        return;
+      }
+      const doc = new jsPDF();
+      doc.text('Zeiteinträge', 14, 16);
+      autoTable(doc, {
+        startY: 22,
+        head: [[
+          'Projektname',
+          'Projektnummer',
+          'Beschreibung',
+          'Startzeit',
+          'Endzeit',
+          'Dauer (Sekunden)'
+        ]],
+        body: entries.map((e: any) => [
+          e.projectName || e.project?.name || '',
+          e.projectNumber || e.project?._id || '',
+          e.description || '',
+          e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
+          e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
+          e.duration || ''
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [33, 150, 243] },
+      });
+      doc.save('zeiteintraege.pdf');
+    } catch (err) {
+      alert('Fehler beim PDF-Export: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    }
+  };
+
+  // Excel-Export-Handler
+  const handleExportExcel = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/time-entries`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const entries = response.data;
+      if (!Array.isArray(entries) || entries.length === 0) {
+        alert('Keine Zeiteinträge zum Exportieren gefunden.');
+        return;
+      }
+      const wsData = [
+        [
+          'Projektname',
+          'Projektnummer',
+          'Beschreibung',
+          'Startzeit',
+          'Endzeit',
+          'Dauer (Sekunden)'
+        ],
+        ...entries.map((e: any) => [
+          e.projectName || e.project?.name || '',
+          e.projectNumber || e.project?._id || '',
+          e.description || '',
+          e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
+          e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
+          e.duration || ''
+        ])
+      ];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, 'Zeiteinträge');
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+      saveAs(blob, 'zeiteintraege.xlsx');
+    } catch (err) {
+      alert('Fehler beim Excel-Export: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    }
   };
 
   return (
@@ -24,7 +153,7 @@ const Export: React.FC = () => {
             variant="contained"
             color="primary"
             startIcon={<PictureAsPdfIcon />}
-            onClick={() => handleExport('pdf')}
+            onClick={handleExportPDF}
             sx={{ minWidth: 120, borderRadius: 2 }}
           >
             PDF
@@ -33,7 +162,7 @@ const Export: React.FC = () => {
             variant="contained"
             color="success"
             startIcon={<TableChartIcon />}
-            onClick={() => handleExport('excel')}
+            onClick={handleExportExcel}
             sx={{ minWidth: 120, borderRadius: 2 }}
           >
             Excel
@@ -42,7 +171,7 @@ const Export: React.FC = () => {
             variant="contained"
             color="info"
             startIcon={<FileDownloadIcon />}
-            onClick={() => handleExport('csv')}
+            onClick={handleExportCSV}
             sx={{ minWidth: 120, borderRadius: 2 }}
           >
             CSV
