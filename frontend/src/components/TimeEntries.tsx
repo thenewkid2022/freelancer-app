@@ -285,7 +285,7 @@ const TimeEntries: React.FC = () => {
           startTime: entry.startTime,
           endTime: entry.endTime,
           description: entry.description,
-          correctedDuration: undefined
+          correctedDuration: null
         })
       );
       await Promise.all(undoPromises);
