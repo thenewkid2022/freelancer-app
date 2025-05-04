@@ -199,7 +199,7 @@ const Profile: React.FC = () => {
                 Persönliche Informationen
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} sx={{ minWidth: 200 }}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Vorname"
@@ -208,7 +208,7 @@ const Profile: React.FC = () => {
                     disabled={!isEditing}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ minWidth: 200 }}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Nachname"
@@ -254,10 +254,7 @@ const Profile: React.FC = () => {
                     control={
                       <Switch
                         checked={profile.settings?.darkMode}
-                        onChange={(e) =>
-                          handleSettingsChange('darkMode', e.target.checked)
-                        }
-                        disabled={!isEditing}
+                        onChange={(e) => handleSettingsChange('darkMode', e.target.checked)}
                       />
                     }
                     label="Dunkles Design"

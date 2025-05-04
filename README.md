@@ -1,104 +1,134 @@
-# Freelancer App
+# 🚀 Freelancer App
 
-Eine moderne Webanwendung für Freelancer und ihre Kunden zur Verwaltung von Zeiterfassung, Abrechnungen und Projekten.
+> **Eine moderne Webanwendung für Freelancer und ihre Kunden zur Verwaltung von Zeiterfassung, Abrechnungen und Projekten.**
 
-## Projektstruktur
+![Vercel](https://img.shields.io/badge/Frontend-Vercel-blue?logo=vercel)
+![Render](https://img.shields.io/badge/Backend-Render-green?logo=render)
+![TypeScript](https://img.shields.io/badge/TypeScript-Frontend%20%26%20Backend-blue?logo=typescript)
+![MUI](https://img.shields.io/badge/UI-Material--UI-blueviolet?logo=mui)
+![MongoDB](https://img.shields.io/badge/DB-MongoDB-brightgreen?logo=mongodb)
 
-```
+---
+
+## ✨ Features
+
+- ⏱️ **Zeiterfassung** für Projekte
+- 📁 Verwaltung von **Kunden & Projekten**
+- 🧾 **Rechnungsstellung** & Export
+- 👤 **Benutzerprofil** mit Bearbeitungsfunktion (Name, E-Mail, Sprache, Passwort)
+- 🌙 **Darkmode** (umschaltbar im Profil, systemweit gespeichert)
+- 🔔 **E-Mail-Benachrichtigungen** (optional)
+- 🌐 **Mehrsprachigkeit** (Deutsch/Englisch)
+- 📱 **Responsive Design** (optimiert für Desktop & Mobile)
+- 🔒 **Sichere Authentifizierung** (JWT)
+- 📖 **API-Dokumentation** via Swagger
+
+---
+
+## 🗂️ Projektstruktur
+
+```text
 freelancer-app/
-├── frontend/                 # React Frontend
+├── frontend/                 # React Frontend (TypeScript, MUI)
 │   ├── src/
-│   │   ├── components/      # React Komponenten
-│   │   ├── hooks/          # Custom React Hooks
-│   │   ├── services/       # API Services
-│   │   ├── types/          # TypeScript Typdefinitionen
-│   │   └── utils/          # Hilfsfunktionen
-│   ├── public/             # Statische Dateien
-│   ├── build/              # Build-Ausgabe
-│   └── package.json        # Frontend Dependencies
+│   │   ├── components/      # UI-Komponenten (inkl. Profile, Settings, Navbar)
+│   │   ├── contexts/        # Globale Contexts (z.B. Auth, Theme)
+│   │   ├── hooks/           # Custom React Hooks
+│   │   ├── services/        # API Services
+│   │   ├── types/           # Typdefinitionen
+│   │   └── utils/           # Hilfsfunktionen
+│   └── public/              # Statische Dateien
+│   └── package.json         # Frontend Dependencies
 │
-├── server/                  # Node.js Backend
+├── server/                  # Node.js Backend (Express, TypeScript)
 │   ├── src/
-│   │   ├── config/         # Konfigurationsdateien
-│   │   ├── controllers/    # Route Controller
-│   │   ├── middleware/     # Express Middleware
-│   │   ├── models/         # Mongoose Modelle
-│   │   ├── routes/         # API Routen
-│   │   ├── services/       # Business Logic
-│   │   ├── tests/          # Integration Tests
-│   │   ├── types/          # TypeScript Typdefinitionen
-│   │   └── utils/          # Hilfsfunktionen
-│   └── package.json        # Backend Dependencies
+│   │   ├── config/          # Konfiguration
+│   │   ├── controllers/     # API Controller
+│   │   ├── middleware/      # Express Middleware
+│   │   ├── models/          # Mongoose Modelle
+│   │   ├── routes/          # API Routen
+│   │   ├── services/        # Business Logic
+│   │   ├── tests/           # Integrationstests
+│   │   ├── types/           # Typdefinitionen
+│   │   └── utils/           # Hilfsfunktionen
+│   └── package.json         # Backend Dependencies
 │
-├── .github/                # GitHub Actions Workflows
-├── .gitignore             # Git Ignore Regeln
-├── package.json           # Root Dependencies
-├── tsconfig.json          # TypeScript Konfiguration
-├── vercel.json            # Vercel Deployment Konfiguration
-└── render.yaml            # Render Deployment Konfiguration
+├── .github/                 # GitHub Actions Workflows
+├── .gitignore
+├── package.json             # Root Dependencies
+├── tsconfig.json            # TypeScript Konfiguration
+├── vercel.json              # Vercel Deployment Konfiguration (Frontend)
+└── render.yaml              # Render Deployment Konfiguration (Backend)
 ```
 
-## Technologien
+---
+
+## 🛠️ Technologien
 
 ### Frontend
-- React mit TypeScript
-- Material-UI für das UI
-- React Query für Datenverwaltung
-- React Router für Navigation
-- Jest und React Testing Library für Tests
-- file-saver für Datei-Downloads
+- ⚛️ React mit TypeScript
+- 🎨 Material-UI (MUI) für das UI
+- 🔄 React Query für Datenverwaltung
+- 🧭 React Router für Navigation
+- 🧩 Context API (u.a. für Auth und Theme/Darkmode)
+- 🧪 Jest & React Testing Library für Tests
+- 💾 file-saver für Datei-Downloads
 
 ### Backend
-- Node.js mit Express
-- TypeScript
-- MongoDB mit Mongoose
-- JWT für Authentifizierung
-- Jest für Tests
-- Swagger für API Dokumentation
+- 🟩 Node.js mit Express
+- 🟦 TypeScript
+- 🍃 MongoDB mit Mongoose
+- 🔑 JWT für Authentifizierung
+- 🧪 Jest für Tests
+- 📖 Swagger für API Dokumentation
 
-## Entwicklung
+---
 
-1. Repository klonen:
-```bash
-git clone https://github.com/your-username/freelancer-app.git
-cd freelancer-app
-```
+## ⚡ Schnellstart
 
-2. Dependencies installieren:
-```bash
-# Root Dependencies
-npm install
+1. **Repository klonen:**
+    ```bash
+    git clone https://github.com/your-username/freelancer-app.git
+    cd freelancer-app
+    ```
 
-# Frontend Dependencies
-cd frontend
-npm install
+2. **Dependencies installieren:**
+    ```bash
+    # Root Dependencies
+    npm install
 
-# Backend Dependencies
-cd ../server
-npm install
-```
+    # Frontend Dependencies
+    cd frontend
+    npm install
 
-3. Umgebungsvariablen konfigurieren:
-```bash
-# Server .env
-cp server/.env.example server/.env
+    # Backend Dependencies
+    cd ../server
+    npm install
+    ```
 
-# Frontend .env
-cp frontend/.env.example frontend/.env
-```
+3. **Umgebungsvariablen konfigurieren:**
+    ```bash
+    # Server .env
+    cp server/.env.example server/.env
 
-4. Entwicklungsserver starten:
-```bash
-# Backend
-cd server
-npm run dev
+    # Frontend .env
+    cp frontend/.env.example frontend/.env
+    ```
 
-# Frontend
-cd frontend
-npm start
-```
+4. **Entwicklungsserver starten:**
+    ```bash
+    # Backend
+    cd server
+    npm run dev
 
-## Tests
+    # Frontend
+    cd frontend
+    npm start
+    ```
+
+---
+
+## 🧪 Tests
 
 ```bash
 # Backend Tests
@@ -110,24 +140,34 @@ cd frontend
 npm test
 ```
 
-## Deployment
+---
 
-Die Anwendung ist für Deployment auf Vercel (Frontend) und Render (Backend) konfiguriert.
+## 🚀 Deployment
 
-### Frontend Deployment
-- Automatisches Deployment über Vercel
-- Konfiguration in `vercel.json`
+- **Frontend:** Automatisches Deployment über [Vercel](https://vercel.com/) (`vercel.json`)
+- **Backend:** Automatisches Deployment über [Render](https://render.com/) (`render.yaml`)
 
-### Backend Deployment
-- Automatisches Deployment über Render
-- Konfiguration in `render.yaml`
+---
 
-## API Dokumentation
+## 📖 API Dokumentation
 
 Die API-Dokumentation ist über Swagger verfügbar:
-- Entwicklung: `http://localhost:3000/api-docs`
-- Produktion: `https://api.freelancer-app.com/api-docs`
+- Entwicklung: [`http://localhost:3000/api-docs`](http://localhost:3000/api-docs)
+- Produktion: [`https://api.freelancer-app.com/api-docs`](https://api.freelancer-app.com/api-docs)
 
-## Lizenz
+---
 
-MIT 
+## 🖼️ Screenshots
+
+> **Tipp:** Füge hier aktuelle Screenshots der wichtigsten Ansichten ein (z.B. Profil mit Darkmode, Dashboard, Zeiterfassung).
+
+---
+
+## 📄 Lizenz
+
+MIT
+
+---
+
+> **Hinweis:**
+> Diese README ist auf dem Stand nach den letzten größeren Änderungen (Darkmode, Profil-Update, Layout). Bitte bei weiteren Features oder Änderungen regelmäßig aktualisieren! 
