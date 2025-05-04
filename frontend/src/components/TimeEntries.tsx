@@ -40,6 +40,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { apiClient } from '../services/api/client';
 import { AxiosResponse } from 'axios';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 interface Project {
   _id: string;
@@ -90,6 +91,7 @@ const TimeEntries: React.FC = () => {
     lunchBreak: 0,
     otherBreaks: 0
   });
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   // Zeiteinträge abrufen
   const { data: timeEntries = [], isLoading } = useQuery({
@@ -224,21 +226,29 @@ const TimeEntries: React.FC = () => {
 
   const handleAdjustmentSubmit = async () => {
     try {
+      // Filtere Einträge für den ausgewählten Tag
+      const eintraegeFuerTag = abgeschlosseneEintraege.filter(entry => {
+        const entryDate = new Date(entry.startTime);
+        return (
+          selectedDate &&
+          entryDate.getFullYear() === selectedDate.getFullYear() &&
+          entryDate.getMonth() === selectedDate.getMonth() &&
+          entryDate.getDate() === selectedDate.getDate()
+        );
+      });
       // Berechnung des Tagessolls und Verteilung der Differenz
       const workStartDate = new Date(adjustmentData.workStart);
       const workEndDate = new Date(adjustmentData.workEnd);
       const totalBreakMinutes = adjustmentData.lunchBreak + adjustmentData.otherBreaks;
       const workDurationMinutes = (workEndDate.getTime() - workStartDate.getTime()) / (1000 * 60) - totalBreakMinutes;
       const targetHours = workDurationMinutes / 60;
-      const totalCurrentHours = abgeschlosseneEintraege.reduce((sum, entry) => sum + entry.duration / 3600, 0);
+      const totalCurrentHours = eintraegeFuerTag.reduce((sum, entry) => sum + entry.duration / 3600, 0);
       const difference = targetHours - totalCurrentHours;
-
       // Verteilung der Differenz proportional auf die Einträge und Speichern im Backend
-      const updatePromises = abgeschlosseneEintraege.map(async entry => {
+      const updatePromises = eintraegeFuerTag.map(async entry => {
         const proportion = entry.duration / (totalCurrentHours * 3600);
         const correction = difference * proportion;
         const correctedDuration = entry.duration + correction * 3600;
-
         try {
           await apiClient.put(`/time-entries/${entry._id}`, {
             startTime: entry.startTime,
@@ -251,7 +261,6 @@ const TimeEntries: React.FC = () => {
           throw error;
         }
       });
-
       await Promise.all(updatePromises);
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
       handleAdjustmentDialogClose();
@@ -683,6 +692,14 @@ const TimeEntries: React.FC = () => {
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <DatePicker
+                  label="Tag auswählen"
+                  value={selectedDate}
+                  onChange={setSelectedDate}
+                  slotProps={{ textField: { fullWidth: true } }}
+                />
+              </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
