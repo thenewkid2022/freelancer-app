@@ -9,10 +9,6 @@ export interface IUser {
   firstName: string;
   lastName: string;
   role: 'admin' | 'freelancer';
-  settings: {
-    darkMode: boolean;
-    language: 'de' | 'en' | 'es';
-  };
   isActive: boolean;
   lastLogin?: Date;
   createdAt: Date;
@@ -58,10 +54,6 @@ export const userSchema = new mongoose.Schema({
       message: '{VALUE} ist keine gültige Rolle'
     },
     required: [true, 'Rolle ist erforderlich']
-  },
-  settings: {
-    darkMode: { type: Boolean, default: false },
-    language: { type: String, enum: ['de', 'en', 'es'], default: 'de' }
   },
   isActive: {
     type: Boolean,

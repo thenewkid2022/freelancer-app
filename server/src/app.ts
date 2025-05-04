@@ -5,9 +5,9 @@ import morgan from 'morgan';
 import mongoose from 'mongoose';
 import { errorHandler } from './middleware/errorHandler';
 import { securityMiddleware } from './middleware/security';
+import authRoutes from './routes/auth';
 import timeEntryRoutes from './routes/timeEntries';
 import statsRoutes from './routes/stats';
-import authRoutes from './routes/auth';
 import { config } from './config';
 
 const app = express();

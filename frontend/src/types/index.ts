@@ -1,9 +1,9 @@
 export interface User {
   _id: string;
+  id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: 'admin' | 'freelancer';
+  name: string;
+  role: 'freelancer';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,9 +36,8 @@ export interface ApiResponse<T> {
 }
 
 export interface RegisterData {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
-  role: 'admin' | 'freelancer';
+  role: 'freelancer' | 'client';
 } 
