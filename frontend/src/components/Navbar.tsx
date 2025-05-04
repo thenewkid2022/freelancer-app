@@ -28,7 +28,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 const pages = [
-  { name: 'Dashboard', path: '/dashboard' },
+  { name: 'Zeiterfassung', path: '/dashboard' },
   { name: 'Zeiteinträge', path: '/time-entries' },
   { name: 'Statistiken', path: '/statistics' },
   { name: 'Profil', path: '/profile' },

@@ -7,7 +7,7 @@ import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
-import Dashboard from './components/Dashboard';
+import Zeiterfassung from './components/Zeiterfassung';
 import TimeEntries from './components/TimeEntries';
 import Statistics from './components/Statistics';
 import Profile from './components/Profile';
@@ -25,7 +25,7 @@ const App: React.FC = () => {
             path="/"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <Zeiterfassung />
               </PrivateRoute>
             }
           />
@@ -57,7 +57,7 @@ const App: React.FC = () => {
             path="/dashboard"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <Zeiterfassung />
               </PrivateRoute>
             }
           />
