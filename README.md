@@ -14,6 +14,7 @@ freelancer-app/
 │   │   ├── types/          # TypeScript Typdefinitionen
 │   │   └── utils/          # Hilfsfunktionen
 │   ├── public/             # Statische Dateien
+│   ├── build/              # Build-Ausgabe
 │   └── package.json        # Frontend Dependencies
 │
 ├── server/                  # Node.js Backend
@@ -45,6 +46,7 @@ freelancer-app/
 - React Query für Datenverwaltung
 - React Router für Navigation
 - Jest und React Testing Library für Tests
+- file-saver für Datei-Downloads
 
 ### Backend
 - Node.js mit Express
