@@ -221,25 +221,40 @@ const TimeEntries: React.FC = () => {
 
   const handleAdjustmentSubmit = async () => {
     try {
+      if (!selectedDate) {
+        setError('Bitte wählen Sie ein Datum aus');
+        return;
+      }
+
+      if (!adjustmentData.workStart || !adjustmentData.workEnd) {
+        setError('Bitte geben Sie Arbeitsbeginn und Arbeitsende ein');
+        return;
+      }
+
       // Filtere Einträge für den ausgewählten Tag
       const eintraegeFuerTag = abgeschlosseneEintraege.filter(entry => {
         const entryDate = new Date(entry.startTime);
         return (
-          selectedDate &&
           entryDate.getFullYear() === selectedDate.getFullYear() &&
           entryDate.getMonth() === selectedDate.getMonth() &&
           entryDate.getDate() === selectedDate.getDate()
         );
       });
 
-      // Kombiniere ausgewähltes Datum mit den eingegebenen Uhrzeiten
-      const workStartDate = new Date(selectedDate);
+      // Erstelle neue Date-Objekte basierend auf dem ausgewählten Datum
+      const workStartDate = new Date(selectedDate.getTime());
       const [startHours, startMinutes] = adjustmentData.workStart.split(':').map(Number);
       workStartDate.setHours(startHours, startMinutes, 0, 0);
 
-      const workEndDate = new Date(selectedDate);
+      const workEndDate = new Date(selectedDate.getTime());
       const [endHours, endMinutes] = adjustmentData.workEnd.split(':').map(Number);
       workEndDate.setHours(endHours, endMinutes, 0, 0);
+
+      // Überprüfe, ob das Enddatum nach dem Startdatum liegt
+      if (workEndDate <= workStartDate) {
+        setError('Das Arbeitsende muss nach dem Arbeitsbeginn liegen');
+        return;
+      }
 
       // Berechnung des Tagessolls und Verteilung der Differenz
       const totalBreakMinutes = adjustmentData.lunchBreak + adjustmentData.otherBreaks;
