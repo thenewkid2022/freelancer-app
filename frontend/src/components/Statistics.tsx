@@ -27,6 +27,7 @@ import {
 } from 'recharts';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { apiClient } from '../services/api/client';
 import { AxiosResponse } from 'axios';
 
@@ -51,6 +52,7 @@ const Statistics: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Zeiteinträge abrufen
   const { data: timeEntries, isLoading: isLoadingTimeEntries } = useQuery<TimeEntry[]>({
