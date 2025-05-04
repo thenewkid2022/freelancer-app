@@ -7,6 +7,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { securityMiddleware } from './middleware/security';
 import timeEntryRoutes from './routes/timeEntries';
 import statsRoutes from './routes/stats';
+import authRoutes from './routes/auth';
 import { config } from './config';
 
 const app = express();
@@ -61,6 +62,7 @@ app.use(morgan('dev'));
 app.use(securityMiddleware);
 
 // Routen
+app.use('/api/auth', authRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/stats', statsRoutes);
 
