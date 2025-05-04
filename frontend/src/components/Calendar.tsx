@@ -185,7 +185,7 @@ const Calendar: React.FC = () => {
         <Grid container spacing={1}>
           {/* Wochentage */}
           {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
-            <Grid item xs key={day}>
+            <Grid item xs={true} key={day}>
               <Box
                 sx={{
                   p: 1,
