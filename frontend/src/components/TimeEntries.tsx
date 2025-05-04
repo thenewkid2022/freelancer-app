@@ -92,7 +92,14 @@ const TimeEntries: React.FC = () => {
         : '/time-entries';
       const method = selectedEntry ? 'put' : 'post';
       
-      const response: AxiosResponse<TimeEntry> = await apiClient[method](url, entryData);
+      // Zeitfelder korrekt umwandeln
+      const payload = {
+        ...entryData,
+        startTime: new Date(entryData.startTime).toISOString(),
+        endTime: new Date(entryData.endTime).toISOString(),
+      };
+
+      const response: AxiosResponse<TimeEntry> = await apiClient[method](url, payload);
       return response.data;
     },
     onSuccess: () => {
