@@ -11,6 +11,7 @@ import Dashboard from './components/Dashboard';
 import TimeEntries from './components/TimeEntries';
 import Statistics from './components/Statistics';
 import Profile from './components/Profile';
+import Export from './components/Export';
 
 const App: React.FC = () => {
   return (
@@ -57,6 +58,14 @@ const App: React.FC = () => {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/export"
+            element={
+              <PrivateRoute>
+                <Export />
               </PrivateRoute>
             }
           />

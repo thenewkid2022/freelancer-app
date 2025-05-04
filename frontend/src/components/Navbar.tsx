@@ -23,6 +23,7 @@ const pages = [
   { name: 'Zeiteinträge', path: '/time-entries' },
   { name: 'Statistiken', path: '/statistics' },
   { name: 'Profil', path: '/profile' },
+  { name: 'Export', path: '/export' },
 ];
 
 const Navbar: React.FC = () => {
