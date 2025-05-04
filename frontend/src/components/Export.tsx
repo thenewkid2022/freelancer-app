@@ -30,7 +30,8 @@ const Export: React.FC = () => {
         'Beschreibung',
         'Startzeit',
         'Endzeit',
-        'Dauer (Sekunden)'
+        'Dauer (Sekunden)',
+        'Korrigierte Dauer (Sekunden)'
       ];
       const rows = entries.map((e: any) => [
         e.projectName || e.project?.name || '',
@@ -38,7 +39,8 @@ const Export: React.FC = () => {
         e.description || '',
         e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
         e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
-        e.duration || ''
+        e.duration || '',
+        e.correctedDuration ?? ''
       ]);
       const csvContent = [header, ...rows]
         .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
@@ -79,7 +81,8 @@ const Export: React.FC = () => {
           'Beschreibung',
           'Startzeit',
           'Endzeit',
-          'Dauer (Sekunden)'
+          'Dauer (Sekunden)',
+          'Korrigierte Dauer (Sekunden)'
         ]],
         body: entries.map((e: any) => [
           e.projectName || e.project?.name || '',
@@ -87,7 +90,8 @@ const Export: React.FC = () => {
           e.description || '',
           e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
           e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
-          e.duration || ''
+          e.duration || '',
+          e.correctedDuration ?? ''
         ]),
         styles: { fontSize: 9 },
         headStyles: { fillColor: [33, 150, 243] },
@@ -117,7 +121,8 @@ const Export: React.FC = () => {
           'Beschreibung',
           'Startzeit',
           'Endzeit',
-          'Dauer (Sekunden)'
+          'Dauer (Sekunden)',
+          'Korrigierte Dauer (Sekunden)'
         ],
         ...entries.map((e: any) => [
           e.projectName || e.project?.name || '',
@@ -125,7 +130,8 @@ const Export: React.FC = () => {
           e.description || '',
           e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
           e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
-          e.duration || ''
+          e.duration || '',
+          e.correctedDuration ?? ''
         ])
       ];
       const wb = XLSX.utils.book_new();
