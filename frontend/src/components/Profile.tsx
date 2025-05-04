@@ -16,6 +16,7 @@ import {
   Stack,
   useTheme,
   useMediaQuery,
+  MenuItem,
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useThemeContext } from '../contexts/ThemeContext';
@@ -261,9 +262,9 @@ const Profile: React.FC = () => {
                     onChange={(e) => handleSettingsChange('language', e.target.value)}
                     size={isMobile ? 'small' : 'medium'}
                   >
-                    <option value="de">Deutsch</option>
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
+                    <MenuItem value="de">Deutsch</MenuItem>
+                    <MenuItem value="en">English</MenuItem>
+                    <MenuItem value="es">Español</MenuItem>
                   </TextField>
                 </Grid>
               </Grid>
