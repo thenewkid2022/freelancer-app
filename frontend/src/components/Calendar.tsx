@@ -4,7 +4,7 @@ import {
   Paper,
   Typography,
   Box,
-  Grid,
+  Grid as MuiGrid,
   Button,
   IconButton,
   Dialog,
@@ -182,10 +182,10 @@ const Calendar: React.FC = () => {
           </Box>
         </Box>
 
-        <Grid container spacing={1}>
+        <MuiGrid container spacing={1}>
           {/* Wochentage */}
           {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
-            <Grid item xs={true} key={day}>
+            <MuiGrid item xs={1} key={day}>
               <Box
                 sx={{
                   p: 1,
@@ -197,7 +197,7 @@ const Calendar: React.FC = () => {
               >
                 <Typography variant="subtitle2">{day}</Typography>
               </Box>
-            </Grid>
+            </MuiGrid>
           ))}
 
           {/* Kalendertage */}
@@ -207,7 +207,7 @@ const Calendar: React.FC = () => {
             const isCurrentDay = isToday(day);
 
             return (
-              <Grid item xs key={day.toISOString()}>
+              <MuiGrid item xs={1} key={day.toISOString()}>
                 <Box
                   sx={{
                     p: 1,
@@ -252,10 +252,10 @@ const Calendar: React.FC = () => {
                     </Box>
                   ))}
                 </Box>
-              </Grid>
+              </MuiGrid>
             );
           })}
-        </Grid>
+        </MuiGrid>
       </Paper>
 
       <Dialog
@@ -271,16 +271,16 @@ const Calendar: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
+            <MuiGrid container spacing={2}>
+              <MuiGrid item xs={12}>
                 <TextField
                   fullWidth
                   label="Titel"
                   name="title"
                   required
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </MuiGrid>
+              <MuiGrid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   type="datetime-local"
@@ -289,8 +289,8 @@ const Calendar: React.FC = () => {
                   required
                   InputLabelProps={{ shrink: true }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </MuiGrid>
+              <MuiGrid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   type="datetime-local"
@@ -299,8 +299,8 @@ const Calendar: React.FC = () => {
                   required
                   InputLabelProps={{ shrink: true }}
                 />
-              </Grid>
-              <Grid item xs={12}>
+              </MuiGrid>
+              <MuiGrid item xs={12}>
                 <TextField
                   fullWidth
                   multiline
@@ -308,8 +308,8 @@ const Calendar: React.FC = () => {
                   label="Beschreibung"
                   name="description"
                 />
-              </Grid>
-            </Grid>
+              </MuiGrid>
+            </MuiGrid>
           </Box>
         </DialogContent>
         <DialogActions>
