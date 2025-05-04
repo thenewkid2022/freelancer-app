@@ -1,10 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { auth } from '../middleware/auth';
-import { validateRequest } from '../middleware/validation';
+import { validateRequest } from '../middleware/validator';
 import { z } from 'zod';
-import { User } from '../models/User';
-import { generateToken } from '../utils/auth';
+import User from '../models/User';
 import { ValidationError, AuthError } from '../utils/errors';
 import bcrypt from 'bcryptjs';
 
@@ -15,10 +14,10 @@ const authService = AuthService.getInstance();
 const registerSchema = z.object({
   body: z.object({
     email: z.string().email('Ungültige E-Mail-Adresse'),
-    password: z.string().min(8, 'Passwort muss mindestens 8 Zeichen lang sein'),
+    password: z.string().min(6, 'Passwort muss mindestens 6 Zeichen lang sein'),
     firstName: z.string().min(2, 'Vorname muss mindestens 2 Zeichen lang sein'),
     lastName: z.string().min(2, 'Nachname muss mindestens 2 Zeichen lang sein'),
-    role: z.enum(['freelancer', 'client'], {
+    role: z.enum(['admin', 'freelancer'], {
       errorMap: () => ({ message: 'Ungültige Rolle' })
     })
   })
@@ -55,7 +54,7 @@ const loginSchema = z.object({
  *                 format: email
  *               password:
  *                 type: string
- *                 minLength: 8
+ *                 minLength: 6
  *               firstName:
  *                 type: string
  *                 minLength: 2
@@ -64,7 +63,7 @@ const loginSchema = z.object({
  *                 minLength: 2
  *               role:
  *                 type: string
- *                 enum: [freelancer, client]
+ *                 enum: [admin, freelancer]
  *     responses:
  *       201:
  *         description: Benutzer erfolgreich registriert
@@ -83,21 +82,21 @@ router.post('/register',
         throw new ValidationError('E-Mail-Adresse wird bereits verwendet');
       }
 
-      // Hash Passwort
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
       // Erstelle neuen Benutzer
       const user = await User.create({
         email,
-        password: hashedPassword,
+        password,
         firstName,
         lastName,
-        role
+        role,
+        settings: {
+          darkMode: false,
+          language: 'de'
+        }
       });
 
       // Generiere Token
-      const token = generateToken(user);
+      const token = user.generateAuthToken();
 
       res.status(201).json({
         token,
@@ -106,7 +105,8 @@ router.post('/register',
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role
+          role: user.role,
+          settings: user.settings
         }
       });
     } catch (error) {
@@ -157,20 +157,30 @@ router.post('/login',
       }
 
       // Überprüfe Passwort
-      const isMatch = await bcrypt.compare(password, user.password);
+      const isMatch = await user.comparePassword(password);
       if (!isMatch) {
         throw new AuthError('Ungültige Anmeldedaten');
       }
 
+      if (!user.isActive) {
+        throw new AuthError('Konto ist deaktiviert');
+      }
+
+      // Aktualisiere lastLogin
+      user.lastLogin = new Date();
+      await user.save();
+
       // Generiere Token
-      const token = generateToken(user);
+      const token = user.generateAuthToken();
 
       res.json({
         user: {
-          id: user._id,
+          _id: user._id,
           email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          role: user.role
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          settings: user.settings
         },
         token
       });
@@ -205,9 +215,18 @@ router.post('/login',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/me', auth, async (req, res, next) => {
+router.get('/me', auth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    res.json({ user: req.user });
+    // req.user wird von der auth-Middleware gesetzt
+    const user = req.user;
+    res.json({
+      _id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      settings: user.settings
+    });
   } catch (error) {
     next(error);
   }
