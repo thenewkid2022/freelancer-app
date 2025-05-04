@@ -231,14 +231,23 @@ const TimeEntries: React.FC = () => {
           entryDate.getDate() === selectedDate.getDate()
         );
       });
+
+      // Kombiniere ausgewähltes Datum mit den eingegebenen Uhrzeiten
+      const workStartDate = new Date(selectedDate);
+      const [startHours, startMinutes] = adjustmentData.workStart.split(':').map(Number);
+      workStartDate.setHours(startHours, startMinutes, 0, 0);
+
+      const workEndDate = new Date(selectedDate);
+      const [endHours, endMinutes] = adjustmentData.workEnd.split(':').map(Number);
+      workEndDate.setHours(endHours, endMinutes, 0, 0);
+
       // Berechnung des Tagessolls und Verteilung der Differenz
-      const workStartDate = new Date(adjustmentData.workStart);
-      const workEndDate = new Date(adjustmentData.workEnd);
       const totalBreakMinutes = adjustmentData.lunchBreak + adjustmentData.otherBreaks;
       const workDurationMinutes = (workEndDate.getTime() - workStartDate.getTime()) / (1000 * 60) - totalBreakMinutes;
       const targetHours = workDurationMinutes / 60;
       const totalCurrentHours = eintraegeFuerTag.reduce((sum, entry) => sum + entry.duration / 3600, 0);
       const difference = targetHours - totalCurrentHours;
+
       // Verteilung der Differenz proportional auf die Einträge und Speichern im Backend
       const updatePromises = eintraegeFuerTag.map(async entry => {
         const proportion = entry.duration / (totalCurrentHours * 3600);
@@ -698,7 +707,7 @@ const TimeEntries: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  type="datetime-local"
+                  type="time"
                   label="Arbeitsbeginn"
                   value={adjustmentData.workStart}
                   onChange={(e) => handleAdjustmentDataChange('workStart', e.target.value)}
@@ -709,7 +718,7 @@ const TimeEntries: React.FC = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  type="datetime-local"
+                  type="time"
                   label="Arbeitsende"
                   value={adjustmentData.workEnd}
                   onChange={(e) => handleAdjustmentDataChange('workEnd', e.target.value)}
