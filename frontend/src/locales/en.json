@@ -14,7 +14,8 @@
     "confirmPassword": "Confirm Password",
     "edit": "Edit",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "changePassword": "Change Password"
   },
   "general": {
     "loading": "Loading...",

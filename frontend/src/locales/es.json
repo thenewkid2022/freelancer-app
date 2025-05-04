@@ -14,7 +14,8 @@
     "confirmPassword": "Confirmar contraseña",
     "edit": "Editar",
     "save": "Guardar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "changePassword": "Cambiar contraseña"
   },
   "general": {
     "loading": "Cargando...",

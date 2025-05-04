@@ -14,7 +14,8 @@
     "confirmPassword": "Passwort bestätigen",
     "edit": "Bearbeiten",
     "save": "Speichern",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "changePassword": "Passwort ändern"
   },
   "general": {
     "loading": "Laden...",
