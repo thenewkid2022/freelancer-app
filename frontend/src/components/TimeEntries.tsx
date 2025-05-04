@@ -27,6 +27,7 @@ import {
   Stack,
   Chip,
   DialogContentText,
+  Tooltip,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -622,19 +623,21 @@ const TimeEntries: React.FC = () => {
             >
               Tagesausgleich
             </Button>
-            {hasCorrectionsForDay && (
-              <Button
-                variant="outlined"
+          </Stack>
+        </Box>
+        {hasCorrectionsForDay && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+            <Tooltip title="Tagesausgleich rückgängig machen">
+              <IconButton
                 color="warning"
                 onClick={() => setIsUndoDialogOpen(true)}
                 sx={{ borderRadius: 2 }}
-                startIcon={<UndoIcon />}
               >
-                Tagesausgleich rückgängig
-              </Button>
-            )}
-          </Stack>
-        </Box>
+                <UndoIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
 
         {error && (
           <Alert severity="error" sx={{ borderRadius: 2 }}>
