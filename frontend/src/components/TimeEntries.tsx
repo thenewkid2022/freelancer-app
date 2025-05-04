@@ -26,6 +26,7 @@ import {
   CardContent,
   Stack,
   Chip,
+  DialogContentText,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -91,6 +92,7 @@ const TimeEntries: React.FC = () => {
   const [timeDifference, setTimeDifference] = useState<number | null>(null);
   const [roundedDifference, setRoundedDifference] = useState<number | null>(null);
   const [adjustedEntries, setAdjustedEntries] = useState<Array<{id: string, duration: number}>>([]);
+  const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
 
   // Zeiteinträge abrufen
   const { data: timeEntries = [], isLoading } = useQuery({
@@ -260,6 +262,7 @@ const TimeEntries: React.FC = () => {
     const eintraegeFuerTag = abgeschlosseneEintraege.filter(entry => {
       const entryDate = new Date(entry.startTime);
       return (
+        selectedDate &&
         entryDate.getFullYear() === selectedDate.getFullYear() &&
         entryDate.getMonth() === selectedDate.getMonth() &&
         entryDate.getDate() === selectedDate.getDate()
@@ -355,6 +358,60 @@ const TimeEntries: React.FC = () => {
     }
   };
 
+  // Filtere Einträge für den ausgewählten Tag
+  const eintraegeFuerTag = abgeschlosseneEintraege.filter(entry => {
+    const entryDate = new Date(entry.startTime);
+    return (
+      selectedDate &&
+      entryDate.getFullYear() === selectedDate.getFullYear() &&
+      entryDate.getMonth() === selectedDate.getMonth() &&
+      entryDate.getDate() === selectedDate.getDate()
+    );
+  });
+
+  // Prüfe, ob für den Tag Korrekturen vorliegen
+  const hasCorrectionsForDay = eintraegeFuerTag.some(entry => entry.correctedDuration && entry.correctedDuration !== entry.duration);
+
+  // Undo für den ganzen Tag
+  const handleUndoAllAdjustments = async () => {
+    setIsUndoDialogOpen(false);
+    try {
+      const undoPromises = eintraegeFuerTag
+        .filter(entry => entry.correctedDuration && entry.correctedDuration !== entry.duration)
+        .map(entry =>
+          apiClient.put(`/time-entries/${entry._id}`, { correctedDuration: null })
+        );
+      await Promise.all(undoPromises);
+      queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
+    } catch (error) {
+      setError('Fehler beim Rückgängig-Machen des Tagesausgleichs');
+      console.error('Fehler beim Undo:', error);
+    }
+  };
+
+  // Spaltenbündige Darstellung für Dauer
+  const renderDurationCell = (entry: TimeEntry) => (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 110 }}>
+      <Chip
+        label={formatDuration(entry.duration)}
+        size="small"
+        color="primary"
+        variant="outlined"
+        sx={{ borderRadius: 1, mb: entry.correctedDuration && entry.correctedDuration !== entry.duration ? 0.5 : 0 }}
+      />
+      {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
+        <Chip
+          label={formatDuration(entry.correctedDuration)}
+          size="small"
+          color="warning"
+          variant="filled"
+          sx={{ borderRadius: 1 }}
+          title="Korrigierte Zeit durch Tagesausgleich"
+        />
+      )}
+    </Box>
+  );
+
   const renderMobileView = () => (
     <Stack spacing={2}>
       {abgeschlosseneEintraege
@@ -425,41 +482,7 @@ const TimeEntries: React.FC = () => {
                 </Stack>
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  {entry.correctedDuration && entry.correctedDuration !== entry.duration ? (
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip
-                        label={formatDuration(entry.duration)}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ borderRadius: 1 }}
-                      />
-                      <span style={{ color: '#888' }}>→</span>
-                      <Chip
-                        label={formatDuration(entry.correctedDuration)}
-                        size="small"
-                        color="warning"
-                        variant="filled"
-                        sx={{ borderRadius: 1 }}
-                        title="Korrigierte Zeit durch Tagesausgleich"
-                      />
-                      <IconButton
-                        size="small"
-                        onClick={() => handleUndoAdjustment(entry._id)}
-                        title="Tagesausgleich rückgängig machen"
-                      >
-                        <UndoIcon fontSize="small" />
-                      </IconButton>
-                    </Stack>
-                  ) : (
-                    <Chip
-                      label={formatDuration(entry.duration)}
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                      sx={{ borderRadius: 1 }}
-                    />
-                  )}
+                  {renderDurationCell(entry)}
                 </Box>
 
                 {entry.description && (
@@ -487,7 +510,7 @@ const TimeEntries: React.FC = () => {
                 <TableCell sx={{ fontWeight: 600 }}>Projekt</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Startzeit</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Endzeit</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>Dauer</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600, minWidth: 110 }}>Dauer</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Beschreibung</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600 }}>Aktionen</TableCell>
               </TableRow>
@@ -529,41 +552,7 @@ const TimeEntries: React.FC = () => {
                       </Stack>
                     </TableCell>
                     <TableCell align="right">
-                      {entry.correctedDuration && entry.correctedDuration !== entry.duration ? (
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <Chip
-                            label={formatDuration(entry.duration)}
-                            size="small"
-                            color="primary"
-                            variant="outlined"
-                            sx={{ borderRadius: 1 }}
-                          />
-                          <span style={{ color: '#888' }}>→</span>
-                          <Chip
-                            label={formatDuration(entry.correctedDuration)}
-                            size="small"
-                            color="warning"
-                            variant="filled"
-                            sx={{ borderRadius: 1 }}
-                            title="Korrigierte Zeit durch Tagesausgleich"
-                          />
-                          <IconButton
-                            size="small"
-                            onClick={() => handleUndoAdjustment(entry._id)}
-                            title="Tagesausgleich rückgängig machen"
-                          >
-                            <UndoIcon fontSize="small" />
-                          </IconButton>
-                        </Stack>
-                      ) : (
-                        <Chip
-                          label={formatDuration(entry.duration)}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                          sx={{ borderRadius: 1 }}
-                        />
-                      )}
+                      {renderDurationCell(entry)}
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center">
@@ -633,6 +622,17 @@ const TimeEntries: React.FC = () => {
             >
               Tagesausgleich
             </Button>
+            {hasCorrectionsForDay && (
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={() => setIsUndoDialogOpen(true)}
+                sx={{ borderRadius: 2 }}
+                startIcon={<UndoIcon />}
+              >
+                Tagesausgleich rückgängig
+              </Button>
+            )}
           </Stack>
         </Box>
 
@@ -848,6 +848,23 @@ const TimeEntries: React.FC = () => {
             sx={{ borderRadius: 2 }}
           >
             Ausgleichen
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={isUndoDialogOpen}
+        onClose={() => setIsUndoDialogOpen(false)}
+      >
+        <DialogTitle>Tagesausgleich rückgängig machen</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Möchten Sie wirklich alle Korrekturen für diesen Tag entfernen?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsUndoDialogOpen(false)}>Abbrechen</Button>
+          <Button color="warning" variant="contained" onClick={handleUndoAllAdjustments}>
+            Ja, Korrekturen entfernen
           </Button>
         </DialogActions>
       </Dialog>
