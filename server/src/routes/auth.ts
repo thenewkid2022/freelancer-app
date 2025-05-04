@@ -272,7 +272,9 @@ router.get('/me', auth, async (req, res, next) => {
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               firstName:
+ *                 type: string
+ *               lastName:
  *                 type: string
  *               email:
  *                 type: string
@@ -294,12 +296,12 @@ router.get('/me', auth, async (req, res, next) => {
  */
 router.put('/profile', auth, async (req, res, next) => {
   try {
-    const { name, email, settings } = req.body;
+    const { firstName, lastName, email, settings } = req.body;
     const userId = req.user._id;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, email, settings },
+      { firstName, lastName, email, settings },
       { new: true }
     );
 
