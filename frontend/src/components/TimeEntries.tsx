@@ -241,7 +241,9 @@ const TimeEntries: React.FC = () => {
 
         try {
           await apiClient.put(`/time-entries/${entry._id}`, {
-            ...entry,
+            startTime: entry.startTime,
+            endTime: entry.endTime,
+            description: entry.description,
             correctedDuration
           });
         } catch (error) {
