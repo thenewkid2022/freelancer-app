@@ -148,14 +148,24 @@ const TimeEntries: React.FC = () => {
     return `${hours}h ${minutes}m`;
   };
 
-  // Formatierung des Datums
+  // Formatierung des Datums in Schweizer Zeit
   const formatDateTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleString('de-DE', {
+    return new Date(dateString).toLocaleString('de-CH', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Europe/Zurich',
+    });
+  };
+
+  // Formatierung nur Uhrzeit in Schweizer Zeit
+  const formatTime = (dateString: string): string => {
+    return new Date(dateString).toLocaleTimeString('de-CH', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Zurich',
     });
   };
 
