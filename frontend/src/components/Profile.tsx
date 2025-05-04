@@ -294,19 +294,10 @@ const Profile: React.FC = () => {
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
                 {isEditing ? (
                   <>
-                    <Button
-                      variant="outlined"
-                      onClick={() => {
-                        setIsEditing(false);
-                        setProfile(userProfile);
-                      }}
-                    >
+                    <Button variant="outlined" onClick={() => setIsEditing(false)}>
                       Abbrechen
                     </Button>
-                    <Button
-                      variant="contained"
-                      onClick={() => updateProfile.mutate(profile)}
-                    >
+                    <Button variant="contained" onClick={() => updateProfile.mutate(profile)}>
                       Speichern
                     </Button>
                   </>

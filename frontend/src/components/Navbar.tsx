@@ -19,6 +19,13 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAuth } from '../contexts/AuthContext';
+import BottomNavigation from '@mui/material/BottomNavigation';
+import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import PersonIcon from '@mui/icons-material/Person';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 const pages = [
   { name: 'Dashboard', path: '/dashboard' },
@@ -65,6 +72,14 @@ const Navbar: React.FC = () => {
   const handleCloseNotifications = () => {
     setAnchorElNotifications(null);
   };
+
+  const navIcons = [
+    <DashboardIcon />,
+    <ListAltIcon />,
+    <BarChartIcon />,
+    <PersonIcon />,
+    <FileDownloadIcon />
+  ];
 
   if (!user) {
     return (
@@ -113,21 +128,31 @@ const Navbar: React.FC = () => {
           </Typography>
 
           {isMobile ? (
-            <Tabs
+            <BottomNavigation
+              showLabels
               value={pages.findIndex((page) => location.pathname === page.path)}
               onChange={(_, idx) => handleNavigation(pages[idx].path)}
-              variant="scrollable"
-              scrollButtons="auto"
-              sx={{ flexGrow: 1, minHeight: 48 }}
+              sx={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 1201,
+                bgcolor: 'primary.main'
+              }}
             >
-              {pages.map((page) => (
-                <Tab
+              {pages.map((page, idx) => (
+                <BottomNavigationAction
                   key={page.path}
                   label={page.name}
-                  sx={{ color: 'white', minWidth: 80 }}
+                  icon={navIcons[idx]}
+                  sx={{
+                    color: 'white',
+                    '&.Mui-selected': { color: 'secondary.main' }
+                  }}
                 />
               ))}
-            </Tabs>
+            </BottomNavigation>
           ) : (
             <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
               {pages.map((page) => (
