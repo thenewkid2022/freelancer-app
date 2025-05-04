@@ -21,7 +21,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface UserProfile {
   _id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
   settings: {
@@ -35,7 +36,8 @@ const Profile: React.FC = () => {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<Partial<UserProfile>>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     settings: {
       emailNotifications: true,
@@ -163,11 +165,11 @@ const Profile: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
             <Avatar
               sx={{ width: 64, height: 64, mr: 2 }}
-              alt={userProfile?.name}
+              alt={`${userProfile?.firstName} ${userProfile?.lastName}`}
             />
             <Box>
               <Typography variant="h5" component="h1">
-                {userProfile?.name}
+                {userProfile?.firstName} {userProfile?.lastName}
               </Typography>
               <Typography color="textSecondary">
                 {userProfile?.email}
@@ -190,13 +192,22 @@ const Profile: React.FC = () => {
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Name"
-                    value={profile.name}
-                    onChange={(e) => handleProfileChange('name', e.target.value)}
+                    label="Vorname"
+                    value={profile.firstName}
+                    onChange={(e) => handleProfileChange('firstName', e.target.value)}
                     disabled={!isEditing}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Nachname"
+                    value={profile.lastName}
+                    onChange={(e) => handleProfileChange('lastName', e.target.value)}
+                    disabled={!isEditing}
+                  />
+                </Grid>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="E-Mail"
