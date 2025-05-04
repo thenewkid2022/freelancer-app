@@ -30,7 +30,6 @@ import {
   Chip,
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   AccessTime as AccessTimeIcon,
@@ -416,14 +415,6 @@ const TimeEntries: React.FC = () => {
           <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
             Zeiteinträge
           </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{ borderRadius: 2 }}
-          >
-            Neuer Eintrag
-          </Button>
         </Box>
 
         {error && (
@@ -463,7 +454,7 @@ const TimeEntries: React.FC = () => {
         }}
       >
         <DialogTitle sx={{ pb: 1 }}>
-          {selectedEntry ? 'Zeiteintrag bearbeiten' : 'Neuer Zeiteintrag'}
+          Zeiteintrag bearbeiten
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
