@@ -138,17 +138,36 @@ const Navbar: React.FC = () => {
                 left: 0,
                 right: 0,
                 zIndex: 1201,
-                bgcolor: 'primary.main'
+                bgcolor: 'primary.main',
+                borderTopLeftRadius: 18,
+                borderTopRightRadius: 18,
+                boxShadow: '0 -2px 12px rgba(0,0,0,0.10)',
+                height: 68,
+                px: 1
               }}
             >
               {pages.map((page, idx) => (
                 <BottomNavigationAction
                   key={page.path}
-                  label={page.name}
-                  icon={navIcons[idx]}
+                  label={<span style={{ fontSize: 13, fontWeight: location.pathname === page.path ? 700 : 500 }}>{page.name}</span>}
+                  icon={React.cloneElement(navIcons[idx], { fontSize: 'medium' })}
                   sx={{
                     color: 'white',
-                    '&.Mui-selected': { color: 'secondary.main' }
+                    minWidth: 0,
+                    maxWidth: '100%',
+                    flex: 1,
+                    mx: 0.5,
+                    py: 1.2,
+                    borderRadius: 3,
+                    transition: 'background 0.2s',
+                    bgcolor: location.pathname === page.path ? 'secondary.main' : 'transparent',
+                    '& .MuiSvgIcon-root': {
+                      fontSize: 28,
+                    },
+                    '&.Mui-selected': {
+                      color: 'white',
+                      bgcolor: 'secondary.main',
+                    },
                   }}
                 />
               ))}
