@@ -18,6 +18,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 interface UserProfile {
   _id: string;
@@ -53,6 +54,7 @@ const Profile: React.FC = () => {
   const [error, setError] = useState('');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { setDarkMode } = useThemeContext();
 
   // Profil abrufen
   const { data: userProfile, isLoading } = useQuery({
@@ -68,6 +70,10 @@ const Profile: React.FC = () => {
     },
     onSuccess: (data) => {
       setProfile(data.user);
+      // Darkmode initial setzen
+      if (data?.user?.settings?.darkMode !== undefined) {
+        setDarkMode(data.user.settings.darkMode);
+      }
     },
   });
 
@@ -86,10 +92,14 @@ const Profile: React.FC = () => {
       if (!response.ok) throw new Error('Fehler beim Aktualisieren des Profils');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       setIsEditing(false);
       setError('');
+      // Darkmode nach Speichern übernehmen
+      if (data?.user?.settings?.darkMode !== undefined) {
+        setDarkMode(data.user.settings.darkMode);
+      }
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -189,7 +199,7 @@ const Profile: React.FC = () => {
                 Persönliche Informationen
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={6} sx={{ minWidth: 200 }}>
                   <TextField
                     fullWidth
                     label="Vorname"
@@ -198,7 +208,7 @@ const Profile: React.FC = () => {
                     disabled={!isEditing}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={6} sx={{ minWidth: 200 }}>
                   <TextField
                     fullWidth
                     label="Nachname"
@@ -314,7 +324,19 @@ const Profile: React.FC = () => {
                     <Button variant="outlined" onClick={() => setIsEditing(false)}>
                       Abbrechen
                     </Button>
-                    <Button variant="contained" onClick={() => updateProfile.mutate(profile)}>
+                    <Button variant="contained" onClick={() => {
+                      if (userProfile) {
+                        const mergedProfile = {
+                          ...userProfile,
+                          ...profile,
+                          settings: {
+                            ...userProfile.settings,
+                            ...profile.settings
+                          }
+                        };
+                        updateProfile.mutate(mergedProfile);
+                      }
+                    }}>
                       Speichern
                     </Button>
                   </>
