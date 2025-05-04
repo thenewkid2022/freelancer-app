@@ -29,6 +29,7 @@ const updateTimeEntrySchema = z.object({
     description: z.string().min(1).optional(),
     startTime: z.string().datetime().optional(),
     endTime: z.string().datetime().optional(),
+    correctedDuration: z.number().optional(),
     tags: z.array(z.string()).optional()
   })
 });

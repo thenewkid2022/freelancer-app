@@ -34,6 +34,7 @@ import {
   Delete as DeleteIcon,
   AccessTime as AccessTimeIcon,
   Description as DescriptionIcon,
+  Undo as UndoIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
@@ -58,6 +59,7 @@ interface TimeEntry {
   startTime: string;
   endTime: string;
   description: string;
+  correctedDuration?: number;
 }
 
 interface TimeEntryFormData {
@@ -81,6 +83,13 @@ const TimeEntries: React.FC = () => {
   const [error, setError] = useState('');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [isAdjustmentDialogOpen, setIsAdjustmentDialogOpen] = useState(false);
+  const [adjustmentData, setAdjustmentData] = useState({
+    workStart: '',
+    workEnd: '',
+    lunchBreak: 0,
+    otherBreaks: 0
+  });
 
   // Zeiteinträge abrufen
   const { data: timeEntries = [], isLoading } = useQuery({
@@ -201,6 +210,71 @@ const TimeEntries: React.FC = () => {
     ? timeEntries.filter(entry => entry.endTime && !isNaN(new Date(entry.endTime).getTime()))
     : [];
 
+  const handleAdjustmentDialogOpen = () => {
+    setIsAdjustmentDialogOpen(true);
+  };
+
+  const handleAdjustmentDialogClose = () => {
+    setIsAdjustmentDialogOpen(false);
+  };
+
+  const handleAdjustmentDataChange = (field: keyof typeof adjustmentData, value: string | number) => {
+    setAdjustmentData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAdjustmentSubmit = async () => {
+    try {
+      // Berechnung des Tagessolls und Verteilung der Differenz
+      const workStartDate = new Date(adjustmentData.workStart);
+      const workEndDate = new Date(adjustmentData.workEnd);
+      const totalBreakMinutes = adjustmentData.lunchBreak + adjustmentData.otherBreaks;
+      const workDurationMinutes = (workEndDate.getTime() - workStartDate.getTime()) / (1000 * 60) - totalBreakMinutes;
+      const targetHours = workDurationMinutes / 60;
+      const totalCurrentHours = abgeschlosseneEintraege.reduce((sum, entry) => sum + entry.duration / 3600, 0);
+      const difference = targetHours - totalCurrentHours;
+
+      // Verteilung der Differenz proportional auf die Einträge und Speichern im Backend
+      const updatePromises = abgeschlosseneEintraege.map(async entry => {
+        const proportion = entry.duration / (totalCurrentHours * 3600);
+        const correction = difference * proportion;
+        const correctedDuration = entry.duration + correction * 3600;
+
+        try {
+          await apiClient.put(`/time-entries/${entry._id}`, {
+            ...entry,
+            correctedDuration
+          });
+        } catch (error) {
+          console.error(`Fehler beim Aktualisieren des Zeiteintrags ${entry._id}:`, error);
+          throw error;
+        }
+      });
+
+      await Promise.all(updatePromises);
+      queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
+      handleAdjustmentDialogClose();
+    } catch (error) {
+      setError('Fehler beim Speichern der korrigierten Zeiten');
+      console.error('Fehler beim Tagesausgleich:', error);
+    }
+  };
+
+  const handleUndoAdjustment = async (entryId: string) => {
+    try {
+      const entry = abgeschlosseneEintraege.find(e => e._id === entryId);
+      if (entry) {
+        await apiClient.put(`/time-entries/${entryId}`, {
+          ...entry,
+          correctedDuration: undefined
+        });
+        queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
+      }
+    } catch (error) {
+      setError('Fehler beim Zurücksetzen der korrigierten Zeit');
+      console.error('Fehler beim Undo:', error);
+    }
+  };
+
   const renderMobileView = () => (
     <Stack spacing={2}>
       {abgeschlosseneEintraege
@@ -252,6 +326,20 @@ const TimeEntries: React.FC = () => {
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
+                    {entry.correctedDuration && (
+                      <IconButton
+                        size="small"
+                        onClick={() => handleUndoAdjustment(entry._id)}
+                        sx={{ 
+                          '&:hover': { 
+                            backgroundColor: 'warning.light',
+                            color: 'warning.contrastText'
+                          }
+                        }}
+                      >
+                        <UndoIcon fontSize="small" />
+                      </IconButton>
+                    )}
                   </Stack>
                 </Box>
 
@@ -354,6 +442,11 @@ const TimeEntries: React.FC = () => {
                         variant="outlined"
                         sx={{ borderRadius: 1 }}
                       />
+                      {entry.correctedDuration && (
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          Korrigiert: {formatDuration(entry.correctedDuration)}
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center">
@@ -389,6 +482,20 @@ const TimeEntries: React.FC = () => {
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
+                        {entry.correctedDuration && (
+                          <IconButton
+                            size="small"
+                            onClick={() => handleUndoAdjustment(entry._id)}
+                            sx={{ 
+                              '&:hover': { 
+                                backgroundColor: 'warning.light',
+                                color: 'warning.contrastText'
+                              }
+                            }}
+                          >
+                            <UndoIcon fontSize="small" />
+                          </IconButton>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -415,6 +522,13 @@ const TimeEntries: React.FC = () => {
           <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
             Zeiteinträge
           </Typography>
+          <Button
+            variant="contained"
+            onClick={handleAdjustmentDialogOpen}
+            sx={{ borderRadius: 2 }}
+          >
+            Tagesausgleich
+          </Button>
         </Box>
 
         {error && (
@@ -511,6 +625,84 @@ const TimeEntries: React.FC = () => {
             sx={{ borderRadius: 2 }}
           >
             Speichern
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={isAdjustmentDialogOpen}
+        onClose={handleAdjustmentDialogClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 2 }
+        }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          Tagesausgleich
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="datetime-local"
+                  label="Arbeitsbeginn"
+                  value={adjustmentData.workStart}
+                  onChange={(e) => handleAdjustmentDataChange('workStart', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="datetime-local"
+                  label="Arbeitsende"
+                  value={adjustmentData.workEnd}
+                  onChange={(e) => handleAdjustmentDataChange('workEnd', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Mittagspause (Minuten)"
+                  value={adjustmentData.lunchBreak}
+                  onChange={(e) => handleAdjustmentDataChange('lunchBreak', parseInt(e.target.value))}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Weitere Pausen (Minuten)"
+                  value={adjustmentData.otherBreaks}
+                  onChange={(e) => handleAdjustmentDataChange('otherBreaks', parseInt(e.target.value))}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button 
+            onClick={handleAdjustmentDialogClose}
+            sx={{ borderRadius: 2 }}
+          >
+            Abbrechen
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleAdjustmentSubmit}
+            sx={{ borderRadius: 2 }}
+          >
+            Ausgleichen
           </Button>
         </DialogActions>
       </Dialog>

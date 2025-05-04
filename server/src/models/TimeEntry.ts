@@ -10,6 +10,7 @@ export interface ITimeEntry {
   startTime: Date;
   endTime: Date;
   duration?: number;
+  correctedDuration?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +23,7 @@ export interface TimeEntryDocument extends Document {
   startTime: Date;
   endTime: Date;
   duration?: number;
+  correctedDuration?: number;
   createdAt: Date;
   updatedAt: Date;
   formattedDuration: string;
@@ -59,6 +61,10 @@ export const timeEntrySchema = new Schema<TimeEntryDocument>({
     required: false,
   },
   duration: {
+    type: Number,
+    required: false,
+  },
+  correctedDuration: {
     type: Number,
     required: false,
   },
