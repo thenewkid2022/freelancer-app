@@ -131,11 +131,6 @@ const Zeiterfassung: React.FC = () => {
       gap: isMobile ? 2 : 3 
     }}>
       <Stack spacing={isMobile ? 2 : 3} sx={{ width: '100%' }}>
-        {!isMobile && (
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, mb: 2 }}>
-            Zeiterfassung
-          </Typography>
-        )}
         <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, borderRadius: 3, width: '100%' }}>
           <Stack spacing={isMobile ? 2 : 3}>
             <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
