@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -87,6 +87,9 @@ const TimeEntries: React.FC = () => {
     otherBreaks: 0
   });
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [timeDifference, setTimeDifference] = useState<number | null>(null);
+  const [roundedDifference, setRoundedDifference] = useState<number | null>(null);
+  const [adjustedEntries, setAdjustedEntries] = useState<Array<{id: string, duration: number}>>([]);
 
   // Zeiteinträge abrufen
   const { data: timeEntries = [], isLoading } = useQuery({
@@ -219,6 +222,72 @@ const TimeEntries: React.FC = () => {
     setAdjustmentData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Berechne die effektive Arbeitszeit und verteile sie proportional
+  const calculateTimeDifference = useCallback(() => {
+    if (!selectedDate || !adjustmentData.workStart || !adjustmentData.workEnd) {
+      setTimeDifference(null);
+      setRoundedDifference(null);
+      setAdjustedEntries([]);
+      return;
+    }
+
+    // Erstelle neue Date-Objekte basierend auf dem ausgewählten Datum
+    const workStartDate = new Date(selectedDate.getTime());
+    const [startHours, startMinutes] = adjustmentData.workStart.split(':').map(Number);
+    workStartDate.setHours(startHours, startMinutes, 0, 0);
+
+    const workEndDate = new Date(selectedDate.getTime());
+    const [endHours, endMinutes] = adjustmentData.workEnd.split(':').map(Number);
+    workEndDate.setHours(endHours, endMinutes, 0, 0);
+
+    // Berechne die effektive Arbeitszeit
+    const totalBreakMinutes = adjustmentData.lunchBreak + adjustmentData.otherBreaks;
+    const workDurationMinutes = (workEndDate.getTime() - workStartDate.getTime()) / (1000 * 60) - totalBreakMinutes;
+    const effectiveHours = workDurationMinutes / 60;
+
+    // Filtere Einträge für den ausgewählten Tag
+    const eintraegeFuerTag = abgeschlosseneEintraege.filter(entry => {
+      const entryDate = new Date(entry.startTime);
+      return (
+        entryDate.getFullYear() === selectedDate.getFullYear() &&
+        entryDate.getMonth() === selectedDate.getMonth() &&
+        entryDate.getDate() === selectedDate.getDate()
+      );
+    });
+
+    // Berechne die aktuelle Gesamtzeit
+    const totalCurrentHours = eintraegeFuerTag.reduce((sum, entry) => sum + entry.duration / 3600, 0);
+    const difference = effectiveHours - totalCurrentHours;
+    setTimeDifference(difference);
+
+    // Verteile die effektive Zeit proportional auf die Einträge
+    const adjustedEntries = eintraegeFuerTag.map(entry => {
+      const proportion = entry.duration / (totalCurrentHours * 3600);
+      const adjustedDuration = effectiveHours * proportion * 3600;
+      return {
+        id: entry._id,
+        duration: adjustedDuration
+      };
+    });
+
+    // Runde jeden Eintrag auf 0,25h
+    const roundedEntries = adjustedEntries.map(entry => ({
+      ...entry,
+      duration: Math.round(entry.duration / (0.25 * 3600)) * (0.25 * 3600)
+    }));
+
+    // Berechne die Differenz nach der Rundung
+    const roundedTotal = roundedEntries.reduce((sum, entry) => sum + entry.duration / 3600, 0);
+    const roundedDiff = effectiveHours - roundedTotal;
+    setRoundedDifference(roundedDiff);
+    setAdjustedEntries(roundedEntries);
+  }, [selectedDate, adjustmentData, abgeschlosseneEintraege]);
+
+  // Aktualisiere die Berechnung bei Änderungen
+  useEffect(() => {
+    calculateTimeDifference();
+  }, [calculateTimeDifference]);
+
   const handleAdjustmentSubmit = async () => {
     try {
       if (!selectedDate) {
@@ -231,95 +300,35 @@ const TimeEntries: React.FC = () => {
         return;
       }
 
-      // Filtere Einträge für den ausgewählten Tag
-      const eintraegeFuerTag = abgeschlosseneEintraege.filter(entry => {
-        const entryDate = new Date(entry.startTime);
-        return (
-          entryDate.getFullYear() === selectedDate.getFullYear() &&
-          entryDate.getMonth() === selectedDate.getMonth() &&
-          entryDate.getDate() === selectedDate.getDate()
-        );
-      });
-
-      // Erstelle neue Date-Objekte basierend auf dem ausgewählten Datum
-      const workStartDate = new Date(selectedDate.getTime());
-      const [startHours, startMinutes] = adjustmentData.workStart.split(':').map(Number);
-      workStartDate.setHours(startHours, startMinutes, 0, 0);
-
-      const workEndDate = new Date(selectedDate.getTime());
-      const [endHours, endMinutes] = adjustmentData.workEnd.split(':').map(Number);
-      workEndDate.setHours(endHours, endMinutes, 0, 0);
-
-      // Überprüfe, ob das Enddatum nach dem Startdatum liegt
-      if (workEndDate <= workStartDate) {
-        setError('Das Arbeitsende muss nach dem Arbeitsbeginn liegen');
-        return;
+      // Überprüfe, ob der User die Differenz akzeptiert
+      if (roundedDifference !== null && Math.abs(roundedDifference) > 0.01) {
+        const confirmMessage = roundedDifference > 0
+          ? `Nach der Rundung fehlen noch ${roundedDifference.toFixed(2)}h. Möchten Sie fortfahren?`
+          : `Nach der Rundung sind ${Math.abs(roundedDifference).toFixed(2)}h zu viel. Möchten Sie fortfahren?`;
+        
+        if (!window.confirm(confirmMessage)) {
+          return;
+        }
       }
 
-      // Berechnung des Tagessolls und Verteilung der Differenz
-      const totalBreakMinutes = adjustmentData.lunchBreak + adjustmentData.otherBreaks;
-      const workDurationMinutes = (workEndDate.getTime() - workStartDate.getTime()) / (1000 * 60) - totalBreakMinutes;
-      const targetHours = workDurationMinutes / 60;
-      const totalCurrentHours = eintraegeFuerTag.reduce((sum, entry) => sum + entry.duration / 3600, 0);
-      const difference = targetHours - totalCurrentHours;
-
-      // Verteilung der Differenz proportional auf die Einträge und Speichern im Backend
-      const updatePromises = eintraegeFuerTag.map(async entry => {
-        const proportion = entry.duration / (totalCurrentHours * 3600);
-        const correction = difference * proportion;
-        const correctedDuration = entry.duration + correction * 3600;
+      // Speichere die angepassten Einträge
+      const updatePromises = adjustedEntries.map(async entry => {
         try {
-          await apiClient.put(`/time-entries/${entry._id}`, {
-            startTime: entry.startTime,
-            endTime: entry.endTime,
-            description: entry.description,
-            correctedDuration
+          await apiClient.put(`/time-entries/${entry.id}`, {
+            duration: entry.duration
           });
         } catch (error) {
-          console.error(`Fehler beim Aktualisieren des Zeiteintrags ${entry._id}:`, error);
+          console.error(`Fehler beim Aktualisieren des Zeiteintrags ${entry.id}:`, error);
           throw error;
         }
       });
+
       await Promise.all(updatePromises);
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
       handleAdjustmentDialogClose();
     } catch (error) {
       setError('Fehler beim Speichern der korrigierten Zeiten');
       console.error('Fehler beim Tagesausgleich:', error);
-    }
-  };
-
-  const handleUndoAdjustment = async (entryId: string) => {
-    try {
-      const entry = abgeschlosseneEintraege.find(e => e._id === entryId);
-      if (entry) {
-        await apiClient.put(`/time-entries/${entryId}`, {
-          ...entry,
-          correctedDuration: undefined
-        });
-        queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
-      }
-    } catch (error) {
-      setError('Fehler beim Zurücksetzen der korrigierten Zeit');
-      console.error('Fehler beim Undo:', error);
-    }
-  };
-
-  const handleUndoAllAdjustments = async () => {
-    try {
-      const entriesWithCorrection = abgeschlosseneEintraege.filter(e => e.correctedDuration);
-      const undoPromises = entriesWithCorrection.map(entry =>
-        apiClient.put(`/time-entries/${entry._id}`, {
-          startTime: entry.startTime,
-          endTime: entry.endTime,
-          description: entry.description
-        })
-      );
-      await Promise.all(undoPromises);
-      queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
-    } catch (error) {
-      setError('Fehler beim Rückgängig machen des Tagesausgleichs');
-      console.error('Fehler beim Undo-All:', error);
     }
   };
 
@@ -587,15 +596,6 @@ const TimeEntries: React.FC = () => {
             >
               Tagesausgleich
             </Button>
-            <Button
-              variant="outlined"
-              color="warning"
-              onClick={handleUndoAllAdjustments}
-              sx={{ borderRadius: 2 }}
-              disabled={!abgeschlosseneEintraege.some(e => e.correctedDuration)}
-            >
-              Tagesausgleich rückgängig
-            </Button>
           </Stack>
         </Box>
 
@@ -763,6 +763,38 @@ const TimeEntries: React.FC = () => {
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
+              {timeDifference !== null && (
+                <Grid item xs={12}>
+                  <Alert 
+                    severity={Math.abs(timeDifference) < 0.01 ? "success" : "info"}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    {Math.abs(timeDifference) < 0.01 ? (
+                      "Die Zeiterfassung ist bereits ausgeglichen."
+                    ) : timeDifference > 0 ? (
+                      `Es fehlen noch ${timeDifference.toFixed(2)}h zum Tagessoll.`
+                    ) : (
+                      `Du hast ${Math.abs(timeDifference).toFixed(2)}h zu viel erfasst.`
+                    )}
+                  </Alert>
+                </Grid>
+              )}
+              {roundedDifference !== null && Math.abs(roundedDifference) > 0.01 && (
+                <Grid item xs={12}>
+                  <Alert 
+                    severity="warning"
+                    sx={{ borderRadius: 2 }}
+                  >
+                    {roundedDifference > 0 ? (
+                      `Nach der Rundung auf 0,25h fehlen noch ${roundedDifference.toFixed(2)}h.`
+                    ) : (
+                      `Nach der Rundung auf 0,25h sind ${Math.abs(roundedDifference).toFixed(2)}h zu viel.`
+                    )}
+                    <br />
+                    Sie können die Differenz manuell anpassen oder die Änderungen übernehmen.
+                  </Alert>
+                </Grid>
+              )}
             </Grid>
           </Box>
         </DialogContent>
