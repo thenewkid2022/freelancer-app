@@ -68,10 +68,12 @@ const Profile: React.FC = () => {
   // Profil aktualisieren
   const updateProfile = useMutation({
     mutationFn: async (updatedProfile: Partial<UserProfile>) => {
-      const response = await fetch('/api/users/profile', {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://dein-backend-server.com';
+      const response = await fetch(`${API_URL}/api/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(updatedProfile),
       });
