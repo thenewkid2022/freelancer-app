@@ -28,11 +28,11 @@ import PersonIcon from '@mui/icons-material/Person';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 const pages = [
-  { name: 'Zeiterfassung', path: '/dashboard' },
-  { name: 'Zeiteinträge', path: '/time-entries' },
-  { name: 'Statistiken', path: '/statistics' },
-  { name: 'Profil', path: '/profile' },
-  { name: 'Export', path: '/export' },
+  { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
+  { name: 'Zeiteinträge', path: '/time-entries', icon: <ListAltIcon /> },
+  { name: 'Statistiken', path: '/statistics', icon: <BarChartIcon /> },
+  { name: 'Profil', path: '/profile', icon: <PersonIcon /> },
+  { name: 'Export', path: '/export', icon: <FileDownloadIcon /> },
 ];
 
 const Navbar: React.FC = () => {
@@ -127,52 +127,58 @@ const Navbar: React.FC = () => {
             Freelancer App
           </Typography>
 
-          {isMobile ? (
+          {/* Mobile Navigation */}
+          {isMobile && (
             <BottomNavigation
-              showLabels
-              value={pages.findIndex((page) => location.pathname === page.path)}
-              onChange={(_, idx) => handleNavigation(pages[idx].path)}
+              value={location.pathname}
+              onChange={(event, newValue) => {
+                navigate(newValue);
+              }}
               sx={{
                 position: 'fixed',
                 bottom: 0,
                 left: 0,
                 right: 0,
-                zIndex: 1201,
-                bgcolor: 'primary.main',
-                borderTopLeftRadius: 18,
-                borderTopRightRadius: 18,
-                boxShadow: '0 -2px 12px rgba(0,0,0,0.10)',
-                height: 68,
-                px: 1
+                height: 60,
+                borderTop: '1px solid',
+                borderColor: 'divider',
+                '& .MuiBottomNavigationAction-root': {
+                  minWidth: 'auto',
+                  padding: '6px 8px',
+                  '& .MuiBottomNavigationAction-label': {
+                    fontSize: '0.7rem',
+                    '&.Mui-selected': {
+                      fontSize: '0.7rem',
+                    },
+                  },
+                },
+                // Abstand für iPhone-Notch und abgerundete Ecken
+                paddingLeft: 'env(safe-area-inset-left)',
+                paddingRight: 'env(safe-area-inset-right)',
+                paddingBottom: 'env(safe-area-inset-bottom)',
               }}
             >
-              {pages.map((page, idx) => (
+              {pages.map((page) => (
                 <BottomNavigationAction
                   key={page.path}
-                  label={<span style={{ fontSize: 13, fontWeight: location.pathname === page.path ? 700 : 500 }}>{page.name}</span>}
-                  icon={React.cloneElement(navIcons[idx], { fontSize: 'medium' })}
+                  label={page.name}
+                  value={page.path}
+                  icon={page.icon}
                   sx={{
-                    color: 'white',
-                    minWidth: 0,
-                    maxWidth: '100%',
-                    flex: 1,
-                    mx: 0.5,
-                    py: 1.2,
-                    borderRadius: 3,
-                    transition: 'background 0.2s',
-                    bgcolor: location.pathname === page.path ? 'secondary.main' : 'transparent',
-                    '& .MuiSvgIcon-root': {
-                      fontSize: 28,
-                    },
-                    '&.Mui-selected': {
-                      color: 'white',
-                      bgcolor: 'secondary.main',
+                    '& .MuiBottomNavigationAction-label': {
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%',
                     },
                   }}
                 />
               ))}
             </BottomNavigation>
-          ) : (
+          )}
+
+          {/* Desktop Navigation */}
+          {!isMobile && (
             <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
               {pages.map((page) => (
                 <Button

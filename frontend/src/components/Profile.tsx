@@ -248,6 +248,7 @@ const Profile: React.FC = () => {
                       <Switch
                         checked={profile.settings?.darkMode}
                         onChange={(e) => handleSettingsChange('darkMode', e.target.checked)}
+                        disabled={!isEditing}
                       />
                     }
                     label={t('profile.darkMode')}
@@ -260,6 +261,7 @@ const Profile: React.FC = () => {
                     label={t('profile.language')}
                     value={profile.settings?.language}
                     onChange={(e) => handleSettingsChange('language', e.target.value)}
+                    disabled={!isEditing}
                     size={isMobile ? 'small' : 'medium'}
                   >
                     <MenuItem value="de">Deutsch</MenuItem>
@@ -283,6 +285,7 @@ const Profile: React.FC = () => {
                     label={t('profile.currentPassword')}
                     value={password.current}
                     onChange={(e) => handlePasswordChange('current', e.target.value)}
+                    disabled={!isEditing}
                     size={isMobile ? 'small' : 'medium'}
                   />
                 </Grid>
@@ -293,6 +296,7 @@ const Profile: React.FC = () => {
                     label={t('profile.newPassword')}
                     value={password.new}
                     onChange={(e) => handlePasswordChange('new', e.target.value)}
+                    disabled={!isEditing}
                     size={isMobile ? 'small' : 'medium'}
                   />
                 </Grid>
@@ -303,6 +307,7 @@ const Profile: React.FC = () => {
                     label={t('profile.confirmPassword')}
                     value={password.confirm}
                     onChange={(e) => handlePasswordChange('confirm', e.target.value)}
+                    disabled={!isEditing}
                     size={isMobile ? 'small' : 'medium'}
                   />
                 </Grid>
@@ -341,7 +346,7 @@ const Profile: React.FC = () => {
                   variant="contained"
                   color="primary"
                   onClick={() => changePassword.mutate(password)}
-                  disabled={!password.current || !password.new || !password.confirm}
+                  disabled={!isEditing || !password.current || !password.new || !password.confirm}
                   fullWidth={isMobile}
                 >
                   {t('profile.changePassword')}
