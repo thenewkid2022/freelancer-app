@@ -1,0 +1,24 @@
+{
+  "profile": {
+    "title": "Profil",
+    "personalInfo": "Persönliche Informationen",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "email": "E-Mail",
+    "settings": "Einstellungen",
+    "darkMode": "Dunkles Design",
+    "language": "Sprache",
+    "password": "Passwort ändern",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "edit": "Bearbeiten",
+    "save": "Speichern",
+    "cancel": "Abbrechen"
+  },
+  "general": {
+    "loading": "Laden...",
+    "success": "Erfolgreich gespeichert!",
+    "error": "Ein Fehler ist aufgetreten."
+  }
+} 

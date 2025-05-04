@@ -1,0 +1,24 @@
+{
+  "profile": {
+    "title": "Perfil",
+    "personalInfo": "Información personal",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo electrónico",
+    "settings": "Configuración",
+    "darkMode": "Modo oscuro",
+    "language": "Idioma",
+    "password": "Cambiar contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "edit": "Editar",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "general": {
+    "loading": "Cargando...",
+    "success": "¡Guardado con éxito!",
+    "error": "Ocurrió un error."
+  }
+} 

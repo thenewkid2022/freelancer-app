@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useThemeContext } from '../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 interface UserProfile {
   _id: string;
@@ -27,7 +28,6 @@ interface UserProfile {
   email: string;
   role: string;
   settings: {
-    emailNotifications: boolean;
     darkMode: boolean;
     language: string;
   };
@@ -41,7 +41,6 @@ const Profile: React.FC = () => {
     lastName: '',
     email: '',
     settings: {
-      emailNotifications: true,
       darkMode: false,
       language: 'de',
     },
@@ -55,6 +54,7 @@ const Profile: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { setDarkMode } = useThemeContext();
+  const { t, i18n } = useTranslation();
 
   // Profil abrufen
   const { data: userProfile, isLoading } = useQuery({
@@ -146,6 +146,9 @@ const Profile: React.FC = () => {
         [field]: value,
       } as UserProfile['settings'],
     }));
+    if (field === 'language' && typeof value === 'string') {
+      i18n.changeLanguage(value);
+    }
   };
 
   const handlePasswordChange = (field: keyof typeof password, value: string) => {
@@ -168,7 +171,7 @@ const Profile: React.FC = () => {
       <Stack spacing={3}>
         {!isMobile && (
           <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-            Profil
+            {t('profile.title')}
           </Typography>
         )}
         <Paper sx={{ p: 3 }}>
@@ -196,13 +199,13 @@ const Profile: React.FC = () => {
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
-                Persönliche Informationen
+                {t('profile.personalInfo')}
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Vorname"
+                    label={t('profile.firstName')}
                     value={profile.firstName}
                     onChange={(e) => handleProfileChange('firstName', e.target.value)}
                     disabled={!isEditing}
@@ -211,7 +214,7 @@ const Profile: React.FC = () => {
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Nachname"
+                    label={t('profile.lastName')}
                     value={profile.lastName}
                     onChange={(e) => handleProfileChange('lastName', e.target.value)}
                     disabled={!isEditing}
@@ -220,7 +223,7 @@ const Profile: React.FC = () => {
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="E-Mail"
+                    label={t('profile.email')}
                     value={profile.email}
                     onChange={(e) => handleProfileChange('email', e.target.value)}
                     disabled={!isEditing}
@@ -232,23 +235,9 @@ const Profile: React.FC = () => {
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" gutterBottom>
-                Einstellungen
+                {t('profile.settings')}
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={profile.settings?.emailNotifications}
-                        onChange={(e) =>
-                          handleSettingsChange('emailNotifications', e.target.checked)
-                        }
-                        disabled={!isEditing}
-                      />
-                    }
-                    label="E-Mail-Benachrichtigungen"
-                  />
-                </Grid>
                 <Grid item xs={12}>
                   <FormControlLabel
                     control={
@@ -257,14 +246,14 @@ const Profile: React.FC = () => {
                         onChange={(e) => handleSettingsChange('darkMode', e.target.checked)}
                       />
                     }
-                    label="Dunkles Design"
+                    label={t('profile.darkMode')}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
                     select
                     fullWidth
-                    label="Sprache"
+                    label={t('profile.language')}
                     value={profile.settings?.language}
                     onChange={(e) =>
                       handleSettingsChange('language', e.target.value)
@@ -281,14 +270,14 @@ const Profile: React.FC = () => {
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" gutterBottom>
-                Passwort ändern
+                {t('profile.changePassword')}
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
                     type="password"
-                    label="Aktuelles Passwort"
+                    label={t('profile.currentPassword')}
                     value={password.current}
                     onChange={(e) => handlePasswordChange('current', e.target.value)}
                   />
@@ -297,7 +286,7 @@ const Profile: React.FC = () => {
                   <TextField
                     fullWidth
                     type="password"
-                    label="Neues Passwort"
+                    label={t('profile.newPassword')}
                     value={password.new}
                     onChange={(e) => handlePasswordChange('new', e.target.value)}
                   />
@@ -306,7 +295,7 @@ const Profile: React.FC = () => {
                   <TextField
                     fullWidth
                     type="password"
-                    label="Passwort bestätigen"
+                    label={t('profile.confirmPassword')}
                     value={password.confirm}
                     onChange={(e) => handlePasswordChange('confirm', e.target.value)}
                   />
@@ -319,7 +308,7 @@ const Profile: React.FC = () => {
                 {isEditing ? (
                   <>
                     <Button variant="outlined" onClick={() => setIsEditing(false)}>
-                      Abbrechen
+                      {t('profile.cancel')}
                     </Button>
                     <Button variant="contained" onClick={() => {
                       if (userProfile) {
@@ -334,12 +323,12 @@ const Profile: React.FC = () => {
                         updateProfile.mutate(mergedProfile);
                       }
                     }}>
-                      Speichern
+                      {t('profile.save')}
                     </Button>
                   </>
                 ) : (
                   <Button variant="contained" onClick={() => setIsEditing(true)}>
-                    Bearbeiten
+                    {t('profile.edit')}
                   </Button>
                 )}
                 <Button
@@ -348,7 +337,7 @@ const Profile: React.FC = () => {
                   onClick={() => changePassword.mutate(password)}
                   disabled={!password.current || !password.new || !password.confirm}
                 >
-                  Passwort ändern
+                  {t('profile.changePassword')}
                 </Button>
               </Box>
             </Grid>

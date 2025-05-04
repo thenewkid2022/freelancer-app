@@ -1,0 +1,24 @@
+{
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal Information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "settings": "Settings",
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "password": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "general": {
+    "loading": "Loading...",
+    "success": "Saved successfully!",
+    "error": "An error occurred."
+  }
+} 

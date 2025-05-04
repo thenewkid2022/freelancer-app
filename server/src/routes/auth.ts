@@ -282,8 +282,6 @@ router.get('/me', auth, async (req, res, next) => {
  *               settings:
  *                 type: object
  *                 properties:
- *                   emailNotifications:
- *                     type: boolean
  *                   darkMode:
  *                     type: boolean
  *                   language:
