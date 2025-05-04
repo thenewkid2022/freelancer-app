@@ -6,12 +6,23 @@ import {
   Container,
   Button,
   TextField,
+  Stack,
+  useTheme,
+  useMediaQuery,
+  Divider,
+  Chip,
 } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const Dashboard: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const queryClient = useQueryClient();
   const [projectNumber, setProjectNumber] = useState('');
   const [projectName, setProjectName] = useState('');
@@ -111,67 +122,80 @@ const Dashboard: React.FC = () => {
   const seconds = timer % 60;
 
   return (
-    <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <Typography variant="h4" align="center" sx={{ fontWeight: 700, mb: 4 }}>
-        Zeiterfassung
-      </Typography>
-      <Paper elevation={3} sx={{ p: 5, width: '100%', maxWidth: 500, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography variant="h5" align="center" sx={{ fontWeight: 700, mb: 2 }}>
+    <Container maxWidth={isMobile ? 'xs' : 'sm'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', p: isMobile ? 1 : 2 }}>
+      <Stack spacing={isMobile ? 2 : 4} sx={{ width: '100%', maxWidth: 420 }}>
+        <Typography variant={isMobile ? 'h5' : 'h4'} align="center" sx={{ fontWeight: 700 }}>
           Zeiterfassung
         </Typography>
-        <Typography align="center" sx={{ mb: 3 }}>
-          Aktuelle Zeit: <b>{hours}h {minutes}m {seconds}s</b>
-        </Typography>
-        <TextField
-          label="Projektnummer"
-          placeholder="z.B. PRJ-001"
-          fullWidth
-          margin="normal"
-          value={projectNumber}
-          onChange={(e) => setProjectNumber(e.target.value)}
-          disabled={!!activeTimeEntry}
-        />
-        <TextField
-          label="Projektname"
-          placeholder="z.B. Website-Relaunch"
-          fullWidth
-          margin="normal"
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
-          disabled={!!activeTimeEntry}
-        />
-        <TextField
-          label="Beschreibung"
-          placeholder="Kurze Beschreibung der Tätigkeit"
-          fullWidth
-          margin="normal"
-          multiline
-          minRows={2}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          disabled={!!activeTimeEntry}
-        />
-        <Box sx={{ display: 'flex', gap: 2, mt: 3, width: '100%', justifyContent: 'center' }}>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={() => startTimeEntry.mutate()}
-            disabled={!!activeTimeEntry || !projectNumber || !projectName}
-            sx={{ minWidth: 100 }}
-          >
-            Start
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => stopTimeEntry.mutate()}
-            disabled={!activeTimeEntry}
-            sx={{ minWidth: 100 }}
-          >
-            Stop
-          </Button>
-        </Box>
-      </Paper>
+        <Paper elevation={3} sx={{ p: isMobile ? 2 : 4, borderRadius: 3, width: '100%' }}>
+          <Stack spacing={isMobile ? 2 : 3}>
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+              <AccessTimeIcon color="primary" />
+              <Typography variant={isMobile ? 'h6' : 'h5'} sx={{ fontWeight: 600 }}>
+                {hours.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
+              </Typography>
+              {activeTimeEntry && (
+                <Chip label="läuft" color="success" size="small" sx={{ ml: 1 }} />
+              )}
+            </Stack>
+            <Divider sx={{ my: isMobile ? 1 : 2 }} />
+            <Stack spacing={isMobile ? 1 : 2}>
+              <TextField
+                label="Projektnummer"
+                placeholder="z.B. PRJ-001"
+                fullWidth
+                value={projectNumber}
+                onChange={(e) => setProjectNumber(e.target.value)}
+                disabled={!!activeTimeEntry}
+                InputProps={{ startAdornment: <AssignmentIcon color="action" sx={{ mr: 1 }} /> }}
+                sx={{ borderRadius: 2 }}
+              />
+              <TextField
+                label="Projektname"
+                placeholder="z.B. Website-Relaunch"
+                fullWidth
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                disabled={!!activeTimeEntry}
+                sx={{ borderRadius: 2 }}
+              />
+              <TextField
+                label="Beschreibung"
+                placeholder="Kurze Beschreibung der Tätigkeit"
+                fullWidth
+                multiline
+                minRows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={!!activeTimeEntry}
+                sx={{ borderRadius: 2 }}
+              />
+            </Stack>
+            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: isMobile ? 1 : 2 }}>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<PlayArrowIcon />}
+                onClick={() => startTimeEntry.mutate()}
+                disabled={!!activeTimeEntry || !projectNumber || !projectName}
+                sx={{ minWidth: 110, borderRadius: 2, fontWeight: 600, fontSize: isMobile ? '1rem' : '1.1rem' }}
+              >
+                Start
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<StopIcon />}
+                onClick={() => stopTimeEntry.mutate()}
+                disabled={!activeTimeEntry}
+                sx={{ minWidth: 110, borderRadius: 2, fontWeight: 600, fontSize: isMobile ? '1rem' : '1.1rem' }}
+              >
+                Stop
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
+      </Stack>
     </Container>
   );
 };
