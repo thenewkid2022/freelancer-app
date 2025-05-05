@@ -139,20 +139,27 @@ const Navbar: React.FC = () => {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 60,
+                height: 68,
                 borderTop: '1px solid',
                 borderColor: 'divider',
+                backgroundColor: 'background.paper',
                 '& .MuiBottomNavigationAction-root': {
                   minWidth: 'auto',
-                  padding: '6px 8px',
+                  padding: '8px 10px',
                   '& .MuiBottomNavigationAction-label': {
-                    fontSize: '0.7rem',
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    color: '#222',
                     '&.Mui-selected': {
-                      fontSize: '0.7rem',
+                      fontSize: '1rem',
+                      fontWeight: 900,
+                      color: theme => theme.palette.primary.main,
                     },
                   },
+                  '& .MuiSvgIcon-root': {
+                    fontSize: 32,
+                  },
                 },
-                // Abstand für iPhone-Notch und abgerundete Ecken
                 paddingLeft: 'env(safe-area-inset-left)',
                 paddingRight: 'env(safe-area-inset-right)',
                 paddingBottom: 'env(safe-area-inset-bottom)',
@@ -163,7 +170,7 @@ const Navbar: React.FC = () => {
                   key={page.path}
                   label={page.name}
                   value={page.path}
-                  icon={page.icon}
+                  icon={React.cloneElement(page.icon, { sx: { fontSize: 32 } })}
                   sx={{
                     '& .MuiBottomNavigationAction-label': {
                       whiteSpace: 'nowrap',
