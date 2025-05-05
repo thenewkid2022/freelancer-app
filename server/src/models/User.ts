@@ -14,6 +14,11 @@ export interface IUser {
   createdAt: Date;
   updatedAt: Date;
   fullName: string;
+  settings: {
+    darkMode: boolean;
+    language: string;
+    emailNotifications: boolean;
+  };
 }
 
 export interface UserDocument extends Omit<Document, '_id'>, IUser {
@@ -61,6 +66,11 @@ export const userSchema = new mongoose.Schema({
   },
   lastLogin: {
     type: Date
+  },
+  settings: {
+    darkMode: { type: Boolean, default: false },
+    language: { type: String, default: 'de' },
+    emailNotifications: { type: Boolean, default: true }
   }
 }, {
   timestamps: true,
