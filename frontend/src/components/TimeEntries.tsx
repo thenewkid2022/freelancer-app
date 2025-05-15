@@ -449,51 +449,54 @@ const TimeEntries: React.FC = () => {
             leadingActions={leadingActions(entry)}
             trailingActions={trailingActions(entry)}
           >
-            <Card 
-              elevation={1}
-              sx={{ 
-                borderRadius: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                p: 1.2,
-                mb: 0.5,
-                '@media (max-width: 600px)': {
-                  p: 0.7,
-                  mb: 0.7,
-                },
-              }}
-            >
-              <CardContent sx={{ p: '8px !important', '&:last-child': { pb: '8px' } }}>
-                <Stack spacing={1}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '1rem', flex: 1, pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
-                    <AccessTimeIcon fontSize="small" color="action" />
-                    <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                      {formatTime(entry.startTime)} – {formatTime(entry.endTime)}
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', ml: 'auto', alignItems: 'flex-end', gap: 0.3 }}>
-                      <Chip label={formatDuration(entry.duration)} size="small" color="primary" sx={{ fontSize: '0.8rem', height: 22 }} />
-                      {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
-                        <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ fontSize: '0.8rem', height: 22 }} title="Korrigierte Zeit durch Tagesausgleich" />
-                      )}
-                    </Box>
-                  </Box>
-                  {entry.description && (
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mt: 0.5 }}>
-                      <DescriptionIcon fontSize="small" color="action" sx={{ mt: 0.2 }} />
-                      <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                        {entry.description}
+            <Box sx={{ width: '100%' }}>
+              <Card 
+                elevation={1}
+                sx={{ 
+                  width: '100%',
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                  p: 1.2,
+                  mb: 0.5,
+                  '@media (max-width: 600px)': {
+                    p: 0.7,
+                    mb: 0.7,
+                  },
+                }}
+              >
+                <CardContent sx={{ p: '8px !important', '&:last-child': { pb: '8px' } }}>
+                  <Stack spacing={1}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '1rem', flex: 1, pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
                       </Typography>
                     </Box>
-                  )}
-                </Stack>
-              </CardContent>
-            </Card>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
+                      <AccessTimeIcon fontSize="small" color="action" />
+                      <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                        {formatTime(entry.startTime)} – {formatTime(entry.endTime)}
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 'auto', alignItems: 'flex-end', gap: 0.3 }}>
+                        <Chip label={formatDuration(entry.duration)} size="small" color="primary" sx={{ fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center' }} />
+                        {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
+                          <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center' }} title="Korrigierte Zeit durch Tagesausgleich" />
+                        )}
+                      </Box>
+                    </Box>
+                    {entry.description && (
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mt: 0.5 }}>
+                        <DescriptionIcon fontSize="small" color="action" sx={{ mt: 0.2 }} />
+                        <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                          {entry.description}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Box>
           </SwipeableListItem>
         ))}
     </SwipeableList>
@@ -557,7 +560,7 @@ const TimeEntries: React.FC = () => {
                           size="small"
                           color="primary"
                           variant="outlined"
-                          sx={{ borderRadius: 1, mb: entry.correctedDuration && entry.correctedDuration !== entry.duration ? 0.5 : 0 }}
+                          sx={{ borderRadius: 1, mb: entry.correctedDuration && entry.correctedDuration !== entry.duration ? 0.5 : 0, minWidth: 64, textAlign: 'center' }}
                         />
                         {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
                           <Chip
@@ -565,7 +568,7 @@ const TimeEntries: React.FC = () => {
                             size="small"
                             color="warning"
                             variant="filled"
-                            sx={{ borderRadius: 1 }}
+                            sx={{ borderRadius: 1, minWidth: 64, textAlign: 'center' }}
                             title="Korrigierte Zeit durch Tagesausgleich"
                           />
                         )}
@@ -655,7 +658,7 @@ const TimeEntries: React.FC = () => {
               onClick={() => setIsUndoDialogOpen(true)}
               sx={{ borderRadius: 3, fontWeight: 600, px: 4 }}
             >
-              Tagesausgleich zurücksetzen
+              Zurücksetzen
             </Button>
           )}
         </Box>

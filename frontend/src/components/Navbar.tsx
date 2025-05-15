@@ -80,7 +80,7 @@ const Navbar: React.FC = () => {
 
   if (!user) {
     return (
-      <AppBar position="static">
+      <AppBar position="static" sx={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <Container maxWidth="xl">
           <Toolbar disableGutters>
             <Typography
@@ -112,7 +112,7 @@ const Navbar: React.FC = () => {
   }
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" sx={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Typography
