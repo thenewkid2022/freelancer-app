@@ -197,7 +197,7 @@ const Statistics: React.FC = () => {
 
   // Aktualisiere die wöchentlichen Daten
   const weeklyData = useMemo(() => {
-    const now = new Date();
+    const now = selectedDate;
     let start: Date;
     let end: Date;
 
@@ -219,16 +219,42 @@ const Statistics: React.FC = () => {
         end = endOfWeek(now, { locale: de });
     }
 
-    const days = eachDayOfInterval({ start, end });
+    // Erzeuge die Tage explizit als UTC-Daten
+    function getUTCDays(start: Date, end: Date) {
+      const days = [];
+      let current = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+      const endUTC = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()));
+      while (current <= endUTC) {
+        days.push(new Date(current));
+        current.setUTCDate(current.getUTCDate() + 1);
+      }
+      return days;
+    }
+    const days = getUTCDays(start, end);
     
     return days.map(day => {
-      const dayEntries = filteredTimeEntries.filter(entry => 
-        format(new Date(entry.startTime), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-      );
+      const dayEntries = filteredTimeEntries.filter(entry => {
+        const entryDate = new Date(entry.startTime);
+        return (
+          entryDate.getUTCFullYear() === day.getUTCFullYear() &&
+          entryDate.getUTCMonth() === day.getUTCMonth() &&
+          entryDate.getUTCDate() === day.getUTCDate()
+        );
+      });
       const totalHours = dayEntries.reduce((sum, entry) => sum + entry.duration / 3600, 0);
       
+      // Formatierung der X-Achse je nach Modus
+      let label;
+      if (timeRange === 'year') {
+        label = format(day, 'MMM', { locale: de }); // z.B. Jan, Feb, ...
+      } else if (timeRange === 'month') {
+        label = format(day, 'd', { locale: de }); // z.B. 1, 2, 3, ...
+      } else {
+        label = format(day, 'EEEE', { locale: de }); // z.B. Montag, Dienstag, ...
+      }
+
       return {
-        date: format(day, timeRange === 'year' ? 'MMM' : 'EEEE', { locale: de }),
+        date: label,
         hours: Number(totalHours.toFixed(1)),
         entries: dayEntries.length,
       };

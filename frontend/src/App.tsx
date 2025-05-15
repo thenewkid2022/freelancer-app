@@ -50,7 +50,7 @@ const App: React.FC = () => {
             path="/dashboard"
             element={
               <PrivateRoute>
-                <Container maxWidth={false} sx={{ p: 0, m: 0, display: 'flex', justifyContent: 'center', flex: 1 }}>
+                <Container maxWidth={false} sx={{ p: 0, m: 0, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                   <Zeiterfassung />
                 </Container>
               </PrivateRoute>
