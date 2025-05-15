@@ -1,19 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Container,
-  Paper,
   Typography,
   Box,
   Grid,
   CircularProgress,
-  Card,
-  CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -21,13 +11,13 @@ import {
   useMediaQuery,
   Chip,
   IconButton,
-  Tooltip as MuiTooltip,
   SwipeableDrawer,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   Divider,
+  Paper,
 } from '@mui/material';
 import {
   PieChart,
@@ -42,7 +32,6 @@ import {
   CartesianGrid,
   LineChart,
   Line,
-  Legend,
 } from 'recharts';
 import {
   ShowChart as ShowChartIcon,
@@ -54,15 +43,12 @@ import {
   Assignment as AssignmentIcon,
   EmojiEvents as EmojiEventsIcon,
   Timer as TimerIcon,
-  Info as InfoIcon,
-  Menu as MenuIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/api/client';
-import { AxiosResponse } from 'axios';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, addDays, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears } from 'date-fns';
 import { de } from 'date-fns/locale';
 
 interface TimeEntry {
@@ -75,23 +61,13 @@ interface TimeEntry {
   startTime: string;
 }
 
-interface TimeEntryFormData {
-  project: string;
-  startTime: string;
-  endTime: string;
-  description: string;
-}
-
 const Statistics: React.FC = () => {
-  const [selectedProject, setSelectedProject] = useState('');
-  const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const [chartType, setChartType] = useState<'pie' | 'bar' | 'line'>('pie');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleTimeRangeChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -181,7 +157,6 @@ const Statistics: React.FC = () => {
   );
   const totalEntries = filteredTimeEntries.length;
   const avgPerEntry = totalEntries > 0 ? totalHours / totalEntries : 0;
-  const zeitraeume = 1; // Platzhalter, falls du Zeiträume berechnen willst
 
   // Aktualisiere die tägliche Übersicht
   const dailyData = useMemo(() => {
@@ -204,25 +179,6 @@ const Statistics: React.FC = () => {
 
   // Farben für das PieChart aus dem Theme
   const COLORS = [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.primary.light, theme.palette.secondary.light, '#A020F0', '#FF6666'];
-
-  const saveTimeEntry = useMutation({
-    mutationFn: async (entryData: TimeEntryFormData) => {
-      const url = selectedEntry
-        ? `/time-entries/${selectedEntry._id}`
-        : '/time-entries';
-      const method = selectedEntry ? 'put' : 'post';
-
-      // HIER: Zeitfelder korrekt umwandeln
-      const payload = {
-        ...entryData,
-        startTime: new Date(entryData.startTime).toISOString(),
-        endTime: new Date(entryData.endTime).toISOString(),
-      };
-
-      const response: AxiosResponse<TimeEntry> = await apiClient[method](url, payload);
-      return response.data;
-    },
-  });
 
   // Hilfsfunktion: Top 5 + Sonstige
   const getTopProjects = (data: any[], topN = 5) => {
@@ -449,71 +405,94 @@ const Statistics: React.FC = () => {
   }
 
   return (
-    <Stack 
-      spacing={3} 
-      sx={{ 
+    <Stack
+      spacing={{ xs: 1, sm: 2, md: 3 }}
+      sx={{
         width: '100%',
+        maxWidth: '100%',
+        overflowX: 'hidden',
         height: '100%',
-        overflow: 'auto',
+        overflow: 'hidden',
         WebkitOverflowScrolling: 'touch',
-        pb: isMobile ? 2 : 0
+        pb: isMobile ? 2 : 0,
       }}
     >
-      {/* Neuer zentraler Filterbereich */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-        <Paper elevation={2} sx={{
-          px: { xs: 1, sm: 2, md: 4 },
-          py: { xs: 1, sm: 1.5, md: 2 },
-          borderRadius: 3,
-          display: 'flex',
-          alignItems: 'center',
-          gap: { xs: 1, sm: 2, md: 3 },
-          boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)',
-          minWidth: { xs: 'unset', sm: 320 },
-          width: { xs: '100%', sm: 'auto' },
-          flexDirection: { xs: 'column', sm: 'row' },
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: { xs: '100%', sm: 'auto' }, justifyContent: 'center' }}>
-            <IconButton 
-              onClick={() => navigateTimeRange('prev')}
-              size="medium"
-              sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'action.hover' }, mx: { xs: 0, sm: 0.5 } }}
-            >
-              <ChevronLeftIcon fontSize="medium" />
-            </IconButton>
-            <Typography variant="subtitle1" sx={{ minWidth: 90, textAlign: 'center', fontWeight: 600, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
-              {format(selectedDate, timeRange === 'year' ? 'yyyy' : 
-                timeRange === 'month' ? 'MMMM yyyy' : 
-                "'KW' w, yyyy", { locale: de })}
-            </Typography>
-            <IconButton 
-              onClick={() => navigateTimeRange('next')}
-              size="medium"
-              sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'action.hover' }, mx: { xs: 0, sm: 0.5 } }}
-            >
-              <ChevronRightIcon fontSize="medium" />
-            </IconButton>
-          </Box>
-          <Divider orientation={ (typeof window !== 'undefined' && window.innerWidth < 600) ? 'horizontal' : 'vertical' } flexItem sx={{ my: { xs: 1, sm: 0 }, mx: { xs: 0, sm: 2 }, display: { xs: 'block', sm: 'block', md: 'block' } }} />
-          <ToggleButtonGroup
-            value={timeRange}
-            exclusive
-            onChange={handleTimeRangeChange}
-            size="medium"
-            sx={{ ml: { xs: 0, sm: 2 }, width: { xs: '100%', sm: 'auto' }, justifyContent: 'center' }}
-            fullWidth={true}
+      <Grid 
+        container 
+        spacing={{ xs: 1, sm: 1.5, md: 2 }}
+        sx={{
+          width: '100%',
+          margin: 0,
+          '& > .MuiGrid-item': {
+            padding: { xs: 1, sm: 1.5, md: 2 },
+          }
+        }}
+      >
+        {/* Filter-Box als erstes Grid-Item */}
+        <Grid item xs={12}>
+          <Paper
+            elevation={2}
+            sx={{
+              px: { xs: 1, sm: 2, md: 4 },
+              py: { xs: 1, sm: 1.5, md: 2 },
+              borderRadius: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: { xs: 0.5, sm: 2, md: 3 },
+              boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)',
+              width: '100%',
+              flexDirection: { xs: 'column', sm: 'row' },
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+            }}
           >
-            <ToggleButton value="week" sx={{ flex: 1, minWidth: 80 }}>Woche</ToggleButton>
-            <ToggleButton value="month" sx={{ flex: 1, minWidth: 80 }}>Monat</ToggleButton>
-            <ToggleButton value="year" sx={{ flex: 1, minWidth: 80 }}>Jahr</ToggleButton>
-          </ToggleButtonGroup>
-        </Paper>
-      </Box>
-
-      {/* Hauptbereich mit Grid-Layout */}
-      <Grid container spacing={3}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: { xs: '100%', sm: 'auto' }, justifyContent: 'center' }}>
+              <IconButton 
+                onClick={() => navigateTimeRange('prev')}
+                size="medium"
+                sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'action.hover' }, mx: { xs: 0, sm: 0.5 } }}
+              >
+                <ChevronLeftIcon fontSize="medium" />
+              </IconButton>
+              <Typography variant="subtitle1" sx={{ minWidth: 90, textAlign: 'center', fontWeight: 600, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
+                {format(selectedDate, timeRange === 'year' ? 'yyyy' : 
+                  timeRange === 'month' ? 'MMMM yyyy' : 
+                  "'KW' w, yyyy", { locale: de })}
+              </Typography>
+              <IconButton 
+                onClick={() => navigateTimeRange('next')}
+                size="medium"
+                sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'action.hover' }, mx: { xs: 0, sm: 0.5 } }}
+              >
+                <ChevronRightIcon fontSize="medium" />
+              </IconButton>
+            </Box>
+            <Divider orientation={ (typeof window !== 'undefined' && window.innerWidth < 600) ? 'horizontal' : 'vertical' } flexItem sx={{ my: { xs: 1, sm: 0 }, mx: { xs: 0, sm: 2 }, display: { xs: 'block', sm: 'block', md: 'block' } }} />
+            <ToggleButtonGroup
+              value={timeRange}
+              exclusive
+              onChange={handleTimeRangeChange}
+              size="medium"
+              sx={{
+                width: { xs: '100%', sm: 'auto' },
+                maxWidth: '100%',
+                justifyContent: 'center',
+                overflowX: 'hidden',
+                '& .MuiToggleButton-root': {
+                  flex: { xs: 1, sm: 'none' },
+                  minWidth: { xs: 0, sm: 'auto' },
+                  px: { xs: 0.5, sm: 1.5 },
+                  whiteSpace: 'nowrap',
+                }
+              }}
+              fullWidth={true}
+            >
+              <ToggleButton value="week" sx={{ flex: 1, minWidth: 0 }}>Woche</ToggleButton>
+              <ToggleButton value="month" sx={{ flex: 1, minWidth: 0 }}>Monat</ToggleButton>
+              <ToggleButton value="year" sx={{ flex: 1, minWidth: 0 }}>Jahr</ToggleButton>
+            </ToggleButtonGroup>
+          </Paper>
+        </Grid>
         {/* Linke Spalte: Diagramme */}
         <Grid item xs={12} lg={8}>
           <Paper sx={{ 
@@ -578,31 +557,37 @@ const Statistics: React.FC = () => {
             </Box>
 
             {/* Diagramm-Container */}
-            <Box sx={{ 
-              height: { xs: 260, sm: 320, md: 400 },
-              position: 'relative',
-              width: '100%',
-              minWidth: 0,
-            }}>
+            <Box
+              sx={{
+                height: { xs: 260, sm: 320, md: 400 },
+                position: 'relative',
+                width: '100%',
+                minWidth: 0,
+                maxWidth: '100%',
+                overflowX: 'hidden',
+                '& .recharts-wrapper': {
+                  overflow: 'hidden',
+                }
+              }}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 {renderChart()}
               </ResponsiveContainer>
             </Box>
           </Paper>
         </Grid>
-
         {/* Rechte Spalte: Statistik-Karten */}
         <Grid item xs={12} lg={4}>
           <Stack spacing={2}>
             {/* Gesamtstunden */}
             <Paper sx={{ 
-              p: 2.5,
+              p: { xs: 0.5, sm: 2, md: 3 },
               borderRadius: 2,
               transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)'
-              }
+              },
             }}>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Box sx={{
@@ -635,13 +620,13 @@ const Statistics: React.FC = () => {
 
             {/* Durchschnitt pro Tag */}
             <Paper sx={{ 
-              p: 2.5,
+              p: { xs: 0.5, sm: 2, md: 3 },
               borderRadius: 2,
               transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)'
-              }
+              },
             }}>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Box sx={{
@@ -677,13 +662,13 @@ const Statistics: React.FC = () => {
 
             {/* Zeiteinträge */}
             <Paper sx={{ 
-              p: 2.5,
+              p: { xs: 0.5, sm: 2, md: 3 },
               borderRadius: 2,
               transition: 'transform 0.2s, box-shadow 0.2s',
               '&:hover': {
                 transform: 'translateY(-4px)',
                 boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)'
-              }
+              },
             }}>
               <Stack direction="row" spacing={2} alignItems="center">
                 <Box sx={{
@@ -718,13 +703,12 @@ const Statistics: React.FC = () => {
             </Paper>
           </Stack>
         </Grid>
-
         {/* Unterer Bereich: Detaillierte Statistiken */}
         <Grid item xs={12}>
           <Paper sx={{ 
             p: 3,
             borderRadius: 2,
-            boxShadow: '0 2px 12px 0 rgba(0,0,0,0.05)'
+            boxShadow: '0 2px 12px 0 rgba(0,0,0,0.05)',
           }}>
             <Grid container spacing={3}>
               {/* Produktivster Tag */}

@@ -637,7 +637,16 @@ const TimeEntries: React.FC = () => {
         pb: isMobile ? 2 : 0
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          mb: 2, 
+          mt: { xs: 2, sm: 3 },
+          pt: 3
+        }}
+      >
         <DatePicker
           label="Tag auswählen"
           value={selectedDate}
@@ -770,6 +779,7 @@ const TimeEntries: React.FC = () => {
                   value={formData.description}
                   onChange={(e) => handleFormChange('description', e.target.value)}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
             </Grid>

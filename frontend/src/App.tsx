@@ -35,9 +35,9 @@ const App: React.FC = () => {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          pt: { xs: 7, sm: 8 }, // Konsistenter Abstand unter dem Header
-          overflow: 'auto', // Ermöglicht Scrolling im Content-Bereich
-          height: 'calc(100vh - 64px)', // Volle Höhe minus Header-Höhe
+          pt: { xs: 7, sm: 8 },
+          overflow: 'auto',
+          height: 'calc(100vh - 64px)',
           '& > *': { // Stellt sicher, dass der Container die volle Breite nutzt
             width: '100%'
           }
@@ -66,8 +66,8 @@ const App: React.FC = () => {
                     pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
                     flex: 1,
-                    overflow: 'visible',
-                    px: { xs: 2, sm: 3 },
+                    overflow: 'hidden',
+                    px: { xs: 1, sm: 2, md: 3 },
                     display: 'flex',
                     flexDirection: 'column'
                   }}
@@ -87,8 +87,8 @@ const App: React.FC = () => {
                     pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
                     flex: 1,
-                    overflow: 'visible',
-                    px: { xs: 2, sm: 3 },
+                    overflow: 'hidden',
+                    px: { xs: 1, sm: 2, md: 3 },
                     display: 'flex',
                     flexDirection: 'column'
                   }}
@@ -108,8 +108,8 @@ const App: React.FC = () => {
                     pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
                     flex: 1,
-                    overflow: 'visible',
-                    px: { xs: 2, sm: 3 },
+                    overflow: 'hidden',
+                    px: { xs: 1, sm: 2, md: 3 },
                     display: 'flex',
                     flexDirection: 'column'
                   }}
