@@ -40,6 +40,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api/client';
 import { AxiosResponse } from 'axios';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { SwipeableList, SwipeableListItem, Type as ListType, LeadingActions, TrailingActions, SwipeAction } from 'react-swipeable-list';
+import 'react-swipeable-list/dist/styles.css';
 
 interface Project {
   _id: string;
@@ -161,6 +163,14 @@ const TimeEntries: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit',
       timeZone: 'Europe/Zurich',
+    });
+  };
+
+  // Hilfsfunktion für Uhrzeit
+  const formatTime = (dateString: string): string => {
+    return new Date(dateString).toLocaleTimeString('de-CH', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -408,115 +418,85 @@ const TimeEntries: React.FC = () => {
     }
   };
 
-  // Spaltenbündige Darstellung für Dauer
-  const renderDurationCell = (entry: TimeEntry) => (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 110 }}>
-      <Chip
-        label={formatDuration(entry.duration)}
-        size="small"
-        color="primary"
-        variant="outlined"
-        sx={{ borderRadius: 1, mb: entry.correctedDuration && entry.correctedDuration !== entry.duration ? 0.5 : 0 }}
-      />
-      {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
-        <Chip
-          label={formatDuration(entry.correctedDuration)}
-          size="small"
-          color="warning"
-          variant="filled"
-          sx={{ borderRadius: 1 }}
-          title="Korrigierte Zeit durch Tagesausgleich"
-        />
-      )}
-    </Box>
+  // Swipe Actions für mobile Ansicht
+  const leadingActions = (entry: TimeEntry) => (
+    <LeadingActions>
+      <SwipeAction onClick={() => handleOpenDialog(entry)}>
+        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', pr: 2, bgcolor: 'primary.main', color: '#fff', justifyContent: 'flex-end' }}>
+          <EditIcon /> Bearbeiten
+        </Box>
+      </SwipeAction>
+    </LeadingActions>
+  );
+
+  const trailingActions = (entry: TimeEntry) => (
+    <TrailingActions>
+      <SwipeAction destructive onClick={() => deleteTimeEntry.mutate(entry._id)}>
+        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', pl: 2, bgcolor: 'error.main', color: '#fff' }}>
+          <DeleteIcon /> Löschen
+        </Box>
+      </SwipeAction>
+    </TrailingActions>
   );
 
   const renderMobileView = () => (
-    <Stack spacing={2}>
+    <SwipeableList type={ListType.IOS}>
       {eintraegeFuerTag
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((entry: TimeEntry) => (
-          <Card 
+          <SwipeableListItem
             key={entry._id}
-            elevation={0}
-            sx={{ 
-              borderRadius: 2,
-              border: '1px solid',
-              borderColor: 'divider',
-              '&:hover': {
-                boxShadow: 1,
-                transition: 'box-shadow 0.2s'
-              }
-            }}
+            leadingActions={leadingActions(entry)}
+            trailingActions={trailingActions(entry)}
           >
-            <CardContent>
-              <Stack spacing={2}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Chip
-                    label={entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
-                    size="small"
-                    sx={{ borderRadius: 1 }}
-                  />
-                  <Stack direction="row" spacing={1}>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDialog(entry)}
-                      sx={{ 
-                        '&:hover': { 
-                          backgroundColor: 'primary.light',
-                          color: 'primary.contrastText'
-                        }
-                      }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => deleteTimeEntry.mutate(entry._id)}
-                      sx={{ 
-                        '&:hover': { 
-                          backgroundColor: 'error.light',
-                          color: 'error.contrastText'
-                        }
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                </Box>
-
-                <Stack spacing={1} alignItems="center">
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <AccessTimeIcon fontSize="small" color="action" />
-                    <Typography variant="body2" color="text.secondary">
-                      Start: {formatDateTime(entry.startTime)}
+            <Card 
+              elevation={1}
+              sx={{ 
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                p: 1.2,
+                mb: 0.5,
+                '@media (max-width: 600px)': {
+                  p: 0.7,
+                  mb: 0.7,
+                },
+              }}
+            >
+              <CardContent sx={{ p: '8px !important', '&:last-child': { pb: '8px' } }}>
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '1rem', flex: 1, pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
                     <AccessTimeIcon fontSize="small" color="action" />
-                    <Typography variant="body2" color="text.secondary">
-                      Ende: {formatDateTime(entry.endTime)}
+                    <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                      {formatTime(entry.startTime)} – {formatTime(entry.endTime)}
                     </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', ml: 'auto', alignItems: 'flex-end', gap: 0.3 }}>
+                      <Chip label={formatDuration(entry.duration)} size="small" color="primary" sx={{ fontSize: '0.8rem', height: 22 }} />
+                      {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
+                        <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ fontSize: '0.8rem', height: 22 }} title="Korrigierte Zeit durch Tagesausgleich" />
+                      )}
+                    </Box>
                   </Box>
+                  {entry.description && (
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mt: 0.5 }}>
+                      <DescriptionIcon fontSize="small" color="action" sx={{ mt: 0.2 }} />
+                      <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                        {entry.description}
+                      </Typography>
+                    </Box>
+                  )}
                 </Stack>
-
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 1 }}>
-                  {renderDurationCell(entry)}
-                </Box>
-
-                {entry.description && (
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <DescriptionIcon fontSize="small" color="action" sx={{ mt: 0.5 }} />
-                    <Typography variant="body2">
-                      {entry.description}
-                    </Typography>
-                  </Box>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </SwipeableListItem>
         ))}
-    </Stack>
+    </SwipeableList>
   );
 
   const renderDesktopView = () => (
@@ -558,7 +538,7 @@ const TimeEntries: React.FC = () => {
                       <Stack direction="row" spacing={1} alignItems="center">
                         <AccessTimeIcon fontSize="small" color="action" />
                         <Typography variant="body2">
-                          {formatDateTime(entry.startTime)}
+                          {formatTime(entry.startTime)}
                         </Typography>
                       </Stack>
                     </TableCell>
@@ -566,12 +546,30 @@ const TimeEntries: React.FC = () => {
                       <Stack direction="row" spacing={1} alignItems="center">
                         <AccessTimeIcon fontSize="small" color="action" />
                         <Typography variant="body2">
-                          {formatDateTime(entry.endTime)}
+                          {formatTime(entry.endTime)}
                         </Typography>
                       </Stack>
                     </TableCell>
                     <TableCell align="right">
-                      {renderDurationCell(entry)}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 110 }}>
+                        <Chip
+                          label={formatDuration(entry.duration)}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ borderRadius: 1, mb: entry.correctedDuration && entry.correctedDuration !== entry.duration ? 0.5 : 0 }}
+                        />
+                        {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
+                          <Chip
+                            label={formatDuration(entry.correctedDuration)}
+                            size="small"
+                            color="warning"
+                            variant="filled"
+                            sx={{ borderRadius: 1 }}
+                            title="Korrigierte Zeit durch Tagesausgleich"
+                          />
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center">

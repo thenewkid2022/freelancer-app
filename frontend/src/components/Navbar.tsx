@@ -144,12 +144,21 @@ const Navbar: React.FC = () => {
                 backgroundColor: 'background.paper',
                 paddingLeft: 'env(safe-area-inset-left)',
                 paddingRight: 'env(safe-area-inset-right)',
-                paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+                paddingBottom: { xs: 'calc(env(safe-area-inset-bottom, 0px) + 0px)', sm: 0 },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 '& .MuiBottomNavigationAction-root': {
                   minWidth: 'auto',
                   padding: '4px 4px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   '& .MuiSvgIcon-root': {
                     fontSize: 24,
+                    display: 'block',
+                    margin: '0 auto',
                   },
                 },
               }}
