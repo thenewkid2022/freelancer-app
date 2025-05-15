@@ -131,58 +131,34 @@ const Navbar: React.FC = () => {
               onChange={(event, newValue) => {
                 navigate(newValue);
               }}
+              showLabels={false}
               sx={{
                 position: 'fixed',
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 68,
+                height: 56,
                 zIndex: 1000,
                 borderTop: '1px solid',
                 borderColor: 'divider',
                 backgroundColor: 'background.paper',
-                '& .MuiBottomNavigationAction-root': {
-                  minWidth: 'auto',
-                  padding: '8px 10px',
-                  '& .MuiBottomNavigationAction-label': {
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: '#222',
-                    '&.Mui-selected': {
-                      fontSize: '1rem',
-                      fontWeight: 900,
-                      color: theme => theme.palette.primary.main,
-                    },
-                  },
-                  '& .MuiSvgIcon-root': {
-                    fontSize: 32,
-                  },
-                },
                 paddingLeft: 'env(safe-area-inset-left)',
                 paddingRight: 'env(safe-area-inset-right)',
-                paddingBottom: 'env(safe-area-inset-bottom)',
+                paddingBottom: 'env(safe-area-inset-bottom, 20px)',
+                '& .MuiBottomNavigationAction-root': {
+                  minWidth: 'auto',
+                  padding: '4px 4px',
+                  '& .MuiSvgIcon-root': {
+                    fontSize: 24,
+                  },
+                },
               }}
             >
               {pages.map((page) => (
                 <BottomNavigationAction
                   key={page.path}
-                  label={page.name === 'Export' ? 'Export' : page.name}
+                  icon={page.icon}
                   value={page.path}
-                  icon={React.cloneElement(page.icon, { 
-                    sx: { 
-                      fontSize: page.name === 'Export' ? 36 : 32,
-                      color: location.pathname === page.path ? 'primary.main' : 'inherit'
-                    } 
-                  })}
-                  sx={{
-                    '& .MuiBottomNavigationAction-label': {
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      maxWidth: '100%',
-                      fontSize: page.name === 'Export' ? '0.9rem' : '1rem',
-                    },
-                  }}
                 />
               ))}
             </BottomNavigation>
