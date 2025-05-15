@@ -136,7 +136,7 @@ const Navbar: React.FC = () => {
                   navigate(newValue);
                 }
               }}
-              showLabels
+              showLabels={false}
               sx={{
                 position: 'fixed',
                 left: 0,
@@ -159,6 +159,7 @@ const Navbar: React.FC = () => {
                   label={page.name}
                   icon={page.icon}
                   value={page.path}
+                  showLabel={location.pathname === page.path}
                   sx={{
                     flex: 1,
                     minWidth: 0,
@@ -179,6 +180,7 @@ const Navbar: React.FC = () => {
                 label="Abmelden"
                 icon={<LogoutIcon />}
                 value="/logout"
+                showLabel={location.pathname === '/logout'}
                 sx={{
                   flex: 1,
                   minWidth: 0,

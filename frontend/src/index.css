@@ -11,8 +11,6 @@ html, body, #root {
   min-height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  position: fixed; /* Verhindert doppeltes Scrolling auf iOS */
   width: 100%;
   transition: background-color var(--transition-duration) ease-in-out;
   background: #f8f8f8; /* Optional, für einheitlichen Hintergrund */
