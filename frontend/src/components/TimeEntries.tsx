@@ -632,7 +632,6 @@ const TimeEntries: React.FC = () => {
       spacing={3} 
       sx={{ 
         width: '100%',
-        height: '100%',
         overflow: 'auto',
         WebkitOverflowScrolling: 'touch',
         pb: isMobile ? 2 : 0
@@ -678,25 +677,49 @@ const TimeEntries: React.FC = () => {
         </Alert>
       )}
 
-      {isMobile ? renderMobileView() : renderDesktopView()}
-
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={eintraegeFuerTag.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        labelRowsPerPage="Einträge pro Seite"
-        sx={{ 
-          borderTop: '1px solid', 
-          borderColor: 'divider',
-          '.MuiTablePagination-select': {
-            borderRadius: 1
-          }
-        }}
-      />
+      {isMobile ? (
+        <>
+          {renderMobileView()}
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={eintraegeFuerTag.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Einträge pro Seite"
+            sx={{ 
+              borderTop: '1px solid', 
+              borderColor: 'divider',
+              '.MuiTablePagination-select': {
+                borderRadius: 1
+              }
+            }}
+          />
+        </>
+      ) : (
+        <>
+          {renderDesktopView()}
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={eintraegeFuerTag.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Einträge pro Seite"
+            sx={{ 
+              borderTop: '1px solid', 
+              borderColor: 'divider',
+              '.MuiTablePagination-select': {
+                borderRadius: 1
+              }
+            }}
+          />
+        </>
+      )}
 
       <Dialog
         open={isDialogOpen}

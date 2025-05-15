@@ -50,7 +50,7 @@ const App: React.FC = () => {
             path="/dashboard"
             element={
               <PrivateRoute>
-                <Container maxWidth={false} sx={{ p: 0, m: 0, display: 'flex', justifyContent: 'center' }}>
+                <Container maxWidth={false} sx={{ p: 0, m: 0, display: 'flex', justifyContent: 'center', flex: 1 }}>
                   <Zeiterfassung />
                 </Container>
               </PrivateRoute>
@@ -65,6 +65,7 @@ const App: React.FC = () => {
                   sx={{ 
                     pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
+                    flex: 1,
                     overflow: 'visible',
                     px: { xs: 2, sm: 3 },
                     display: 'flex',
@@ -85,6 +86,7 @@ const App: React.FC = () => {
                   sx={{ 
                     pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
+                    flex: 1,
                     overflow: 'visible',
                     px: { xs: 2, sm: 3 },
                     display: 'flex',
@@ -103,9 +105,10 @@ const App: React.FC = () => {
                 <Container 
                   maxWidth="lg" 
                   sx={{ 
-                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 }, // Angepasster Abstand für mobile Navigation
+                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
-                    overflow: 'visible', // Geändert von 'auto' zu 'visible'
+                    flex: 1,
+                    overflow: 'visible',
                     px: { xs: 2, sm: 3 },
                     display: 'flex',
                     flexDirection: 'column'
@@ -120,7 +123,7 @@ const App: React.FC = () => {
             path="/export"
             element={
               <PrivateRoute>
-                <Container maxWidth="lg">
+                <Container maxWidth="lg" sx={{ flex: 1, height: '100%' }}>
                   <Export />
                 </Container>
               </PrivateRoute>
