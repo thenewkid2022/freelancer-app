@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Container,
   Paper,
@@ -15,6 +15,19 @@ import {
   TableHead,
   TableRow,
   Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  useTheme,
+  useMediaQuery,
+  Chip,
+  IconButton,
+  Tooltip as MuiTooltip,
+  SwipeableDrawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import {
   PieChart,
@@ -22,12 +35,35 @@ import {
   Cell,
   Tooltip,
   ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LineChart,
+  Line,
+  Legend,
 } from 'recharts';
+import {
+  ShowChart as ShowChartIcon,
+  BarChart as BarChartIcon,
+  PieChart as PieChartIcon,
+  AccessTime as AccessTimeIcon,
+  CalendarToday as CalendarTodayIcon,
+  TrendingUp as TrendingUpIcon,
+  Assignment as AssignmentIcon,
+  EmojiEvents as EmojiEventsIcon,
+  Timer as TimerIcon,
+  Info as InfoIcon,
+  Menu as MenuIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+} from '@mui/icons-material';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import { apiClient } from '../services/api/client';
 import { AxiosResponse } from 'axios';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, addDays, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears } from 'date-fns';
+import { de } from 'date-fns/locale';
 
 interface TimeEntry {
   _id: string;
@@ -49,8 +85,22 @@ interface TimeEntryFormData {
 const Statistics: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [chartType, setChartType] = useState<'pie' | 'bar' | 'line'>('pie');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+
+  const handleTimeRangeChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newTimeRange: 'week' | 'month' | 'year' | null,
+  ) => {
+    if (newTimeRange !== null) {
+      setTimeRange(newTimeRange);
+    }
+  };
 
   // Zeiteinträge abrufen
   const { data: timeEntries, isLoading: isLoadingTimeEntries } = useQuery<TimeEntry[]>({
@@ -60,24 +110,68 @@ const Statistics: React.FC = () => {
     },
   });
 
-  // Gefilterte Daten (nur nach Projekt)
-  const filteredTimeEntries = timeEntries?.filter((entry: TimeEntry) => {
-    return true;
-  }) || [];
-
-  // Projektverteilung für PieChart
-  const timeByProject = filteredTimeEntries.reduce((acc: any[], entry: TimeEntry) => {
-    const existing = acc.find(item => item.name === entry.project.name);
-    if (existing) {
-      existing.value += entry.duration / 3600;
-    } else {
-      acc.push({
-        name: entry.project.name,
-        value: entry.duration / 3600,
-      });
+  // Navigation durch Zeiträume
+  const navigateTimeRange = (direction: 'prev' | 'next') => {
+    const currentDate = new Date(selectedDate);
+    switch (timeRange) {
+      case 'week':
+        setSelectedDate(direction === 'prev' ? subWeeks(currentDate, 1) : addWeeks(currentDate, 1));
+        break;
+      case 'month':
+        setSelectedDate(direction === 'prev' ? subMonths(currentDate, 1) : addMonths(currentDate, 1));
+        break;
+      case 'year':
+        setSelectedDate(direction === 'prev' ? subYears(currentDate, 1) : addYears(currentDate, 1));
+        break;
     }
-    return acc;
-  }, []);
+  };
+
+  // Aktualisiere die gefilterten Daten basierend auf dem ausgewählten Datum
+  const filteredTimeEntries = useMemo(() => {
+    if (!timeEntries) return [];
+
+    let startDate: Date;
+    let endDate: Date;
+
+    switch (timeRange) {
+      case 'week':
+        startDate = startOfWeek(selectedDate, { locale: de });
+        endDate = endOfWeek(selectedDate, { locale: de });
+        break;
+      case 'month':
+        startDate = startOfMonth(selectedDate);
+        endDate = endOfMonth(selectedDate);
+        break;
+      case 'year':
+        startDate = startOfYear(selectedDate);
+        endDate = endOfYear(selectedDate);
+        break;
+      default:
+        startDate = startOfWeek(selectedDate, { locale: de });
+        endDate = endOfWeek(selectedDate, { locale: de });
+    }
+
+    return timeEntries.filter((entry: TimeEntry) => {
+      const entryDate = new Date(entry.startTime);
+      return entryDate >= startDate && entryDate <= endDate;
+    });
+  }, [timeEntries, timeRange, selectedDate]);
+
+  // Aktualisiere die Projektverteilung basierend auf den gefilterten Daten
+  const timeByProject = useMemo(() => {
+    return filteredTimeEntries.reduce((acc: any[], entry: TimeEntry) => {
+      const existing = acc.find(item => item.name === entry.project.name);
+      if (existing) {
+        existing.value += entry.duration / 3600;
+      } else {
+        acc.push({
+          name: entry.project.name,
+          value: entry.duration / 3600,
+        });
+      }
+      return acc;
+    }, []);
+  }, [filteredTimeEntries]);
 
   // Gesamtübersicht
   const totalHours = timeByProject.reduce(
@@ -89,20 +183,24 @@ const Statistics: React.FC = () => {
   const avgPerEntry = totalEntries > 0 ? totalHours / totalEntries : 0;
   const zeitraeume = 1; // Platzhalter, falls du Zeiträume berechnen willst
 
-  // Tägliche Übersicht (Gruppierung nach Tag)
-  const dailyMap: Record<string, { hours: number; entries: number }> = {};
-  filteredTimeEntries.forEach(entry => {
-    const day = new Date(entry.startTime).toLocaleDateString('de-DE');
-    if (!dailyMap[day]) {
-      dailyMap[day] = { hours: 0, entries: 0 };
-    }
-    dailyMap[day].hours += entry.duration / 3600;
-    dailyMap[day].entries += 1;
-  });
-  const dailyData = Object.entries(dailyMap).map(([date, data]) => ({
-    date,
-    ...data,
-  }));
+  // Aktualisiere die tägliche Übersicht
+  const dailyData = useMemo(() => {
+    const dailyMap: Record<string, { hours: number; entries: number }> = {};
+    
+    filteredTimeEntries.forEach(entry => {
+      const day = new Date(entry.startTime).toLocaleDateString('de-DE');
+      if (!dailyMap[day]) {
+        dailyMap[day] = { hours: 0, entries: 0 };
+      }
+      dailyMap[day].hours += entry.duration / 3600;
+      dailyMap[day].entries += 1;
+    });
+
+    return Object.entries(dailyMap).map(([date, data]) => ({
+      date,
+      ...data,
+    }));
+  }, [filteredTimeEntries]);
 
   // Farben für das PieChart aus dem Theme
   const COLORS = [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.primary.light, theme.palette.secondary.light, '#A020F0', '#FF6666'];
@@ -141,6 +239,207 @@ const Statistics: React.FC = () => {
 
   const topProjects = getTopProjects(timeByProject, 5);
 
+  // Aktualisiere die wöchentlichen Daten
+  const weeklyData = useMemo(() => {
+    const now = new Date();
+    let start: Date;
+    let end: Date;
+
+    switch (timeRange) {
+      case 'week':
+        start = startOfWeek(now, { locale: de });
+        end = endOfWeek(now, { locale: de });
+        break;
+      case 'month':
+        start = startOfMonth(now);
+        end = endOfMonth(now);
+        break;
+      case 'year':
+        start = startOfYear(now);
+        end = endOfYear(now);
+        break;
+      default:
+        start = startOfWeek(now, { locale: de });
+        end = endOfWeek(now, { locale: de });
+    }
+
+    const days = eachDayOfInterval({ start, end });
+    
+    return days.map(day => {
+      const dayEntries = filteredTimeEntries.filter(entry => 
+        format(new Date(entry.startTime), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+      );
+      const totalHours = dayEntries.reduce((sum, entry) => sum + entry.duration / 3600, 0);
+      
+      return {
+        date: format(day, timeRange === 'year' ? 'MMM' : 'EEEE', { locale: de }),
+        hours: Number(totalHours.toFixed(1)),
+        entries: dayEntries.length,
+      };
+    });
+  }, [filteredTimeEntries, timeRange]);
+
+  const handleChartTypeChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newChartType: 'pie' | 'bar' | 'line' | null,
+  ) => {
+    if (newChartType !== null) {
+      setChartType(newChartType);
+    }
+  };
+
+  // Erweiterte Kennzahlen
+  const stats = useMemo(() => {
+    // Produktivster Tag
+    const productiveDay = dailyData.reduce((max, day) => 
+      day.hours > max.hours ? day : max, 
+      { date: '', hours: 0, entries: 0 }
+    );
+
+    // Durchschnittliche Arbeitszeit pro Tag
+    const daysWithEntries = dailyData.filter(day => day.hours > 0).length;
+    const avgHoursPerDay = daysWithEntries > 0 ? totalHours / daysWithEntries : 0;
+
+    // Wochentagsverteilung
+    const weekdayDistribution = weeklyData.reduce((acc, day) => {
+      acc[day.date] = day.hours;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Produktivster Wochentag
+    const productiveWeekday = Object.entries(weekdayDistribution)
+      .reduce((max, [day, hours]) => hours > max.hours ? { day, hours } : max, 
+        { day: '', hours: 0 });
+
+    return {
+      productiveDay,
+      avgHoursPerDay,
+      productiveWeekday,
+      daysWithEntries,
+    };
+  }, [dailyData, weeklyData, totalHours]);
+
+  // Render-Funktion für das aktuelle Diagramm
+  const renderChart = (): JSX.Element => {
+    if (chartType === 'pie') {
+      return (
+        <PieChart>
+          <Pie
+            data={topProjects}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={120}
+            innerRadius={60}
+            label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+          >
+            {topProjects.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={COLORS[index % COLORS.length]}
+                stroke={theme.palette.background.paper}
+                strokeWidth={2}
+              />
+            ))}
+          </Pie>
+          <Tooltip 
+            formatter={(value: number) => [`${value.toFixed(1)} h`, '']}
+            contentStyle={{
+              backgroundColor: theme.palette.background.paper,
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 8,
+            }}
+          />
+        </PieChart>
+      );
+    }
+
+    if (chartType === 'bar') {
+      return (
+        <BarChart data={dailyData}>
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+          <XAxis 
+            dataKey="date" 
+            tick={{ fill: theme.palette.text.primary }}
+            tickLine={{ stroke: theme.palette.divider }}
+          />
+          <YAxis 
+            tick={{ fill: theme.palette.text.primary }}
+            tickLine={{ stroke: theme.palette.divider }}
+            label={{ 
+              value: 'Stunden', 
+              angle: -90, 
+              position: 'insideLeft',
+              fill: theme.palette.text.primary,
+            }}
+          />
+          <Tooltip 
+            contentStyle={{
+              backgroundColor: theme.palette.background.paper,
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 8,
+            }}
+            formatter={(value: number) => [`${value.toFixed(1)} h`, '']}
+          />
+          <Bar 
+            dataKey="hours" 
+            fill={theme.palette.primary.main}
+            radius={[4, 4, 0, 0]}
+          />
+        </BarChart>
+      );
+    }
+
+    // Default: Line Chart
+    return (
+      <LineChart data={weeklyData}>
+        <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+        <XAxis 
+          dataKey="date" 
+          tick={{ fill: theme.palette.text.primary }}
+          tickLine={{ stroke: theme.palette.divider }}
+        />
+        <YAxis 
+          tick={{ fill: theme.palette.text.primary }}
+          tickLine={{ stroke: theme.palette.divider }}
+          label={{ 
+            value: 'Stunden', 
+            angle: -90, 
+            position: 'insideLeft',
+            fill: theme.palette.text.primary,
+          }}
+        />
+        <Tooltip 
+          contentStyle={{
+            backgroundColor: theme.palette.background.paper,
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 8,
+          }}
+          formatter={(value: number) => [`${value.toFixed(1)} h`, '']}
+        />
+        <Line 
+          type="monotone" 
+          dataKey="hours" 
+          stroke={theme.palette.primary.main}
+          strokeWidth={2}
+          dot={{ 
+            fill: theme.palette.primary.main,
+            stroke: theme.palette.background.paper,
+            strokeWidth: 2,
+            r: 4,
+          }}
+          activeDot={{ 
+            fill: theme.palette.primary.main,
+            stroke: theme.palette.background.paper,
+            strokeWidth: 2,
+            r: 6,
+          }}
+        />
+      </LineChart>
+    );
+  };
+
   if (isLoadingTimeEntries) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -150,96 +449,417 @@ const Statistics: React.FC = () => {
   }
 
   return (
-    <Stack spacing={3}>
-      {/* Projektverteilung */}
-      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 }, mb: 4 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Projektverteilung</Typography>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={topProjects}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={80}
-              innerRadius={50}
-              label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+    <Container maxWidth="xl" sx={{ 
+      py: { xs: 2, md: 4 },
+      px: { xs: 1, md: 2 },
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 3
+    }}>
+      {/* Neuer zentraler Filterbereich */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Paper elevation={2} sx={{
+          px: { xs: 1, sm: 2, md: 4 },
+          py: { xs: 1, sm: 1.5, md: 2 },
+          borderRadius: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: { xs: 1, sm: 2, md: 3 },
+          boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)',
+          minWidth: { xs: 'unset', sm: 320 },
+          width: { xs: '100%', sm: 'auto' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: { xs: '100%', sm: 'auto' }, justifyContent: 'center' }}>
+            <IconButton 
+              onClick={() => navigateTimeRange('prev')}
+              size="medium"
+              sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'action.hover' }, mx: { xs: 0, sm: 0.5 } }}
             >
-              {topProjects.map((entry: { name: string; value: number }, index: number) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value: number, name: string, props: any) => {
-              const project = topProjects[props.payload && props.payload.index];
-              return [`${value.toFixed(2)} h`, project ? project.name : name];
-            }} />
-          </PieChart>
-        </ResponsiveContainer>
-        {/* Eigene Legende als Liste */}
-        <Box sx={{ mt: 2, maxHeight: 120, overflowY: 'auto' }}>
-          {topProjects.map((entry, idx) => (
-            <Box key={entry.name} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              <Box sx={{
-                width: 16, height: 16, bgcolor: COLORS[idx % COLORS.length], borderRadius: '50%', mr: 1
-              }} />
-              <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 180 }}>
-                {entry.name}: {totalHours > 0 ? (entry.value / totalHours * 100).toFixed(1) : '0.0'}%
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Paper>
+              <ChevronLeftIcon fontSize="medium" />
+            </IconButton>
+            <Typography variant="subtitle1" sx={{ minWidth: 90, textAlign: 'center', fontWeight: 600, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
+              {format(selectedDate, timeRange === 'year' ? 'yyyy' : 
+                timeRange === 'month' ? 'MMMM yyyy' : 
+                "'KW' w, yyyy", { locale: de })}
+            </Typography>
+            <IconButton 
+              onClick={() => navigateTimeRange('next')}
+              size="medium"
+              sx={{ bgcolor: 'background.default', '&:hover': { bgcolor: 'action.hover' }, mx: { xs: 0, sm: 0.5 } }}
+            >
+              <ChevronRightIcon fontSize="medium" />
+            </IconButton>
+          </Box>
+          <Divider orientation={ (typeof window !== 'undefined' && window.innerWidth < 600) ? 'horizontal' : 'vertical' } flexItem sx={{ my: { xs: 1, sm: 0 }, mx: { xs: 0, sm: 2 }, display: { xs: 'block', sm: 'block', md: 'block' } }} />
+          <ToggleButtonGroup
+            value={timeRange}
+            exclusive
+            onChange={handleTimeRangeChange}
+            size="medium"
+            sx={{ ml: { xs: 0, sm: 2 }, width: { xs: '100%', sm: 'auto' }, justifyContent: 'center' }}
+            fullWidth={true}
+          >
+            <ToggleButton value="week" sx={{ flex: 1, minWidth: 80 }}>Woche</ToggleButton>
+            <ToggleButton value="month" sx={{ flex: 1, minWidth: 80 }}>Monat</ToggleButton>
+            <ToggleButton value="year" sx={{ flex: 1, minWidth: 80 }}>Jahr</ToggleButton>
+          </ToggleButtonGroup>
+        </Paper>
+      </Box>
 
-      {/* Gesamtübersicht */}
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={12} sm={4} md={3}>
-          <Card elevation={3} sx={{ bgcolor: theme.palette.background.paper, p: { xs: 1, sm: 2 } }}>
-            <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
-              <Typography variant="subtitle2" color="success.main" gutterBottom sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
-                Gesamtstunden
-              </Typography>
-              <Typography variant="h5" color="success.main" sx={{ fontWeight: 700, fontSize: { xs: '1.2rem', sm: '2rem' } }}>
-                {isNaN(totalHours) ? '0.00' : totalHours.toFixed(2)} h
-              </Typography>
-            </CardContent>
-          </Card>
+      {/* Hauptbereich mit Grid-Layout */}
+      <Grid container spacing={3}>
+        {/* Linke Spalte: Diagramme */}
+        <Grid item xs={12} lg={8}>
+          <Paper sx={{ 
+            p: { xs: 1, sm: 2, md: 3 },
+            height: '100%',
+            borderRadius: 2,
+            boxShadow: '0 2px 12px 0 rgba(0,0,0,0.05)',
+            minHeight: 320,
+          }}>
+            {/* Diagramm-Typ Auswahl */}
+            <Box sx={{ 
+              mb: 2,
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottom: 1,
+              borderColor: 'divider',
+              pb: 2,
+              gap: { xs: 1, sm: 2 },
+            }}>
+              <ToggleButtonGroup
+                value={chartType}
+                exclusive
+                onChange={handleChartTypeChange}
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    px: { xs: 2, sm: 3 },
+                    py: 1,
+                    borderRadius: 2,
+                    fontSize: { xs: '0.95rem', sm: '1rem' },
+                    '&.Mui-selected': {
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
+                      '&:hover': {
+                        bgcolor: 'primary.dark',
+                      }
+                    }
+                  }
+                }}
+              >
+                <ToggleButton value="pie">
+                  <PieChartIcon sx={{ mr: 1 }} />
+                  Projektverteilung
+                </ToggleButton>
+                <ToggleButton value="bar">
+                  <BarChartIcon sx={{ mr: 1 }} />
+                  Tagesübersicht
+                </ToggleButton>
+                <ToggleButton value="line">
+                  <ShowChartIcon sx={{ mr: 1 }} />
+                  Wochenverlauf
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            {/* Diagramm-Container */}
+            <Box sx={{ 
+              height: { xs: 260, sm: 320, md: 400 },
+              position: 'relative',
+              width: '100%',
+              minWidth: 0,
+            }}>
+              <ResponsiveContainer width="100%" height="100%">
+                {renderChart()}
+              </ResponsiveContainer>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Rechte Spalte: Statistik-Karten */}
+        <Grid item xs={12} lg={4}>
+          <Stack spacing={2}>
+            {/* Gesamtstunden */}
+            <Paper sx={{ 
+              p: 2.5,
+              borderRadius: 2,
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)'
+              }
+            }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{
+                  bgcolor: 'primary.main',
+                  borderRadius: 2,
+                  p: 1.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'primary.contrastText',
+                  minWidth: 48,
+                  height: 48
+                }}>
+                  <AccessTimeIcon />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Gesamtstunden
+                  </Typography>
+                  <Typography variant="h4" sx={{ 
+                    fontWeight: 600,
+                    color: 'primary.main',
+                    mt: 0.5
+                  }}>
+                    {totalHours.toFixed(1)}h
+                  </Typography>
+                </Box>
+              </Stack>
+            </Paper>
+
+            {/* Durchschnitt pro Tag */}
+            <Paper sx={{ 
+              p: 2.5,
+              borderRadius: 2,
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)'
+              }
+            }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{
+                  bgcolor: 'secondary.main',
+                  borderRadius: 2,
+                  p: 1.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'secondary.contrastText',
+                  minWidth: 48,
+                  height: 48
+                }}>
+                  <TimerIcon />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Ø pro Tag
+                  </Typography>
+                  <Typography variant="h4" sx={{ 
+                    fontWeight: 600,
+                    color: 'secondary.main',
+                    mt: 0.5
+                  }}>
+                    {stats.avgHoursPerDay.toFixed(1)}h
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {stats.daysWithEntries} Tage mit Einträgen
+                  </Typography>
+                </Box>
+              </Stack>
+            </Paper>
+
+            {/* Zeiteinträge */}
+            <Paper sx={{ 
+              p: 2.5,
+              borderRadius: 2,
+              transition: 'transform 0.2s, box-shadow 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)'
+              }
+            }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Box sx={{
+                  bgcolor: 'info.main',
+                  borderRadius: 2,
+                  p: 1.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'info.contrastText',
+                  minWidth: 48,
+                  height: 48
+                }}>
+                  <AssignmentIcon />
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Zeiteinträge
+                  </Typography>
+                  <Typography variant="h4" sx={{ 
+                    fontWeight: 600,
+                    color: 'info.main',
+                    mt: 0.5
+                  }}>
+                    {totalEntries}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Ø {avgPerEntry.toFixed(1)}h pro Eintrag
+                  </Typography>
+                </Box>
+              </Stack>
+            </Paper>
+          </Stack>
+        </Grid>
+
+        {/* Unterer Bereich: Detaillierte Statistiken */}
+        <Grid item xs={12}>
+          <Paper sx={{ 
+            p: 3,
+            borderRadius: 2,
+            boxShadow: '0 2px 12px 0 rgba(0,0,0,0.05)'
+          }}>
+            <Grid container spacing={3}>
+              {/* Produktivster Tag */}
+              <Grid item xs={12} md={6}>
+                <Box sx={{ 
+                  p: 2,
+                  bgcolor: 'background.default',
+                  borderRadius: 2,
+                  height: '100%'
+                }}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box sx={{
+                      bgcolor: 'success.main',
+                      borderRadius: 2,
+                      p: 1.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'success.contrastText'
+                    }}>
+                      <EmojiEventsIcon />
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Produktivster Tag
+                      </Typography>
+                      <Typography variant="h6" sx={{ 
+                        color: 'success.main',
+                        fontWeight: 600,
+                        mt: 0.5
+                      }}>
+                        {stats.productiveDay.date}
+                      </Typography>
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+                        <Typography variant="h5" sx={{ 
+                          color: 'success.main',
+                          fontWeight: 600
+                        }}>
+                          {stats.productiveDay.hours.toFixed(1)}h
+                        </Typography>
+                        <Chip 
+                          size="small"
+                          label={`${stats.productiveDay.entries} Einträge`}
+                          color="success"
+                          variant="outlined"
+                        />
+                      </Stack>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Grid>
+
+              {/* Produktivster Wochentag */}
+              <Grid item xs={12} md={6}>
+                <Box sx={{ 
+                  p: 2,
+                  bgcolor: 'background.default',
+                  borderRadius: 2,
+                  height: '100%'
+                }}>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Box sx={{
+                      bgcolor: 'warning.main',
+                      borderRadius: 2,
+                      p: 1.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'warning.contrastText'
+                    }}>
+                      <TrendingUpIcon />
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Produktivster Wochentag
+                      </Typography>
+                      <Typography variant="h6" sx={{ 
+                        color: 'warning.main',
+                        fontWeight: 600,
+                        mt: 0.5
+                      }}>
+                        {stats.productiveWeekday.day}
+                      </Typography>
+                      <Typography variant="h5" sx={{ 
+                        color: 'warning.main',
+                        fontWeight: 600,
+                        mt: 1
+                      }}>
+                        {stats.productiveWeekday.hours.toFixed(1)}h
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
         </Grid>
       </Grid>
 
-      {/* Tägliche Übersicht */}
-      <Paper sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-        <Typography variant="h6" sx={{ mb: 1, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>Tägliche Übersicht</Typography>
-        <Box sx={{ width: '100%', overflowX: 'auto' }}>
-          <TableContainer sx={{ minWidth: 320 }}>
-            <Table size="small" sx={{ minWidth: 320 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Zeitraum</TableCell>
-                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Gesamtstunden</TableCell>
-                  <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>Einträge</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {dailyData.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} align="center" sx={{ py: 1 }}>Keine Daten vorhanden</TableCell>
-                  </TableRow>
-                ) : (
-                  dailyData.map((row) => (
-                    <TableRow key={row.date}>
-                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.date}</TableCell>
-                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.hours.toFixed(2)} h</TableCell>
-                      <TableCell sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, py: 0.5 }}>{row.entries}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+      {/* Mobile Drawer */}
+      <SwipeableDrawer
+        anchor="right"
+        open={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onOpen={() => setIsDrawerOpen(true)}
+      >
+        <Box sx={{ width: 280, p: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Zusätzliche Informationen
+          </Typography>
+          <List>
+            <ListItem>
+              <ListItemIcon>
+                <TrendingUpIcon color="warning" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Produktivster Wochentag"
+                secondary={`${stats.productiveWeekday.day} (${stats.productiveWeekday.hours.toFixed(1)}h)`}
+              />
+            </ListItem>
+            <Divider />
+            <ListItem>
+              <ListItemIcon>
+                <CalendarTodayIcon color="info" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Aktive Tage"
+                secondary={`${stats.daysWithEntries} Tage mit Einträgen`}
+              />
+            </ListItem>
+            <Divider />
+            <ListItem>
+              <ListItemIcon>
+                <AssignmentIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Durchschnitt pro Eintrag"
+                secondary={`${avgPerEntry.toFixed(1)} Stunden`}
+              />
+            </ListItem>
+          </List>
         </Box>
-      </Paper>
-    </Stack>
+      </SwipeableDrawer>
+    </Container>
   );
 };
 

@@ -33,19 +33,26 @@ export const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({ c
       palette: {
         mode: darkMode ? 'dark' : 'light',
         primary: {
-          main: '#1976d2',
-          light: '#42a5f5',
-          dark: '#1565c0',
+          main: darkMode ? '#90caf9' : '#1976d2',
+          light: darkMode ? '#e3f2fd' : '#42a5f5',
+          dark: darkMode ? '#42a5f5' : '#1565c0',
+          contrastText: darkMode ? '#000000' : '#ffffff',
         },
         secondary: {
-          main: '#9c27b0',
-          light: '#ba68c8',
-          dark: '#7b1fa2',
+          main: darkMode ? '#ce93d8' : '#9c27b0',
+          light: darkMode ? '#f3e5f5' : '#ba68c8',
+          dark: darkMode ? '#ab47bc' : '#7b1fa2',
+          contrastText: darkMode ? '#000000' : '#ffffff',
         },
         background: {
-          default: darkMode ? '#181818' : '#f5f5f5',
-          paper: darkMode ? '#232323' : '#ffffff',
+          default: darkMode ? '#121212' : '#f5f5f5',
+          paper: darkMode ? '#1e1e1e' : '#ffffff',
         },
+        text: {
+          primary: darkMode ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
+          secondary: darkMode ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+        },
+        divider: darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)',
       },
       typography: {
         fontFamily: [
@@ -57,6 +64,63 @@ export const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({ c
           'Arial',
           'sans-serif',
         ].join(','),
+      },
+      components: {
+        MuiCssBaseline: {
+          styleOverrides: {
+            body: {
+              scrollbarColor: darkMode ? "#6b6b6b #2b2b2b" : "#c1c1c1 #f1f1f1",
+              "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
+                backgroundColor: darkMode ? "#2b2b2b" : "#f1f1f1",
+                width: 8,
+                height: 8,
+              },
+              "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
+                borderRadius: 8,
+                backgroundColor: darkMode ? "#6b6b6b" : "#c1c1c1",
+                minHeight: 24,
+                border: darkMode ? "2px solid #2b2b2b" : "2px solid #f1f1f1",
+              },
+            },
+          },
+        },
+        MuiPaper: {
+          styleOverrides: {
+            root: {
+              backgroundImage: 'none',
+              transition: 'background-color 0.3s ease-in-out',
+            },
+          },
+        },
+        MuiCard: {
+          styleOverrides: {
+            root: {
+              transition: 'background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+              boxShadow: darkMode 
+                ? '0 2px 4px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1)'
+                : '0 2px 4px rgba(0,0,0,0.1)',
+            },
+          },
+        },
+        MuiButton: {
+          styleOverrides: {
+            root: {
+              textTransform: 'none',
+              transition: 'background-color 0.3s ease-in-out, transform 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-1px)',
+              },
+            },
+          },
+        },
+        MuiAppBar: {
+          styleOverrides: {
+            root: {
+              transition: 'background-color 0.3s ease-in-out',
+              backgroundImage: 'none',
+            },
+          },
+        },
       },
     }),
     [darkMode]

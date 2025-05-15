@@ -2,11 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --transition-duration: 0.3s;
+}
+
 html, body, #root {
   height: 100%;
   min-height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
+  transition: background-color var(--transition-duration) ease-in-out;
   background: #f8f8f8; /* Optional, für einheitlichen Hintergrund */
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color var(--transition-duration) ease-in-out,
+              border-color var(--transition-duration) ease-in-out,
+              color var(--transition-duration) ease-in-out,
+              box-shadow var(--transition-duration) ease-in-out;
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  min-height: 24px;
+}
+
+/* Selection styles */
+::selection {
+  background-color: var(--selection-bg, rgba(25, 118, 210, 0.2));
+  color: var(--selection-color, inherit);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--focus-outline, #1976d2);
+  outline-offset: 2px;
+}
+
+/* Dark mode specific styles */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --selection-bg: rgba(144, 202, 249, 0.2);
+    --focus-outline: #90caf9;
+  }
+}
+
+/* Light mode specific styles */
+@media (prefers-color-scheme: light) {
+  :root {
+    --selection-bg: rgba(25, 118, 210, 0.2);
+    --focus-outline: #1976d2;
+  }
 }
