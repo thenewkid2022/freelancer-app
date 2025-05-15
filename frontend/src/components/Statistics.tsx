@@ -412,19 +412,19 @@ const Statistics: React.FC = () => {
         maxWidth: '100%',
         overflowX: 'hidden',
         height: '100%',
-        overflow: 'hidden',
+        overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
         pb: isMobile ? 2 : 0,
       }}
     >
       <Grid 
         container 
-        spacing={{ xs: 1, sm: 1.5, md: 2 }}
+        spacing={{ xs: 0.5, sm: 1, md: 2 }}
         sx={{
           width: '100%',
           margin: 0,
           '& > .MuiGrid-item': {
-            padding: { xs: 1, sm: 1.5, md: 2 },
+            padding: { xs: 0.5, sm: 1, md: 2 },
           }
         }}
       >
@@ -433,12 +433,12 @@ const Statistics: React.FC = () => {
           <Paper
             elevation={2}
             sx={{
-              px: { xs: 1, sm: 2, md: 4 },
+              px: { xs: 1, sm: 2, md: 3 },
               py: { xs: 1, sm: 1.5, md: 2 },
               borderRadius: 3,
               display: 'flex',
               alignItems: 'center',
-              gap: { xs: 0.5, sm: 2, md: 3 },
+              gap: { xs: 0.5, sm: 1, md: 2 },
               boxShadow: '0 2px 12px 0 rgba(0,0,0,0.04)',
               width: '100%',
               flexDirection: { xs: 'column', sm: 'row' },
@@ -480,7 +480,7 @@ const Statistics: React.FC = () => {
                 '& .MuiToggleButton-root': {
                   flex: 1,
                   minWidth: 'auto',
-                  px: 1.5,
+                  px: { xs: 0.5, sm: 1 },
                   whiteSpace: 'nowrap',
                 }
               }}
@@ -566,6 +566,11 @@ const Statistics: React.FC = () => {
                 overflowX: 'hidden',
                 '& .recharts-wrapper': {
                   overflow: 'hidden',
+                  width: '100% !important',
+                  '& svg': {
+                    width: '100% !important',
+                    height: 'auto !important',
+                  }
                 }
               }}
             >

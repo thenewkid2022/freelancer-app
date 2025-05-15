@@ -13,6 +13,8 @@ import {
   useMediaQuery,
   useTheme,
   Badge,
+  Avatar,
+  ListItemIcon,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,9 +30,8 @@ import LogoutIcon from '@mui/icons-material/Logout';
 const pages = [
   { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
   { name: 'Zeiteinträge', path: '/time-entries', icon: <ListAltIcon /> },
-  { name: 'Export', path: '/export', icon: <FileDownloadIcon /> },
   { name: 'Statistiken', path: '/statistics', icon: <BarChartIcon /> },
-  { name: 'Profil', path: '/profile', icon: <PersonIcon /> },
+  { name: 'Export', path: '/export', icon: <FileDownloadIcon /> },
 ];
 
 const Navbar: React.FC = () => {
@@ -43,6 +44,7 @@ const Navbar: React.FC = () => {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElNotifications, setAnchorElNotifications] = useState<null | HTMLElement>(null);
   const [notifications] = useState<string[]>([]); // Hier später mit echtem State ersetzen
+  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -69,6 +71,14 @@ const Navbar: React.FC = () => {
 
   const handleCloseNotifications = () => {
     setAnchorElNotifications(null);
+  };
+
+  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElUser(event.currentTarget);
+  };
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null);
   };
 
   const navIcons = [
@@ -127,76 +137,111 @@ const Navbar: React.FC = () => {
 
           {/* Mobile Navigation */}
           {isMobile && (
-            <BottomNavigation
-              value={location.pathname}
-              onChange={(event, newValue) => {
-                if (newValue === '/logout') {
-                  handleLogout();
-                } else {
-                  navigate(newValue);
-                }
-              }}
-              showLabels={false}
-              sx={{
-                position: 'fixed',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 1200,
-                height: 'calc(56px + env(safe-area-inset-bottom))',
-                paddingBottom: 'env(safe-area-inset-bottom)',
-                boxShadow: '0 -2px 8px 0 rgba(0,0,0,0.04)',
-                bgcolor: 'background.paper',
-                borderTop: 1,
-                borderColor: 'divider',
-                display: { xs: 'flex', sm: 'none' },
-                justifyContent: 'space-around',
-              }}
-            >
-              {pages.map((page, idx) => (
-                <BottomNavigationAction
-                  key={page.path}
-                  label={page.name}
-                  icon={page.icon}
-                  value={page.path}
-                  showLabel={location.pathname === page.path}
-                  sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    maxWidth: '100%',
-                    padding: '6px 0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    '.MuiSvgIcon-root': {
-                      fontSize: 28,
-                      marginBottom: '2px',
-                    },
+            <>
+              <Box sx={{ flexGrow: 1 }} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton
+                  size="large"
+                  aria-label="show notifications"
+                  aria-controls="menu-notifications"
+                  aria-haspopup="true"
+                  onClick={handleOpenNotifications}
+                  color="inherit"
+                >
+                  <Badge badgeContent={notifications.length} color="error">
+                    <NotificationsIcon />
+                  </Badge>
+                </IconButton>
+
+                <IconButton
+                  onClick={handleOpenUserMenu}
+                  sx={{ p: 0 }}
+                >
+                  <Avatar alt={user?.email} src="/static/images/avatar/2.jpg" />
+                </IconButton>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
                   }}
-                />
-              ))}
-              <BottomNavigationAction
-                label="Abmelden"
-                icon={<LogoutIcon />}
-                value="/logout"
-                showLabel={location.pathname === '/logout'}
-                sx={{
-                  flex: 1,
-                  minWidth: 0,
-                  maxWidth: '100%',
-                  padding: '6px 0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  '.MuiSvgIcon-root': {
-                    fontSize: 28,
-                    marginBottom: '2px',
-                  },
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                >
+                  <MenuItem onClick={() => {
+                    handleCloseUserMenu();
+                    navigate('/profile');
+                  }}>
+                    <ListItemIcon>
+                      <PersonIcon fontSize="small" />
+                    </ListItemIcon>
+                    <Typography textAlign="center">Profil</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={() => {
+                    handleCloseUserMenu();
+                    handleLogout();
+                  }}>
+                    <ListItemIcon>
+                      <LogoutIcon fontSize="small" />
+                    </ListItemIcon>
+                    <Typography textAlign="center">Abmelden</Typography>
+                  </MenuItem>
+                </Menu>
+              </Box>
+              <BottomNavigation
+                value={location.pathname}
+                onChange={(event, newValue) => {
+                  navigate(newValue);
                 }}
-              />
-            </BottomNavigation>
+                showLabels={false}
+                sx={{
+                  position: 'fixed',
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 1200,
+                  height: 'calc(56px + env(safe-area-inset-bottom))',
+                  paddingBottom: 'env(safe-area-inset-bottom)',
+                  boxShadow: '0 -2px 8px 0 rgba(0,0,0,0.04)',
+                  bgcolor: 'background.paper',
+                  borderTop: 1,
+                  borderColor: 'divider',
+                  display: { xs: 'flex', sm: 'none' },
+                  justifyContent: 'space-around',
+                }}
+              >
+                {pages.map((page) => (
+                  <BottomNavigationAction
+                    key={page.path}
+                    label={page.name}
+                    icon={page.icon}
+                    value={page.path}
+                    showLabel={location.pathname === page.path}
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      maxWidth: '100%',
+                      padding: '6px 0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      '.MuiSvgIcon-root': {
+                        fontSize: 28,
+                        marginBottom: '2px',
+                      },
+                    }}
+                  />
+                ))}
+              </BottomNavigation>
+            </>
           )}
 
           {/* Desktop Navigation */}
@@ -218,57 +263,97 @@ const Navbar: React.FC = () => {
                   {page.name}
                 </Button>
               ))}
-              <Button
-                color="inherit"
-                onClick={handleLogout}
-                sx={{ my: 2, ml: 2 }}
-              >
-                Abmelden
-              </Button>
             </Box>
           )}
 
-          <Box sx={{ flexGrow: 0 }}>
-            <IconButton
-              size="large"
-              aria-label="show notifications"
-              aria-controls="menu-notifications"
-              aria-haspopup="true"
-              onClick={handleOpenNotifications}
-              color="inherit"
-            >
-              <Badge badgeContent={notifications.length} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-            <Menu
-              id="menu-notifications"
-              anchorEl={anchorElNotifications}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-              open={Boolean(anchorElNotifications)}
-              onClose={handleCloseNotifications}
-            >
-              {notifications.length === 0 ? (
-                <MenuItem onClick={handleCloseNotifications}>
-                  <Typography>Keine neuen Benachrichtigungen</Typography>
+          {/* Desktop Profile Menu */}
+          {!isMobile && (
+            <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconButton
+                size="large"
+                aria-label="show notifications"
+                aria-controls="menu-notifications"
+                aria-haspopup="true"
+                onClick={handleOpenNotifications}
+                color="inherit"
+              >
+                <Badge badgeContent={notifications.length} color="error">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+
+              <IconButton
+                onClick={handleOpenUserMenu}
+                sx={{ p: 0 }}
+              >
+                <Avatar alt={user?.email} src="/static/images/avatar/2.jpg" />
+              </IconButton>
+              <Menu
+                sx={{ mt: '45px' }}
+                id="menu-appbar"
+                anchorEl={anchorElUser}
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+              >
+                <MenuItem onClick={() => {
+                  handleCloseUserMenu();
+                  navigate('/profile');
+                }}>
+                  <ListItemIcon>
+                    <PersonIcon fontSize="small" />
+                  </ListItemIcon>
+                  <Typography textAlign="center">Profil</Typography>
                 </MenuItem>
-              ) : (
-                notifications.map((notification, index) => (
-                  <MenuItem key={index} onClick={handleCloseNotifications}>
-                    <Typography>{notification}</Typography>
-                  </MenuItem>
-                ))
-              )}
-            </Menu>
-          </Box>
+                <MenuItem onClick={() => {
+                  handleCloseUserMenu();
+                  handleLogout();
+                }}>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  <Typography textAlign="center">Abmelden</Typography>
+                </MenuItem>
+              </Menu>
+            </Box>
+          )}
+
+          {/* Notifications Menu (shared between mobile and desktop) */}
+          <Menu
+            id="menu-notifications"
+            anchorEl={anchorElNotifications}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            open={Boolean(anchorElNotifications)}
+            onClose={handleCloseNotifications}
+          >
+            {notifications.length === 0 ? (
+              <MenuItem onClick={handleCloseNotifications}>
+                <Typography>Keine neuen Benachrichtigungen</Typography>
+              </MenuItem>
+            ) : (
+              notifications.map((notification, index) => (
+                <MenuItem key={index} onClick={handleCloseNotifications}>
+                  <Typography>{notification}</Typography>
+                </MenuItem>
+              ))
+            )}
+          </Menu>
         </Toolbar>
       </Container>
     </AppBar>
