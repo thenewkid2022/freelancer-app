@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Box } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/Navbar';
@@ -15,17 +15,39 @@ import Export from './components/Export';
 
 const App: React.FC = () => {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      minHeight: '100vh',
+      overflow: 'hidden' // Verhindert Scrolling auf der Root-Ebene
+    }}>
       <Navbar />
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box 
+        component="main" 
+        sx={{ 
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          pt: { xs: 7, sm: 8 }, // Konsistenter Abstand unter dem Header
+          pb: 4,
+          backgroundColor: '#f8f8f8',
+          overflow: 'auto', // Ermöglicht Scrolling im Content-Bereich
+          height: 'calc(100vh - 64px)', // Volle Höhe minus Header-Höhe
+          '& > *': { // Stellt sicher, dass der Container die volle Breite nutzt
+            width: '100%'
+          }
+        }}
+      >
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <PrivateRoute>
-                <Zeiterfassung />
+                <Container maxWidth={false} sx={{ p: 0, m: 0, display: 'flex', justifyContent: 'center' }}>
+                  <Zeiterfassung />
+                </Container>
               </PrivateRoute>
             }
           />
@@ -33,7 +55,9 @@ const App: React.FC = () => {
             path="/time-entries"
             element={
               <PrivateRoute>
-                <TimeEntries />
+                <Container maxWidth="lg">
+                  <TimeEntries />
+                </Container>
               </PrivateRoute>
             }
           />
@@ -41,7 +65,9 @@ const App: React.FC = () => {
             path="/statistics"
             element={
               <PrivateRoute>
-                <Statistics />
+                <Container maxWidth="lg">
+                  <Statistics />
+                </Container>
               </PrivateRoute>
             }
           />
@@ -49,15 +75,9 @@ const App: React.FC = () => {
             path="/profile"
             element={
               <PrivateRoute>
-                <Profile />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Zeiterfassung />
+                <Container maxWidth="lg">
+                  <Profile />
+                </Container>
               </PrivateRoute>
             }
           />
@@ -65,24 +85,15 @@ const App: React.FC = () => {
             path="/export"
             element={
               <PrivateRoute>
-                <Export />
+                <Container maxWidth="lg">
+                  <Export />
+                </Container>
               </PrivateRoute>
             }
           />
         </Routes>
       </Box>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      <ToastContainer />
     </Box>
   );
 };

@@ -92,7 +92,7 @@ const Settings: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: { xs: 7, sm: 8 }, mb: 4 }}>
       <Paper sx={{ p: 3 }}>
         <Typography variant="h5" component="h1" gutterBottom>
           Einstellungen

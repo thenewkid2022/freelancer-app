@@ -168,195 +168,188 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <Container maxWidth={isMobile ? 'xs' : 'md'} sx={{ mt: isMobile ? 2 : 4, mb: isMobile ? 2 : 4, px: isMobile ? 0.5 : 2 }}>
-      <Stack spacing={isMobile ? 2 : 3}>
-        {!isMobile && (
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-            {t('profile.title')}
-          </Typography>
-        )}
-        <Paper sx={{ p: isMobile ? 1.5 : 3, boxShadow: isMobile ? 0 : 3, borderRadius: isMobile ? 2 : 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'center', mb: isMobile ? 2 : 3 }}>
-            <Avatar
-              sx={{ width: isMobile ? 56 : 64, height: isMobile ? 56 : 64, mb: isMobile ? 1 : 0, mr: isMobile ? 0 : 2 }}
-              alt={`${userProfile?.firstName} ${userProfile?.lastName}`}
-            />
-            <Box sx={{ textAlign: isMobile ? 'center' : 'left' }}>
-              <Typography variant={isMobile ? 'h6' : 'h5'} component="h1">
-                {userProfile?.firstName} {userProfile?.lastName}
-              </Typography>
-              <Typography color="textSecondary" sx={{ fontSize: isMobile ? '0.95rem' : undefined }}>
-                {userProfile?.email}
-              </Typography>
-            </Box>
+    <Stack spacing={isMobile ? 2 : 3}>
+      <Paper sx={{ p: isMobile ? 1.5 : 3, boxShadow: isMobile ? 0 : 3, borderRadius: isMobile ? 2 : 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'center', mb: isMobile ? 2 : 3 }}>
+          <Avatar
+            sx={{ width: isMobile ? 56 : 64, height: isMobile ? 56 : 64, mb: isMobile ? 1 : 0, mr: isMobile ? 0 : 2 }}
+            alt={`${userProfile?.firstName} ${userProfile?.lastName}`}
+          />
+          <Box sx={{ textAlign: isMobile ? 'center' : 'left' }}>
+            <Typography variant={isMobile ? 'h6' : 'h5'} component="h1">
+              {userProfile?.firstName} {userProfile?.lastName}
+            </Typography>
+            <Typography color="textSecondary" sx={{ fontSize: isMobile ? '0.95rem' : undefined }}>
+              {userProfile?.email}
+            </Typography>
           </Box>
+        </Box>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
-          <Grid container spacing={isMobile ? 1.5 : 3}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1.1rem' : undefined }}>
-                {t('profile.personalInfo')}
-              </Typography>
-              <Grid container spacing={isMobile ? 1 : 2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label={t('profile.firstName')}
-                    value={profile.firstName}
-                    onChange={(e) => handleProfileChange('firstName', e.target.value)}
-                    disabled={!isEditing}
-                    size={isMobile ? 'small' : 'medium'}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label={t('profile.lastName')}
-                    value={profile.lastName}
-                    onChange={(e) => handleProfileChange('lastName', e.target.value)}
-                    disabled={!isEditing}
-                    size={isMobile ? 'small' : 'medium'}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label={t('profile.email')}
-                    value={profile.email}
-                    onChange={(e) => handleProfileChange('email', e.target.value)}
-                    disabled={!isEditing}
-                    size={isMobile ? 'small' : 'medium'}
-                  />
-                </Grid>
+        <Grid container spacing={isMobile ? 1.5 : 3}>
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1.1rem' : undefined }}>
+              {t('profile.personalInfo')}
+            </Typography>
+            <Grid container spacing={isMobile ? 1 : 2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label={t('profile.firstName')}
+                  value={profile.firstName}
+                  onChange={(e) => handleProfileChange('firstName', e.target.value)}
+                  disabled={!isEditing}
+                  size={isMobile ? 'small' : 'medium'}
+                />
               </Grid>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Divider sx={{ my: isMobile ? 1.5 : 2 }} />
-              <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1.1rem' : undefined }}>
-                {t('profile.settings')}
-              </Typography>
-              <Grid container spacing={isMobile ? 1 : 2}>
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={profile.settings?.darkMode}
-                        onChange={(e) => handleSettingsChange('darkMode', e.target.checked)}
-                        disabled={!isEditing}
-                      />
-                    }
-                    label={t('profile.darkMode')}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    select
-                    fullWidth
-                    label={t('profile.language')}
-                    value={profile.settings?.language}
-                    onChange={(e) => handleSettingsChange('language', e.target.value)}
-                    disabled={!isEditing}
-                    size={isMobile ? 'small' : 'medium'}
-                  >
-                    <MenuItem value="de">Deutsch</MenuItem>
-                    <MenuItem value="en">English</MenuItem>
-                    <MenuItem value="es">Español</MenuItem>
-                  </TextField>
-                </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label={t('profile.lastName')}
+                  value={profile.lastName}
+                  onChange={(e) => handleProfileChange('lastName', e.target.value)}
+                  disabled={!isEditing}
+                  size={isMobile ? 'small' : 'medium'}
+                />
               </Grid>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Divider sx={{ my: isMobile ? 1.5 : 2 }} />
-              <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1.1rem' : undefined }}>
-                {t('profile.changePassword')}
-              </Typography>
-              <Grid container spacing={isMobile ? 1 : 2}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    type="password"
-                    label={t('profile.currentPassword')}
-                    value={password.current}
-                    onChange={(e) => handlePasswordChange('current', e.target.value)}
-                    disabled={!isEditing}
-                    size={isMobile ? 'small' : 'medium'}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    type="password"
-                    label={t('profile.newPassword')}
-                    value={password.new}
-                    onChange={(e) => handlePasswordChange('new', e.target.value)}
-                    disabled={!isEditing}
-                    size={isMobile ? 'small' : 'medium'}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    type="password"
-                    label={t('profile.confirmPassword')}
-                    value={password.confirm}
-                    onChange={(e) => handlePasswordChange('confirm', e.target.value)}
-                    disabled={!isEditing}
-                    size={isMobile ? 'small' : 'medium'}
-                  />
-                </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label={t('profile.email')}
+                  value={profile.email}
+                  onChange={(e) => handleProfileChange('email', e.target.value)}
+                  disabled={!isEditing}
+                  size={isMobile ? 'small' : 'medium'}
+                />
               </Grid>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: isMobile ? 'stretch' : 'flex-end', gap: 2, mt: isMobile ? 2 : 0 }}>
-                {isEditing ? (
-                  <>
-                    <Button variant="outlined" onClick={() => setIsEditing(false)} fullWidth={isMobile} sx={{ mb: isMobile ? 1 : 0 }}>
-                      {t('profile.cancel')}
-                    </Button>
-                    <Button variant="contained" onClick={() => {
-                      if (userProfile) {
-                        const mergedProfile = {
-                          ...userProfile,
-                          ...profile,
-                          settings: {
-                            ...userProfile.settings,
-                            ...profile.settings
-                          }
-                        };
-                        updateProfile.mutate(mergedProfile);
-                      }
-                    }} fullWidth={isMobile} sx={{ mb: isMobile ? 1 : 0 }}>
-                      {t('profile.save')}
-                    </Button>
-                  </>
-                ) : (
-                  <Button variant="contained" onClick={() => setIsEditing(true)} fullWidth={isMobile} sx={{ mb: isMobile ? 1 : 0 }}>
-                    {t('profile.edit')}
-                  </Button>
-                )}
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => changePassword.mutate(password)}
-                  disabled={!isEditing || !password.current || !password.new || !password.confirm}
-                  fullWidth={isMobile}
-                >
-                  {t('profile.changePassword')}
-                </Button>
-              </Box>
             </Grid>
           </Grid>
-        </Paper>
-      </Stack>
-    </Container>
+
+          <Grid item xs={12}>
+            <Divider sx={{ my: isMobile ? 1.5 : 2 }} />
+            <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1.1rem' : undefined }}>
+              {t('profile.settings')}
+            </Typography>
+            <Grid container spacing={isMobile ? 1 : 2}>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={profile.settings?.darkMode}
+                      onChange={(e) => handleSettingsChange('darkMode', e.target.checked)}
+                      disabled={!isEditing}
+                    />
+                  }
+                  label={t('profile.darkMode')}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  select
+                  fullWidth
+                  label={t('profile.language')}
+                  value={profile.settings?.language}
+                  onChange={(e) => handleSettingsChange('language', e.target.value)}
+                  disabled={!isEditing}
+                  size={isMobile ? 'small' : 'medium'}
+                >
+                  <MenuItem value="de">Deutsch</MenuItem>
+                  <MenuItem value="en">English</MenuItem>
+                  <MenuItem value="es">Español</MenuItem>
+                </TextField>
+              </Grid>
+            </Grid>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Divider sx={{ my: isMobile ? 1.5 : 2 }} />
+            <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1.1rem' : undefined }}>
+              {t('profile.changePassword')}
+            </Typography>
+            <Grid container spacing={isMobile ? 1 : 2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  type="password"
+                  label={t('profile.currentPassword')}
+                  value={password.current}
+                  onChange={(e) => handlePasswordChange('current', e.target.value)}
+                  disabled={!isEditing}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="password"
+                  label={t('profile.newPassword')}
+                  value={password.new}
+                  onChange={(e) => handlePasswordChange('new', e.target.value)}
+                  disabled={!isEditing}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="password"
+                  label={t('profile.confirmPassword')}
+                  value={password.confirm}
+                  onChange={(e) => handlePasswordChange('confirm', e.target.value)}
+                  disabled={!isEditing}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: isMobile ? 'stretch' : 'flex-end', gap: 2, mt: isMobile ? 2 : 0 }}>
+              {isEditing ? (
+                <>
+                  <Button variant="outlined" onClick={() => setIsEditing(false)} fullWidth={isMobile} sx={{ mb: isMobile ? 1 : 0 }}>
+                    {t('profile.cancel')}
+                  </Button>
+                  <Button variant="contained" onClick={() => {
+                    if (userProfile) {
+                      const mergedProfile = {
+                        ...userProfile,
+                        ...profile,
+                        settings: {
+                          ...userProfile.settings,
+                          ...profile.settings
+                        }
+                      };
+                      updateProfile.mutate(mergedProfile);
+                    }
+                  }} fullWidth={isMobile} sx={{ mb: isMobile ? 1 : 0 }}>
+                    {t('profile.save')}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="contained" onClick={() => setIsEditing(true)} fullWidth={isMobile} sx={{ mb: isMobile ? 1 : 0 }}>
+                  {t('profile.edit')}
+                </Button>
+              )}
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => changePassword.mutate(password)}
+                disabled={!isEditing || !password.current || !password.new || !password.confirm}
+                fullWidth={isMobile}
+              >
+                {t('profile.changePassword')}
+              </Button>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+    </Stack>
   );
 };
 

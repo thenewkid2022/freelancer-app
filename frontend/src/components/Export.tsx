@@ -33,8 +33,8 @@ const Export: React.FC = () => {
         'Beschreibung',
         'Startzeit',
         'Endzeit',
-        'Dauer (Minuten)',
-        'Korrigierte Dauer (Minuten)'
+        'Dauer (h)',
+        'Korrigierte Dauer (h)'
       ];
       const rows = entries.map((e: any) => [
         e.projectName || e.project?.name || '',
@@ -42,8 +42,8 @@ const Export: React.FC = () => {
         e.description || '',
         e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
         e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
-        e.duration ? Math.round(e.duration / 60) : '',
-        e.correctedDuration ? Math.round(e.correctedDuration / 60) : ''
+        e.duration ? (e.duration / 3600).toFixed(2) : '',
+        e.correctedDuration ? (e.correctedDuration / 3600).toFixed(2) : ''
       ]);
       const csvContent = [header, ...rows]
         .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
@@ -84,8 +84,8 @@ const Export: React.FC = () => {
           'Beschreibung',
           'Startzeit',
           'Endzeit',
-          'Dauer (Minuten)',
-          'Korrigierte Dauer (Minuten)'
+          'Dauer (h)',
+          'Korrigierte Dauer (h)'
         ]],
         body: entries.map((e: any) => [
           e.projectName || e.project?.name || '',
@@ -93,8 +93,8 @@ const Export: React.FC = () => {
           e.description || '',
           e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
           e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
-          e.duration ? Math.round(e.duration / 60) : '',
-          e.correctedDuration ? Math.round(e.correctedDuration / 60) : ''
+          e.duration ? (e.duration / 3600).toFixed(2) : '',
+          e.correctedDuration ? (e.correctedDuration / 3600).toFixed(2) : ''
         ]),
         styles: { fontSize: 9 },
         headStyles: { fillColor: [33, 150, 243] },
@@ -124,8 +124,8 @@ const Export: React.FC = () => {
           'Beschreibung',
           'Startzeit',
           'Endzeit',
-          'Dauer (Minuten)',
-          'Korrigierte Dauer (Minuten)'
+          'Dauer (h)',
+          'Korrigierte Dauer (h)'
         ],
         ...entries.map((e: any) => [
           e.projectName || e.project?.name || '',
@@ -133,8 +133,8 @@ const Export: React.FC = () => {
           e.description || '',
           e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
           e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
-          e.duration ? Math.round(e.duration / 60) : '',
-          e.correctedDuration ? Math.round(e.correctedDuration / 60) : ''
+          e.duration ? (e.duration / 3600).toFixed(2) : '',
+          e.correctedDuration ? (e.correctedDuration / 3600).toFixed(2) : ''
         ])
       ];
       const wb = XLSX.utils.book_new();
@@ -149,14 +149,8 @@ const Export: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 6, mb: 4 }}>
+    <Container maxWidth="sm" sx={{ mt: { xs: 7, sm: 8 }, mb: 4 }}>
       <Stack spacing={3}>
-        {/* Überschrift nur auf Desktop anzeigen */}
-        {!isMobile && (
-          <Typography variant="h5" align="center" sx={{ fontWeight: 700, mb: 3 }}>
-            Daten exportieren
-          </Typography>
-        )}
         <Typography align="center" sx={{ mb: 4, color: 'text.secondary' }}>
           Wähle das gewünschte Format für den Export deiner Zeiteinträge.
         </Typography>

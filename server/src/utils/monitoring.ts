@@ -1,3 +1,5 @@
+/*
+// Temporär deaktiviertes Monitoring-Modul
 import { Request, Response, NextFunction } from 'express';
 import client from 'prom-client';
 import { logger } from './logger';
@@ -86,3 +88,4 @@ export const setupMonitoring = (app: Express) => {
 export const getMetrics = async () => {
   return client.register.metrics();
 }; 
+*/ 

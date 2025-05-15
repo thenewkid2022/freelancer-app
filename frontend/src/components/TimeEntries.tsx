@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   Container,
   Typography,
@@ -164,15 +164,6 @@ const TimeEntries: React.FC = () => {
     });
   };
 
-  // Formatierung nur Uhrzeit in Schweizer Zeit
-  const formatTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleTimeString('de-CH', {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Europe/Zurich',
-    });
-  };
-
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -219,10 +210,24 @@ const TimeEntries: React.FC = () => {
     }));
   };
 
-  // Nur abgeschlossene Zeiteinträge anzeigen
-  const abgeschlosseneEintraege = Array.isArray(timeEntries)
-    ? timeEntries.filter(entry => entry.endTime && !isNaN(new Date(entry.endTime).getTime()))
-    : [];
+  // Memoize abgeschlosseneEintraege
+  const abgeschlosseneEintraege = useMemo(() => 
+    Array.isArray(timeEntries)
+      ? timeEntries.filter(entry => entry.endTime && !isNaN(new Date(entry.endTime).getTime()))
+      : [],
+    [timeEntries]
+  );
+
+  // Filtere Einträge für den gewählten Tag (nicht nur im Tagesausgleich, sondern für die Hauptansicht)
+  const eintraegeFuerTag = useMemo(() => abgeschlosseneEintraege.filter(entry => {
+    const entryDate = new Date(entry.startTime);
+    return (
+      selectedDate &&
+      entryDate.getFullYear() === selectedDate.getFullYear() &&
+      entryDate.getMonth() === selectedDate.getMonth() &&
+      entryDate.getDate() === selectedDate.getDate()
+    );
+  }), [abgeschlosseneEintraege, selectedDate]);
 
   const handleAdjustmentDialogOpen = () => {
     setIsAdjustmentDialogOpen(true);
@@ -281,7 +286,9 @@ const TimeEntries: React.FC = () => {
       const adjustedDuration = effectiveHours * proportion * 3600;
       return {
         id: entry._id,
-        duration: adjustedDuration
+        originalDuration: entry.duration,
+        unrounded: adjustedDuration,
+        duration: adjustedDuration // wird gleich gerundet
       };
     });
 
@@ -292,10 +299,32 @@ const TimeEntries: React.FC = () => {
     }));
 
     // Berechne die Differenz nach der Rundung
-    const roundedTotal = roundedEntries.reduce((sum, entry) => sum + entry.duration / 3600, 0);
-    const roundedDiff = effectiveHours - roundedTotal;
+    let roundedTotal = roundedEntries.reduce((sum, entry) => sum + entry.duration / 3600, 0);
+    let roundedDiff = effectiveHours - roundedTotal;
+
+    // Korrektur: Verteile die Differenz in 0,25h-Schritten auf die größten Einträge
+    if (Math.abs(roundedDiff) >= 0.01) {
+      // Sortiere nach ungerundeter Zielzeit (absteigend)
+      const sorted = [...roundedEntries].sort((a, b) => b.unrounded - a.unrounded);
+      let diffSteps = Math.round(Math.abs(roundedDiff) / 0.25);
+      let stepValue = 0.25 * 3600 * (roundedDiff > 0 ? 1 : -1);
+      let i = 0;
+      while (diffSteps > 0) {
+        // Passe nur an, wenn das Ergebnis >= 0 bleibt
+        if (sorted[i].duration + stepValue >= 0) {
+          sorted[i].duration += stepValue;
+          diffSteps--;
+        }
+        i = (i + 1) % sorted.length;
+      }
+      // Neue Summe und Differenz berechnen
+      roundedTotal = sorted.reduce((sum, entry) => sum + entry.duration / 3600, 0);
+      roundedDiff = effectiveHours - roundedTotal;
+      setAdjustedEntries(sorted.map(({id, duration}) => ({id, duration})));
+    } else {
+      setAdjustedEntries(roundedEntries.map(({id, duration}) => ({id, duration})));
+    }
     setRoundedDifference(roundedDiff);
-    setAdjustedEntries(roundedEntries);
   }, [selectedDate, adjustmentData, abgeschlosseneEintraege]);
 
   // Aktualisiere die Berechnung bei Änderungen
@@ -359,17 +388,6 @@ const TimeEntries: React.FC = () => {
     }
   };
 
-  // Filtere Einträge für den ausgewählten Tag
-  const eintraegeFuerTag = abgeschlosseneEintraege.filter(entry => {
-    const entryDate = new Date(entry.startTime);
-    return (
-      selectedDate &&
-      entryDate.getFullYear() === selectedDate.getFullYear() &&
-      entryDate.getMonth() === selectedDate.getMonth() &&
-      entryDate.getDate() === selectedDate.getDate()
-    );
-  });
-
   // Prüfe, ob für den Tag Korrekturen vorliegen
   const hasCorrectionsForDay = eintraegeFuerTag.some(entry => entry.correctedDuration && entry.correctedDuration !== entry.duration);
 
@@ -415,7 +433,7 @@ const TimeEntries: React.FC = () => {
 
   const renderMobileView = () => (
     <Stack spacing={2}>
-      {abgeschlosseneEintraege
+      {eintraegeFuerTag
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((entry: TimeEntry) => (
           <Card 
@@ -517,7 +535,7 @@ const TimeEntries: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {abgeschlosseneEintraege
+              {eintraegeFuerTag
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((entry: TimeEntry) => (
                   <TableRow 
@@ -609,48 +627,40 @@ const TimeEntries: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ mt: { xs: 7, sm: 8 }, mb: 4 }}>
       <Stack spacing={3}>
-        {!isMobile && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-              Zeiteinträge
-            </Typography>
-            <Stack direction="row" spacing={2}>
-              <Button
-                variant="contained"
-                onClick={handleAdjustmentDialogOpen}
-                sx={{ borderRadius: 2 }}
-              >
-                Tagesausgleich
-              </Button>
-            </Stack>
-          </Box>
-        )}
-        {isMobile && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+          <DatePicker
+            label="Tag auswählen"
+            value={selectedDate}
+            onChange={setSelectedDate}
+            slotProps={{ textField: { fullWidth: false, sx: { minWidth: 180 } } }}
+          />
+        </Box>
+        {/* Buttons für Tagesausgleich und Rückgängig mittig, untereinander, außerhalb der Überschrift-Box */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            onClick={handleAdjustmentDialogOpen}
+            sx={{ borderRadius: 3, fontWeight: 600, px: 4 }}
+          >
+            Tagesausgleich
+          </Button>
+          {hasCorrectionsForDay && (
             <Button
               variant="contained"
-              onClick={handleAdjustmentDialogOpen}
-              sx={{ borderRadius: 2 }}
+              color="warning"
+              size="large"
+              startIcon={<UndoIcon />}
+              onClick={() => setIsUndoDialogOpen(true)}
+              sx={{ borderRadius: 3, fontWeight: 600, px: 4 }}
             >
-              Tagesausgleich
+              Tagesausgleich zurücksetzen
             </Button>
-          </Box>
-        )}
-        {hasCorrectionsForDay && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-            <Tooltip title="Tagesausgleich rückgängig machen">
-              <IconButton
-                color="warning"
-                onClick={() => setIsUndoDialogOpen(true)}
-                sx={{ borderRadius: 2 }}
-              >
-                <UndoIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )}
+          )}
+        </Box>
 
         {error && (
           <Alert severity="error" sx={{ borderRadius: 2 }}>
@@ -663,7 +673,7 @@ const TimeEntries: React.FC = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={abgeschlosseneEintraege.length}
+          count={eintraegeFuerTag.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

@@ -13,10 +13,7 @@ import {
   useMediaQuery,
   useTheme,
   Badge,
-  Tabs,
-  Tab,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAuth } from '../contexts/AuthContext';
 import BottomNavigation from '@mui/material/BottomNavigation';
@@ -30,9 +27,9 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 const pages = [
   { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
   { name: 'Zeiteinträge', path: '/time-entries', icon: <ListAltIcon /> },
+  { name: 'Export', path: '/export', icon: <FileDownloadIcon /> },
   { name: 'Statistiken', path: '/statistics', icon: <BarChartIcon /> },
   { name: 'Profil', path: '/profile', icon: <PersonIcon /> },
-  { name: 'Export', path: '/export', icon: <FileDownloadIcon /> },
 ];
 
 const Navbar: React.FC = () => {
@@ -140,6 +137,7 @@ const Navbar: React.FC = () => {
                 left: 0,
                 right: 0,
                 height: 68,
+                zIndex: 1000,
                 borderTop: '1px solid',
                 borderColor: 'divider',
                 backgroundColor: 'background.paper',
@@ -168,15 +166,21 @@ const Navbar: React.FC = () => {
               {pages.map((page) => (
                 <BottomNavigationAction
                   key={page.path}
-                  label={page.name}
+                  label={page.name === 'Export' ? 'Export' : page.name}
                   value={page.path}
-                  icon={React.cloneElement(page.icon, { sx: { fontSize: 32 } })}
+                  icon={React.cloneElement(page.icon, { 
+                    sx: { 
+                      fontSize: page.name === 'Export' ? 36 : 32,
+                      color: location.pathname === page.path ? 'primary.main' : 'inherit'
+                    } 
+                  })}
                   sx={{
                     '& .MuiBottomNavigationAction-label': {
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       maxWidth: '100%',
+                      fontSize: page.name === 'Export' ? '0.9rem' : '1rem',
                     },
                   }}
                 />
