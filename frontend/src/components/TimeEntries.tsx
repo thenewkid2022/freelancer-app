@@ -628,67 +628,75 @@ const TimeEntries: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: { xs: 7, sm: 8 }, mb: 4 }}>
-      <Stack spacing={3}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-          <DatePicker
-            label="Tag auswählen"
-            value={selectedDate}
-            onChange={setSelectedDate}
-            slotProps={{ textField: { fullWidth: false, sx: { minWidth: 180 } } }}
-          />
-        </Box>
-        {/* Buttons für Tagesausgleich und Rückgängig mittig, untereinander, außerhalb der Überschrift-Box */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mt: 2 }}>
+    <Stack 
+      spacing={3} 
+      sx={{ 
+        width: '100%',
+        height: '100%',
+        overflow: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        pb: isMobile ? 2 : 0
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+        <DatePicker
+          label="Tag auswählen"
+          value={selectedDate}
+          onChange={setSelectedDate}
+          slotProps={{ textField: { fullWidth: false, sx: { minWidth: 180 } } }}
+        />
+      </Box>
+
+      {/* Buttons für Tagesausgleich und Rückgängig */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mt: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={handleAdjustmentDialogOpen}
+          sx={{ borderRadius: 3, fontWeight: 600, px: 4 }}
+        >
+          Tagesausgleich
+        </Button>
+        {hasCorrectionsForDay && (
           <Button
             variant="contained"
-            color="primary"
+            color="warning"
             size="large"
-            onClick={handleAdjustmentDialogOpen}
+            startIcon={<UndoIcon />}
+            onClick={() => setIsUndoDialogOpen(true)}
             sx={{ borderRadius: 3, fontWeight: 600, px: 4 }}
           >
-            Tagesausgleich
+            Zurücksetzen
           </Button>
-          {hasCorrectionsForDay && (
-            <Button
-              variant="contained"
-              color="warning"
-              size="large"
-              startIcon={<UndoIcon />}
-              onClick={() => setIsUndoDialogOpen(true)}
-              sx={{ borderRadius: 3, fontWeight: 600, px: 4 }}
-            >
-              Zurücksetzen
-            </Button>
-          )}
-        </Box>
-
-        {error && (
-          <Alert severity="error" sx={{ borderRadius: 2 }}>
-            {error}
-          </Alert>
         )}
+      </Box>
 
-        {isMobile ? renderMobileView() : renderDesktopView()}
+      {error && (
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
 
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={eintraegeFuerTag.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Einträge pro Seite"
-          sx={{ 
-            borderTop: '1px solid', 
-            borderColor: 'divider',
-            '.MuiTablePagination-select': {
-              borderRadius: 1
-            }
-          }}
-        />
-      </Stack>
+      {isMobile ? renderMobileView() : renderDesktopView()}
+
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={eintraegeFuerTag.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        labelRowsPerPage="Einträge pro Seite"
+        sx={{ 
+          borderTop: '1px solid', 
+          borderColor: 'divider',
+          '.MuiTablePagination-select': {
+            borderRadius: 1
+          }
+        }}
+      />
 
       <Dialog
         open={isDialogOpen}
@@ -760,6 +768,7 @@ const TimeEntries: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
       <Dialog
         open={isAdjustmentDialogOpen}
         onClose={handleAdjustmentDialogClose}
@@ -878,6 +887,7 @@ const TimeEntries: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
       <Dialog
         open={isUndoDialogOpen}
         onClose={() => setIsUndoDialogOpen(false)}
@@ -895,7 +905,7 @@ const TimeEntries: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Stack>
   );
 };
 

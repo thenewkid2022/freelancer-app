@@ -60,7 +60,17 @@ const App: React.FC = () => {
             path="/time-entries"
             element={
               <PrivateRoute>
-                <Container maxWidth="lg">
+                <Container 
+                  maxWidth="lg" 
+                  sx={{ 
+                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
+                    height: '100%',
+                    overflow: 'visible',
+                    px: { xs: 2, sm: 3 },
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
                   <TimeEntries />
                 </Container>
               </PrivateRoute>
@@ -70,7 +80,17 @@ const App: React.FC = () => {
             path="/statistics"
             element={
               <PrivateRoute>
-                <Container maxWidth="lg">
+                <Container 
+                  maxWidth="lg" 
+                  sx={{ 
+                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
+                    height: '100%',
+                    overflow: 'visible',
+                    px: { xs: 2, sm: 3 },
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
                   <Statistics />
                 </Container>
               </PrivateRoute>
@@ -83,10 +103,12 @@ const App: React.FC = () => {
                 <Container 
                   maxWidth="lg" 
                   sx={{ 
-                    pb: { xs: 8, sm: 4 }, // Fügt Abstand am unteren Rand hinzu für die mobile Navigation
+                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 }, // Angepasster Abstand für mobile Navigation
                     height: '100%',
-                    overflow: 'auto',
-                    px: { xs: 2, sm: 3 } // Angepasste horizontale Abstände für mobile Geräte
+                    overflow: 'visible', // Geändert von 'auto' zu 'visible'
+                    px: { xs: 2, sm: 3 },
+                    display: 'flex',
+                    flexDirection: 'column'
                   }}
                 >
                   <Profile />

@@ -23,6 +23,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import PersonIcon from '@mui/icons-material/Person';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const pages = [
   { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
@@ -129,48 +130,70 @@ const Navbar: React.FC = () => {
             <BottomNavigation
               value={location.pathname}
               onChange={(event, newValue) => {
-                navigate(newValue);
+                if (newValue === '/logout') {
+                  handleLogout();
+                } else {
+                  navigate(newValue);
+                }
               }}
-              showLabels={false}
+              showLabels
               sx={{
                 position: 'fixed',
-                bottom: 0,
                 left: 0,
                 right: 0,
+                bottom: 0,
+                zIndex: 1200,
                 height: 'calc(56px + env(safe-area-inset-bottom))',
-                zIndex: 1000,
-                borderTop: '1px solid',
-                borderColor: 'divider',
-                backgroundColor: 'background.paper',
-                paddingLeft: 'env(safe-area-inset-left)',
-                paddingRight: 'env(safe-area-inset-right)',
                 paddingBottom: 'env(safe-area-inset-bottom)',
-                display: 'flex',
-                alignItems: 'center',
+                boxShadow: '0 -2px 8px 0 rgba(0,0,0,0.04)',
+                bgcolor: 'background.paper',
+                borderTop: 1,
+                borderColor: 'divider',
+                display: { xs: 'flex', sm: 'none' },
                 justifyContent: 'space-around',
-                '& .MuiBottomNavigationAction-root': {
-                  minWidth: 'auto',
+              }}
+            >
+              {pages.map((page, idx) => (
+                <BottomNavigationAction
+                  key={page.path}
+                  label={page.name}
+                  icon={page.icon}
+                  value={page.path}
+                  sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    maxWidth: '100%',
+                    padding: '6px 0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    '.MuiSvgIcon-root': {
+                      fontSize: 28,
+                      marginBottom: '2px',
+                    },
+                  }}
+                />
+              ))}
+              <BottomNavigationAction
+                label="Abmelden"
+                icon={<LogoutIcon />}
+                value="/logout"
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  maxWidth: '100%',
                   padding: '6px 0',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flex: 1,
-                  '& .MuiSvgIcon-root': {
-                    fontSize: 24,
-                    margin: '0 auto',
-                    display: 'block',
+                  '.MuiSvgIcon-root': {
+                    fontSize: 28,
+                    marginBottom: '2px',
                   },
-                },
-              }}
-            >
-              {pages.map((page) => (
-                <BottomNavigationAction
-                  key={page.path}
-                  icon={page.icon}
-                  value={page.path}
-                />
-              ))}
+                }}
+              />
             </BottomNavigation>
           )}
 

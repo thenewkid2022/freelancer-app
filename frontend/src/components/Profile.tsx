@@ -172,9 +172,12 @@ const Profile: React.FC = () => {
       spacing={isMobile ? 2 : 3} 
       sx={{ 
         width: '100%',
-        pb: isMobile ? 2 : 0, // Zusätzlicher Abstand am unteren Rand für mobile Geräte
+        height: '100%',
+        overflow: 'auto',
+        WebkitOverflowScrolling: 'touch', // Für besseres iOS-Scrolling
+        pb: isMobile ? 2 : 0,
         '& .MuiPaper-root': {
-          overflow: 'visible' // Verhindert, dass der Paper-Container das Scrolling blockiert
+          overflow: 'visible'
         }
       }}
     >

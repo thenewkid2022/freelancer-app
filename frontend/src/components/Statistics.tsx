@@ -449,14 +449,16 @@ const Statistics: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ 
-      py: { xs: 2, md: 4 },
-      px: { xs: 1, md: 2 },
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 3
-    }}>
+    <Stack 
+      spacing={3} 
+      sx={{ 
+        width: '100%',
+        height: '100%',
+        overflow: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        pb: isMobile ? 2 : 0
+      }}
+    >
       {/* Neuer zentraler Filterbereich */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
         <Paper elevation={2} sx={{
@@ -866,7 +868,7 @@ const Statistics: React.FC = () => {
           </List>
         </Box>
       </SwipeableDrawer>
-    </Container>
+    </Stack>
   );
 };
 
