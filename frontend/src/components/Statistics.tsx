@@ -48,7 +48,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/api/client';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears } from 'date-fns';
 import { de } from 'date-fns/locale';
 
 interface TimeEntry {
@@ -259,7 +259,7 @@ const Statistics: React.FC = () => {
         entries: dayEntries.length,
       };
     });
-  }, [filteredTimeEntries, timeRange]);
+  }, [filteredTimeEntries, timeRange, selectedDate]);
 
   const handleChartTypeChange = (
     event: React.MouseEvent<HTMLElement>,

@@ -41,33 +41,9 @@ const Navbar: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElNotifications, setAnchorElNotifications] = useState<null | HTMLElement>(null);
   const [notifications] = useState<string[]>([]); // Hier später mit echtem State ersetzen
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    handleCloseNavMenu();
-  };
-
-  const handleLogout = () => {
-    logout();
-    handleCloseNavMenu();
-    navigate('/login');
-  };
-
-  const handleOpenNotifications = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNotifications(event.currentTarget);
-  };
 
   const handleCloseNotifications = () => {
     setAnchorElNotifications(null);
@@ -81,13 +57,20 @@ const Navbar: React.FC = () => {
     setAnchorElUser(null);
   };
 
-  const navIcons = [
-    <DashboardIcon />,
-    <ListAltIcon />,
-    <BarChartIcon />,
-    <PersonIcon />,
-    <FileDownloadIcon />
-  ];
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    handleCloseNotifications();
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleCloseNotifications();
+    navigate('/login');
+  };
+
+  const handleOpenNotifications = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElNotifications(event.currentTarget);
+  };
 
   if (!user) {
     return (
