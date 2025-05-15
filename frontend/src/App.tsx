@@ -80,7 +80,15 @@ const App: React.FC = () => {
             path="/profile"
             element={
               <PrivateRoute>
-                <Container maxWidth="lg">
+                <Container 
+                  maxWidth="lg" 
+                  sx={{ 
+                    pb: { xs: 8, sm: 4 }, // Fügt Abstand am unteren Rand hinzu für die mobile Navigation
+                    height: '100%',
+                    overflow: 'auto',
+                    px: { xs: 2, sm: 3 } // Angepasste horizontale Abstände für mobile Geräte
+                  }}
+                >
                   <Profile />
                 </Container>
               </PrivateRoute>

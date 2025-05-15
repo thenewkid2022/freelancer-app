@@ -168,7 +168,16 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <Stack spacing={isMobile ? 2 : 3}>
+    <Stack 
+      spacing={isMobile ? 2 : 3} 
+      sx={{ 
+        width: '100%',
+        pb: isMobile ? 2 : 0, // Zusätzlicher Abstand am unteren Rand für mobile Geräte
+        '& .MuiPaper-root': {
+          overflow: 'visible' // Verhindert, dass der Paper-Container das Scrolling blockiert
+        }
+      }}
+    >
       <Paper sx={{ p: isMobile ? 1.5 : 3, boxShadow: isMobile ? 0 : 3, borderRadius: isMobile ? 2 : 3 }}>
         <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'center' : 'center', mb: isMobile ? 2 : 3 }}>
           <Avatar

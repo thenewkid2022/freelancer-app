@@ -538,11 +538,18 @@ const Statistics: React.FC = () => {
                 exclusive
                 onChange={handleChartTypeChange}
                 sx={{
+                  width: { xs: '100%', sm: 'auto' },
                   '& .MuiToggleButton-root': {
-                    px: { xs: 2, sm: 3 },
-                    py: 1,
+                    flex: { xs: 1, sm: 'none' },
+                    px: { xs: 1, sm: 3 },
+                    py: { xs: 0.75, sm: 1 },
                     borderRadius: 2,
-                    fontSize: { xs: '0.95rem', sm: '1rem' },
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    whiteSpace: 'nowrap',
+                    '& .MuiSvgIcon-root': {
+                      fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                      mr: { xs: 0.5, sm: 1 }
+                    },
                     '&.Mui-selected': {
                       bgcolor: 'primary.main',
                       color: 'primary.contrastText',
@@ -554,16 +561,16 @@ const Statistics: React.FC = () => {
                 }}
               >
                 <ToggleButton value="pie">
-                  <PieChartIcon sx={{ mr: 1 }} />
-                  Projektverteilung
+                  <PieChartIcon />
+                  {isMobile ? 'Projekte' : 'Projektverteilung'}
                 </ToggleButton>
                 <ToggleButton value="bar">
-                  <BarChartIcon sx={{ mr: 1 }} />
-                  Tagesübersicht
+                  <BarChartIcon />
+                  {isMobile ? 'Tage' : 'Tagesübersicht'}
                 </ToggleButton>
                 <ToggleButton value="line">
-                  <ShowChartIcon sx={{ mr: 1 }} />
-                  Wochenverlauf
+                  <ShowChartIcon />
+                  {isMobile ? 'Verlauf' : 'Wochenverlauf'}
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
