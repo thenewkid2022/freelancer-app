@@ -474,22 +474,21 @@ const Statistics: React.FC = () => {
               onChange={handleTimeRangeChange}
               size="medium"
               sx={{
-                width: { xs: '100%', sm: 'auto' },
+                width: '100%',
                 maxWidth: '100%',
                 justifyContent: 'center',
-                overflowX: 'hidden',
                 '& .MuiToggleButton-root': {
-                  flex: { xs: 1, sm: 'none' },
-                  minWidth: { xs: 0, sm: 'auto' },
-                  px: { xs: 0.5, sm: 1.5 },
+                  flex: 1,
+                  minWidth: 'auto',
+                  px: 1.5,
                   whiteSpace: 'nowrap',
                 }
               }}
               fullWidth={true}
             >
-              <ToggleButton value="week" sx={{ flex: 1, minWidth: 0 }}>Woche</ToggleButton>
-              <ToggleButton value="month" sx={{ flex: 1, minWidth: 0 }}>Monat</ToggleButton>
-              <ToggleButton value="year" sx={{ flex: 1, minWidth: 0 }}>Jahr</ToggleButton>
+              <ToggleButton value="week">Woche</ToggleButton>
+              <ToggleButton value="month">Monat</ToggleButton>
+              <ToggleButton value="year">Jahr</ToggleButton>
             </ToggleButtonGroup>
           </Paper>
         </Grid>
