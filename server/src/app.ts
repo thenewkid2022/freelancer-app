@@ -66,9 +66,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/time-entries', timeEntryRoutes);
 app.use('/api/stats', statsRoutes);
 
-// Health Check
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+// Health Check Endpunkte
+app.head("/api/ping", (_, res) => {
+  res.status(200).end();
+});
+
+// Render Health Check
+app.get("/api/health", (_, res) => {
+  res.status(200).json({ status: "ok" });
 });
 
 // Error Handler
@@ -79,9 +84,21 @@ if (process.env.NODE_ENV !== 'test') {
   mongoose.connect(process.env.MONGODB_URI || '', {
     serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 45000,
+    heartbeatFrequencyMS: 10000,   // 10 Sekunden
+    maxPoolSize: 10,
+    minPoolSize: 5
   })
     .then(() => {
       console.log('MongoDB verbunden!');
+      // Verbindungsüberwachung
+      mongoose.connection.on('disconnected', () => {
+        console.log('MongoDB Verbindung getrennt - Versuche erneut zu verbinden...');
+      });
+      
+      mongoose.connection.on('error', (err) => {
+        console.error('MongoDB Verbindungsfehler:', err);
+      });
+
       app.listen(port, '0.0.0.0', () => {
         console.log(`Server is running on port ${port}`);
       });
