@@ -14,26 +14,23 @@ import Statistics from './components/Statistics';
 import Profile from './components/Profile';
 import Export from './components/Export';
 
+function useFooterPadding() {
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && typeof (window as any).MSStream === 'undefined';
+    const isStandalone = (window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+    if (isIOS && isStandalone) {
+      document.documentElement.style.setProperty('--footer-padding-bottom', '0px');
+    } else {
+      document.documentElement.style.setProperty('--footer-padding-bottom', 'env(safe-area-inset-bottom, 0px)');
+    }
+  }, []);
+}
+
 const App: React.FC = () => {
   const { darkMode } = useThemeContext();
 
-  // Dynamisches Footer-Padding je nach Modus setzen
-  useEffect(() => {
-    function setFooterPadding() {
-      if (window.matchMedia('(display-mode: standalone)').matches) {
-        document.documentElement.style.setProperty('--footer-padding-bottom', '0px');
-      } else {
-        document.documentElement.style.setProperty('--footer-padding-bottom', 'env(safe-area-inset-bottom, 0px)');
-      }
-    }
-    setFooterPadding();
-    window.addEventListener('resize', setFooterPadding);
-    window.addEventListener('visibilitychange', setFooterPadding);
-    return () => {
-      window.removeEventListener('resize', setFooterPadding);
-      window.removeEventListener('visibilitychange', setFooterPadding);
-    };
-  }, []);
+  useFooterPadding();
 
   return (
     <Box 
