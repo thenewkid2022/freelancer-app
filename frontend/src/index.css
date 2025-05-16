@@ -75,8 +75,9 @@ html, body, #root {
   right: 0;
   bottom: 0;
   width: 100vw;
-  height: 56px;
-  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: constant(safe-area-inset-bottom, 0px); /* Fallback für ältere iOS-Versionen */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: #f0f0f0;
   z-index: 1200;
   border-top: 1px solid #e0e0e0;
