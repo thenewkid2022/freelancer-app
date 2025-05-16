@@ -26,10 +26,13 @@ const root = ReactDOM.createRoot(
 
 // Dynamische Viewport-Höhe für mobile Geräte
 function setViewportHeight() {
-  const vh = document.documentElement.clientHeight * 0.01;
+  const vh = (window.innerHeight - (window.visualViewport ? window.visualViewport.offsetTop : 0)) * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
+  console.log('Adjusted Viewport Height:', vh * 100, 'px'); // Debugging
 }
 window.addEventListener('resize', setViewportHeight);
+window.addEventListener('orientationchange', setViewportHeight);
+window.addEventListener('scroll', setViewportHeight); // Für dynamische Anpassungen
 setViewportHeight();
 
 root.render(

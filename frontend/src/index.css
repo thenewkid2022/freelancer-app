@@ -4,6 +4,7 @@
 
 :root {
   --transition-duration: 0.3s;
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 html, body, #root {
@@ -90,6 +91,9 @@ html, body, #root {
   .footer {
     /* Nur falls du im PWA-Modus etwas Spezielles brauchst, sonst leer lassen */
   }
+  :root {
+    --safe-area-inset-bottom: 0px; /* Kein Safe-Area-Inset im PWA-Modus */
+  }
 }
 
 body::after {
@@ -98,7 +102,7 @@ body::after {
   left: 0;
   right: 0;
   bottom: 0;
-  height: env(safe-area-inset-bottom, 0px);
+  height: var(--safe-area-inset-bottom);
   background: rgba(255, 0, 0, 0.5);
   pointer-events: none;
   z-index: 9998;
@@ -110,7 +114,7 @@ body::after {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: env(safe-area-inset-bottom, 0px);
+  height: var(--safe-area-inset-bottom);
   background: rgba(0, 255, 0, 0.5);
   z-index: 9999;
   margin: 0; /* Sicherstellen, dass kein Margin den Balken verschiebt */
