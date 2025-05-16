@@ -95,7 +95,6 @@ const App: React.FC = () => {
                 <Container 
                   maxWidth="lg" 
                   sx={{ 
-                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
                     flex: 1,
                     overflow: 'hidden',
@@ -116,7 +115,6 @@ const App: React.FC = () => {
                 <Container 
                   maxWidth="lg" 
                   sx={{ 
-                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
                     flex: 1,
                     overflow: 'hidden',
@@ -137,7 +135,6 @@ const App: React.FC = () => {
                 <Container 
                   maxWidth="lg" 
                   sx={{ 
-                    pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 4 },
                     height: '100%',
                     flex: 1,
                     overflow: 'hidden',
