@@ -106,7 +106,7 @@ const Navbar: React.FC = () => {
   }
 
   return (
-    <AppBar position="static" sx={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <AppBar position="fixed" sx={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Typography
