@@ -75,9 +75,8 @@ html, body, #root {
   right: 0;
   bottom: 0;
   width: 100vw;
-  height: calc(56px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: constant(safe-area-inset-bottom, 0px); /* Fallback für ältere iOS-Versionen */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: calc(56px + min(env(safe-area-inset-bottom, 0px), 34px));
+  padding-bottom: min(env(safe-area-inset-bottom, 0px), 34px);
   background: #f0f0f0;
   z-index: 1200;
   border-top: 1px solid #e0e0e0;
@@ -98,7 +97,7 @@ body::after {
   left: 0;
   right: 0;
   bottom: 0;
-  height: env(safe-area-inset-bottom, 0px);
+  height: min(env(safe-area-inset-bottom, 0px), 34px);
   background: rgba(255,0,0,0.5);
   pointer-events: none;
   z-index: 9999;
