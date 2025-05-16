@@ -190,7 +190,7 @@ const Navbar: React.FC = () => {
                   right: 0,
                   bottom: 0,
                   zIndex: 1200,
-                  height: 'calc(56px + env(safe-area-inset-bottom))',
+                  height: '56px',
                   paddingBottom: 'env(safe-area-inset-bottom)',
                   boxShadow: '0 -2px 8px 0 rgba(0,0,0,0.04)',
                   bgcolor: 'background.paper',
