@@ -69,16 +69,24 @@ html, body, #root {
   }
 }
 
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 56px;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -2px 8px 0 rgba(0,0,0,0.04);
+  background: #f0f0f0;
+  z-index: 1200;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-around;
+}
+
 @media (display-mode: standalone) {
   .footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: calc(56px + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
-    background: #f0f0f0;
-    z-index: 1200;
+    /* Nur falls du im PWA-Modus etwas Spezielles brauchst, sonst leer lassen */
   }
 }

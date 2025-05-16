@@ -40,7 +40,6 @@ const App: React.FC = () => {
           minHeight: 'calc(var(--vh, 1vh) * 100)',
           boxSizing: 'border-box',
           overflow: 'auto',
-          height: 'calc(100vh - 64px)',
           '& > *': {
             width: '100%'
           }

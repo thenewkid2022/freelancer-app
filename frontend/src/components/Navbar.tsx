@@ -179,26 +179,12 @@ const Navbar: React.FC = () => {
                 </Menu>
               </Box>
               <BottomNavigation
+                className="footer"
                 value={location.pathname}
                 onChange={(event, newValue) => {
                   navigate(newValue);
                 }}
                 showLabels={false}
-                sx={{
-                  position: 'fixed',
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 1200,
-                  height: '56px',
-                  paddingBottom: 'env(safe-area-inset-bottom)',
-                  boxShadow: '0 -2px 8px 0 rgba(0,0,0,0.04)',
-                  bgcolor: 'background.paper',
-                  borderTop: 1,
-                  borderColor: 'divider',
-                  display: { xs: 'flex', sm: 'none' },
-                  justifyContent: 'space-around',
-                }}
               >
                 {pages.map((page) => (
                   <BottomNavigationAction
