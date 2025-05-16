@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Box, Container } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
@@ -16,6 +16,24 @@ import Export from './components/Export';
 
 const App: React.FC = () => {
   const { darkMode } = useThemeContext();
+
+  // Dynamisches Footer-Padding je nach Modus setzen
+  useEffect(() => {
+    function setFooterPadding() {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        document.documentElement.style.setProperty('--footer-padding-bottom', '0px');
+      } else {
+        document.documentElement.style.setProperty('--footer-padding-bottom', 'env(safe-area-inset-bottom, 0px)');
+      }
+    }
+    setFooterPadding();
+    window.addEventListener('resize', setFooterPadding);
+    window.addEventListener('visibilitychange', setFooterPadding);
+    return () => {
+      window.removeEventListener('resize', setFooterPadding);
+      window.removeEventListener('visibilitychange', setFooterPadding);
+    };
+  }, []);
 
   return (
     <Box 
