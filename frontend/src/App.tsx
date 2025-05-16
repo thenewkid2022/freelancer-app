@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Box, Container } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
@@ -41,6 +41,109 @@ const App: React.FC = () => {
   window.addEventListener('orientationchange', setViewportHeight); // Für Gerätedrehungen
   setViewportHeight();
 
+  const mainStyles = useMemo(() => ({
+    flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
+    pb: `calc(56px + var(--effective-safe-area-inset-bottom, 0px))`, // Aktualisiert für 34px
+    minHeight: `calc(var(--vh, 1vh) * 100)`,
+    boxSizing: 'border-box',
+    overflow: 'auto',
+    '& > *': {
+      width: '100%'
+    }
+  }), []);
+
+  const MainComponent = React.memo(() => (
+    <Box component="main" sx={mainStyles}>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Container maxWidth={false} sx={{ p: 0, m: 0, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
+                <Zeiterfassung />
+              </Container>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/time-entries"
+          element={
+            <PrivateRoute>
+              <Container 
+                maxWidth="lg" 
+                sx={{ 
+                  height: '100%',
+                  flex: 1,
+                  overflow: 'hidden',
+                  px: { xs: 1, sm: 2, md: 3 },
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <TimeEntries />
+              </Container>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/statistics"
+          element={
+            <PrivateRoute>
+              <Container 
+                maxWidth="lg" 
+                sx={{ 
+                  height: '100%',
+                  flex: 1,
+                  overflow: 'hidden',
+                  px: { xs: 1, sm: 2, md: 3 },
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <Statistics />
+              </Container>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Container 
+                maxWidth="lg" 
+                sx={{ 
+                  height: '100%',
+                  flex: 1,
+                  overflow: 'hidden',
+                  px: { xs: 1, sm: 2, md: 3 },
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <Profile />
+              </Container>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/export"
+          element={
+            <PrivateRoute>
+              <Container maxWidth="lg" sx={{ flex: 1, height: '100%' }}>
+                <Export />
+              </Container>
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </Box>
+  ));
+
   return (
     <Box 
       className={darkMode ? 'dark' : ''}
@@ -53,106 +156,7 @@ const App: React.FC = () => {
       }}
     >
       <Navbar />
-      <Box 
-        component="main" 
-        sx={{ 
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-          pb: '56px',
-          boxSizing: 'border-box',
-          overflow: 'auto',
-          '& > *': {
-            width: '100%'
-          }
-        }}
-      >
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Container maxWidth={false} sx={{ p: 0, m: 0, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-                  <Zeiterfassung />
-                </Container>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/time-entries"
-            element={
-              <PrivateRoute>
-                <Container 
-                  maxWidth="lg" 
-                  sx={{ 
-                    height: '100%',
-                    flex: 1,
-                    overflow: 'hidden',
-                    px: { xs: 1, sm: 2, md: 3 },
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                  <TimeEntries />
-                </Container>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/statistics"
-            element={
-              <PrivateRoute>
-                <Container 
-                  maxWidth="lg" 
-                  sx={{ 
-                    height: '100%',
-                    flex: 1,
-                    overflow: 'hidden',
-                    px: { xs: 1, sm: 2, md: 3 },
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                  <Statistics />
-                </Container>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <PrivateRoute>
-                <Container 
-                  maxWidth="lg" 
-                  sx={{ 
-                    height: '100%',
-                    flex: 1,
-                    overflow: 'hidden',
-                    px: { xs: 1, sm: 2, md: 3 },
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                  <Profile />
-                </Container>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/export"
-            element={
-              <PrivateRoute>
-                <Container maxWidth="lg" sx={{ flex: 1, height: '100%' }}>
-                  <Export />
-                </Container>
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </Box>
+      <MainComponent />
       <ToastContainer
         position="bottom-right"
         autoClose={3000}

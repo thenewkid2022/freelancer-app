@@ -47,7 +47,7 @@ function debounce(func: Function, wait: number) {
 function setViewportHeight() {
   console.log('setViewportHeight function called');
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
-  const effectiveSafeAreaInsetBottom = isStandalone ? 20 : parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '20', 10) || 20;
+  const effectiveSafeAreaInsetBottom = isStandalone ? 34 : parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '20', 10) || 20;
   let viewportHeight = window.visualViewport?.height || window.innerHeight;
   if (isStandalone) {
     viewportHeight = 1132; // Feste Höhe für iPhone 15 im PWA-Modus

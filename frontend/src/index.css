@@ -11,7 +11,7 @@
 @media (display-mode: standalone) {
   :root {
     --safe-area-inset-bottom: 0px;
-    --effective-safe-area-inset-bottom: 20px; /* Für iPhone 15 Home-Indikator */
+    --effective-safe-area-inset-bottom: 34px; /* Aktualisiert für iPhone 15 */
   }
 }
 
