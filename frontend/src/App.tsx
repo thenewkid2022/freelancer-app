@@ -14,23 +14,8 @@ import Statistics from './components/Statistics';
 import Profile from './components/Profile';
 import Export from './components/Export';
 
-function useFooterPadding() {
-  useEffect(() => {
-    // Zuverlässigere Standalone-Erkennung (iOS und andere)
-    const isStandalone = (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone);
-
-    if (isStandalone) {
-      document.documentElement.style.setProperty('--footer-padding-bottom', '0px');
-    } else {
-      document.documentElement.style.setProperty('--footer-padding-bottom', 'env(safe-area-inset-bottom, 0px)');
-    }
-  }, []);
-}
-
 const App: React.FC = () => {
   const { darkMode } = useThemeContext();
-
-  useFooterPadding();
 
   useEffect(() => {
     // Debug-Element für safe-area-inset-bottom erstellen
@@ -66,8 +51,7 @@ const App: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-          pb: 0,
-          minHeight: 'calc(var(--vh, 1vh) * 100 - env(safe-area-inset-bottom, 0px))',
+          pb: '56px',
           boxSizing: 'border-box',
           overflow: 'auto',
           '& > *': {

@@ -76,13 +76,14 @@ html, body, #root {
   bottom: 0;
   width: 100vw;
   height: 56px;
-  padding-bottom: var(--footer-padding-bottom, env(safe-area-inset-bottom, 0px));
+  padding-bottom: 0; /* Entferne das Padding, um direkt über dem Home-Indikator zu liegen */
   background: #f0f0f0;
   z-index: 1200;
   border-top: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-around;
   align-items: center;
+  margin: 0; /* Sicherstellen, dass kein Margin den Footer verschiebt */
 }
 
 @media (display-mode: standalone) {
@@ -97,10 +98,11 @@ body::after {
   left: 0;
   right: 0;
   bottom: 0;
-  height: min(env(safe-area-inset-bottom, 0px), 34px);
-  background: rgba(255,0,0,0.5);
+  height: env(safe-area-inset-bottom, 0px);
+  background: rgba(255, 0, 0, 0.5);
   pointer-events: none;
-  z-index: 9999;
+  z-index: 9998;
+  margin: 0; /* Sicherstellen, dass kein Margin den Balken verschiebt */
 }
 
 #safe-area-debug {
@@ -109,6 +111,7 @@ body::after {
   left: 0;
   width: 100%;
   height: env(safe-area-inset-bottom, 0px);
-  background: rgba(0, 255, 0, 0.5); /* Grüner Balken zum Debuggen */
+  background: rgba(0, 255, 0, 0.5);
   z-index: 9999;
+  margin: 0; /* Sicherstellen, dass kein Margin den Balken verschiebt */
 }
