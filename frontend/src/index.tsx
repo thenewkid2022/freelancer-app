@@ -26,9 +26,13 @@ const root = ReactDOM.createRoot(
 
 // Dynamische Viewport-Höhe für mobile Geräte
 function setViewportHeight() {
-  const vh = (window.innerHeight - (window.visualViewport ? window.visualViewport.offsetTop : 0)) * 0.01;
+  console.log('setViewportHeight function called'); // Bestätigung der Ausführung
+  const safeAreaInsetBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0', 10) || 0;
+  let vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) - safeAreaInsetBottom;
+  vh = Math.max(vh, 0); // Sicherstellen, dass vh nicht negativ wird
+  vh = vh * 0.01; // Umrechnung in vh-Einheiten
   document.documentElement.style.setProperty('--vh', `${vh}px`);
-  console.log('Adjusted Viewport Height:', vh * 100, 'px'); // Debugging
+  console.log('Adjusted Viewport Height:', vh * 100, 'px', 'Safe Area Bottom:', safeAreaInsetBottom, 'px', 'Visual Viewport Height:', window.visualViewport ? window.visualViewport.height : window.innerHeight, 'px');
 }
 window.addEventListener('resize', setViewportHeight);
 window.addEventListener('orientationchange', setViewportHeight);
