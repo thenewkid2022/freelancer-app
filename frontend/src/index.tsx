@@ -24,19 +24,47 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
-// Dynamische Viewport-Höhe für mobile Geräte
-function setViewportHeight() {
-  console.log('setViewportHeight function called'); // Bestätigung der Ausführung
-  const safeAreaInsetBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0', 10) || 0;
-  let vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) - safeAreaInsetBottom;
-  vh = Math.max(vh, 0); // Sicherstellen, dass vh nicht negativ wird
-  vh = vh * 0.01; // Umrechnung in vh-Einheiten
-  document.documentElement.style.setProperty('--vh', `${vh}px`);
-  console.log('Adjusted Viewport Height:', vh * 100, 'px', 'Safe Area Bottom:', safeAreaInsetBottom, 'px', 'Visual Viewport Height:', window.visualViewport ? window.visualViewport.height : window.innerHeight, 'px');
+// TypeScript-Deklaration für navigator.standalone
+declare global {
+  interface Navigator {
+    standalone?: boolean;
+  }
 }
-window.addEventListener('resize', setViewportHeight);
-window.addEventListener('orientationchange', setViewportHeight);
-window.addEventListener('scroll', setViewportHeight); // Für dynamische Anpassungen
+
+// Dynamische Viewport-Höhe für mobile Geräte
+function debounce(func: Function, wait: number) {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+function setViewportHeight() {
+  console.log('setViewportHeight function called');
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+  const effectiveSafeAreaInsetBottom = isStandalone ? 20 : parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '20', 10) || 20;
+  let viewportHeight = window.visualViewport?.height || window.innerHeight;
+  if (isStandalone) {
+    viewportHeight = 1132; // Feste Höhe für iPhone 15 im PWA-Modus
+  }
+  let vh = Math.max(viewportHeight, 0) * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+  document.documentElement.style.setProperty('--effective-safe-area-inset-bottom', `${effectiveSafeAreaInsetBottom}px`);
+  console.log('Adjusted Viewport Height:', vh * 100, 'px', 'Effective Safe Area Bottom:', effectiveSafeAreaInsetBottom, 'px', 'Raw Viewport Height:', viewportHeight, 'px', 'Is Standalone:', isStandalone);
+}
+
+const debouncedSetViewportHeight = debounce(setViewportHeight, 100);
+window.addEventListener('resize', debouncedSetViewportHeight);
+window.addEventListener('orientationchange', debouncedSetViewportHeight);
+window.addEventListener('scroll', debouncedSetViewportHeight);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', debouncedSetViewportHeight);
+}
 setViewportHeight();
 
 root.render(

@@ -5,6 +5,14 @@
 :root {
   --transition-duration: 0.3s;
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --effective-safe-area-inset-bottom: 20px;
+}
+
+@media (display-mode: standalone) {
+  :root {
+    --safe-area-inset-bottom: 0px;
+    --effective-safe-area-inset-bottom: 20px; /* Für iPhone 15 Home-Indikator */
+  }
 }
 
 html, body, #root {
@@ -74,39 +82,16 @@ html, body, #root {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--effective-safe-area-inset-bottom);
   width: 100vw;
   height: 56px;
-  padding-bottom: 0; /* Entferne das Padding, um direkt über dem Home-Indikator zu liegen */
   background: #f0f0f0;
   z-index: 1200;
   border-top: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  margin: 0; /* Sicherstellen, dass kein Margin den Footer verschiebt */
-}
-
-@media (display-mode: standalone) {
-  .footer {
-    /* Nur falls du im PWA-Modus etwas Spezielles brauchst, sonst leer lassen */
-  }
-  :root {
-    --safe-area-inset-bottom: 0px; /* Kein Safe-Area-Inset im PWA-Modus */
-  }
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: var(--safe-area-inset-bottom);
-  background: rgba(255, 0, 0, 0.5);
-  pointer-events: none;
-  z-index: 9998;
-  margin: 0; /* Sicherstellen, dass kein Margin den Balken verschiebt */
+  will-change: transform;
 }
 
 #safe-area-debug {
@@ -114,8 +99,8 @@ body::after {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: var(--safe-area-inset-bottom);
+  height: var(--effective-safe-area-inset-bottom);
   background: rgba(0, 255, 0, 0.5);
   z-index: 9999;
-  margin: 0; /* Sicherstellen, dass kein Margin den Balken verschiebt */
+  will-change: height;
 }
