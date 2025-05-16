@@ -46,11 +46,4 @@ root.render(
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>
-);
-
-// Service Worker Registrierung für PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js');
-  });
-} 
+); 
