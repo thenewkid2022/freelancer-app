@@ -18,14 +18,6 @@ html, body, #root {
   background: #f8f8f8; /* Optional, für einheitlichen Hintergrund */
 }
 
-/* Füge einen neuen Container für das Scrolling hinzu */
-#root > div {
-  height: 100%;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  position: relative;
-}
-
 /* Smooth transitions for theme changes */
 * {
   transition: background-color var(--transition-duration) ease-in-out,
