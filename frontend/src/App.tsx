@@ -37,7 +37,7 @@ const App: React.FC = () => {
           flexDirection: 'column',
           pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
           pb: { xs: 'calc(56px + env(safe-area-inset-bottom, 0px))', sm: 0 },
-          minHeight: 'calc(var(--vh, 1vh) * 100)',
+          minHeight: 'calc(var(--vh, 1vh) * 100 - env(safe-area-inset-bottom, 0px))',
           boxSizing: 'border-box',
           overflow: 'auto',
           '& > *': {
