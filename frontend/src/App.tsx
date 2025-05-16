@@ -16,10 +16,10 @@ import Export from './components/Export';
 
 function useFooterPadding() {
   useEffect(() => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && typeof (window as any).MSStream === 'undefined';
-    const isStandalone = (window.navigator as any).standalone || window.matchMedia('(display-mode: standalone)').matches;
+    // Zuverlässigere Standalone-Erkennung (iOS und andere)
+    const isStandalone = (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone);
 
-    if (isIOS && isStandalone) {
+    if (isStandalone) {
       document.documentElement.style.setProperty('--footer-padding-bottom', '0px');
     } else {
       document.documentElement.style.setProperty('--footer-padding-bottom', 'env(safe-area-inset-bottom, 0px)');
@@ -51,7 +51,7 @@ const App: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-          pb: { xs: 'calc(56px + env(safe-area-inset-bottom, 0px))', sm: 0 },
+          pb: 0,
           minHeight: 'calc(var(--vh, 1vh) * 100 - env(safe-area-inset-bottom, 0px))',
           boxSizing: 'border-box',
           overflow: 'auto',
