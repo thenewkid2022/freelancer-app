@@ -13,7 +13,7 @@ html, body, #root {
   padding: 0;
   width: 100vw;
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow: hidden; /* Verhindert zusätzlichen Platz durch Scrollen */
   transition: background-color var(--transition-duration) ease-in-out;
   background: #f8f8f8; /* Optional, für einheitlichen Hintergrund */
 }
