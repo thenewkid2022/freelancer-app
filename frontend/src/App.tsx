@@ -35,13 +35,13 @@ const App: React.FC = () => {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          pt: { xs: 7, sm: 8 },
+          pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
           pb: { xs: 'calc(56px + env(safe-area-inset-bottom))', sm: 0 },
           minHeight: 'calc(var(--vh, 1vh) * 100)',
           boxSizing: 'border-box',
           overflow: 'auto',
           height: 'calc(100vh - 64px)',
-          '& > *': { // Stellt sicher, dass der Container die volle Breite nutzt
+          '& > *': {
             width: '100%'
           }
         }}
