@@ -24,6 +24,14 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
+// Dynamische Viewport-Höhe für mobile Geräte
+function setViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+window.addEventListener('resize', setViewportHeight);
+setViewportHeight();
+
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
