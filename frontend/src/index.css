@@ -91,3 +91,15 @@ html, body, #root {
     /* Nur falls du im PWA-Modus etwas Spezielles brauchst, sonst leer lassen */
   }
 }
+
+body::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: env(safe-area-inset-bottom, 0px);
+  background: rgba(255,0,0,0.5);
+  pointer-events: none;
+  z-index: 9999;
+}
