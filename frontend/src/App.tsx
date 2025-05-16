@@ -32,6 +32,21 @@ const App: React.FC = () => {
 
   useFooterPadding();
 
+  useEffect(() => {
+    // Debug-Element für safe-area-inset-bottom erstellen
+    const debugDiv = document.createElement('div');
+    debugDiv.id = 'safe-area-debug';
+    document.body.appendChild(debugDiv);
+
+    // Cleanup-Funktion
+    return () => {
+      const element = document.getElementById('safe-area-debug');
+      if (element) {
+        element.remove();
+      }
+    };
+  }, []); // Leeres Dependency Array, da der Effekt nur einmal beim Mounten ausgeführt werden soll
+
   return (
     <Box 
       className={darkMode ? 'dark' : ''}

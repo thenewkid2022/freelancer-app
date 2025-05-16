@@ -102,3 +102,13 @@ body::after {
   pointer-events: none;
   z-index: 9999;
 }
+
+#safe-area-debug {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: env(safe-area-inset-bottom, 0px);
+  background: rgba(0, 255, 0, 0.5); /* Grüner Balken zum Debuggen */
+  z-index: 9999;
+}
