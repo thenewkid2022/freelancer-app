@@ -23,7 +23,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useResponsive } from './hooks/useResponsive';
 import { PageContainer } from './components/layout/Container';
 import { useAuth } from './contexts/AuthContext';
-import { setViewportHeight } from './utils/viewport';
+import { setupViewportListeners } from './utils/viewport';
 
 const pages = [
   { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
@@ -85,26 +85,8 @@ const App: React.FC = () => {
   ));
 
   useEffect(() => {
-    setViewportHeight();
-    
-    const intervals = [100, 200, 300, 400, 500].map(delay => 
-      setTimeout(setViewportHeight, delay)
-    );
-    
-    const events = ['resize', 'orientationchange', 'scroll', 'visibilitychange'];
-    events.forEach(event => window.addEventListener(event, setViewportHeight));
-    
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', setViewportHeight);
-    }
-    
-    return () => {
-      intervals.forEach(clearTimeout);
-      events.forEach(event => window.removeEventListener(event, setViewportHeight));
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', setViewportHeight);
-      }
-    };
+    const cleanup = setupViewportListeners();
+    return cleanup;
   }, []);
 
   return (
