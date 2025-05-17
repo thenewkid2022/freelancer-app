@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,6 +23,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useResponsive } from './hooks/useResponsive';
 import { PageContainer } from './components/layout/Container';
 import { setupViewportListeners } from './utils/viewport';
+import { useAuth } from './contexts/AuthContext';
 
 const pages = [
   { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
@@ -36,6 +37,7 @@ const App: React.FC = () => {
   const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAuthenticated } = useAuth();
 
   React.useEffect(() => {
     return setupViewportListeners();
@@ -43,6 +45,9 @@ const App: React.FC = () => {
 
   const MainComponent = React.memo(() => (
     <Routes>
+      <Route path="/" element={
+        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+      } />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={
