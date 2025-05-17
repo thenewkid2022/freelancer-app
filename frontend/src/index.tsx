@@ -10,7 +10,6 @@ import App from './App';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { CustomThemeProvider } from './contexts/ThemeContext';
-import { setupViewportListeners } from './utils/viewport';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,9 +26,6 @@ declare global {
     standalone?: boolean;
   }
 }
-
-// Viewport-Listener nach DOM-Content-Loaded initialisieren
-document.addEventListener('DOMContentLoaded', setupViewportListeners);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
