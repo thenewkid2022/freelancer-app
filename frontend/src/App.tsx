@@ -133,7 +133,7 @@ const App: React.FC = () => {
             sm: 'calc(64px + env(safe-area-inset-top, 0px))'
           },
           pb: {
-            xs: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+            xs: 'calc(56px + var(--safe-area-bottom, 0px))',
             sm: 0
           },
           boxSizing: 'border-box',
