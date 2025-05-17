@@ -94,6 +94,7 @@ const App: React.FC = () => {
         color: 'text.primary',
         margin: 0,
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
       <Box
@@ -107,7 +108,7 @@ const App: React.FC = () => {
           bgcolor: 'background.paper',
           borderBottom: '1px solid',
           borderColor: 'divider',
-          zIndex: 1300,
+          zIndex: 1200,
           transition: 'height 0.2s ease-in-out, background-color 0.3s ease-in-out',
           transform: 'translateZ(0)',
         }}
@@ -119,6 +120,7 @@ const App: React.FC = () => {
         component="main"
         sx={{
           flex: 1,
+          position: 'relative',
           overflow: 'auto',
           WebkitOverflowScrolling: 'touch',
           pt: {
@@ -130,7 +132,11 @@ const App: React.FC = () => {
             sm: 0
           },
           boxSizing: 'border-box',
-          '& > *': { width: '100%' },
+          '& > *': { 
+            width: '100%',
+            minHeight: '100%',
+            position: 'relative',
+          },
           transition: 'padding 0.2s ease-in-out',
         }}
       >
@@ -149,7 +155,7 @@ const App: React.FC = () => {
             bgcolor: 'background.paper',
             borderTop: '1px solid',
             borderColor: 'divider',
-            zIndex: 1300,
+            zIndex: 1200,
             transition: 'height 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.3s ease-in-out',
             transform: 'translateZ(0)',
           }}

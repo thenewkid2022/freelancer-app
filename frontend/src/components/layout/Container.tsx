@@ -46,8 +46,10 @@ export const PageContainer: React.FC<ResponsiveContainerProps> = (props) => (
   <ResponsiveContainer
     fullHeight
     sx={{
-      pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-      pb: { xs: 'calc(56px + env(safe-area-inset-bottom, 0px))', sm: 0 },
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100%',
       ...props.sx,
     }}
     {...props}

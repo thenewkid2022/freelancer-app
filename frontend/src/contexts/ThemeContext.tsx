@@ -14,13 +14,7 @@ const ThemeContext = createContext<ThemeContextProps>({
 });
 
 const getInitialDarkMode = (): boolean => {
-  if (typeof window !== 'undefined') {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode !== null) {
-      return savedMode === 'true';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }
+  // Immer false als Standard, bis die Benutzereinstellungen geladen sind
   return false;
 };
 
@@ -28,6 +22,20 @@ export const useThemeContext = () => useContext(ThemeContext);
 
 export const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [darkMode, setDarkMode] = useState<boolean>(getInitialDarkMode());
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // System-Präferenz als Fallback
+  useEffect(() => {
+    if (!isInitialized) {
+      const savedMode = localStorage.getItem('darkMode');
+      if (savedMode === null) {
+        // Nur wenn keine Benutzereinstellungen vorhanden sind, System-Präferenz verwenden
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setDarkMode(prefersDark);
+      }
+      setIsInitialized(true);
+    }
+  }, [isInitialized]);
 
   useEffect(() => {
     localStorage.setItem('darkMode', String(darkMode));
