@@ -153,7 +153,7 @@ const App: React.FC = () => {
           component="footer"
           sx={{
             position: 'fixed',
-            bottom: 'env(safe-area-inset-bottom, 0px)',
+            bottom: 'var(--safe-area-bottom, env(safe-area-inset-bottom, 0px))',
             left: 0,
             right: 0,
             height: { xs: '56px', sm: 0 },
@@ -164,6 +164,10 @@ const App: React.FC = () => {
             transition: 'height 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.3s ease-in-out',
             transform: 'translateZ(0)',
             boxShadow: '0 -2px 4px rgba(0,0,0,0.05)',
+            '@supports not (padding: env(safe-area-inset-bottom))': {
+              bottom: 'var(--safe-area-bottom, 0px)',
+              paddingBottom: 'var(--safe-area-bottom, 0px)',
+            },
           }}
         >
           <BottomNavigation
