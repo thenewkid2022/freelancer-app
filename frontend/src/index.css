@@ -82,7 +82,7 @@ body .footer {
   position: fixed !important;
   left: 0 !important;
   right: 0 !important;
-  bottom: var(--effective-safe-area-inset-bottom) !important; /* Muss 34px sein */
+  bottom: env(safe-area-inset-bottom, 0px) !important; /* Nutze nativen iOS-Wert */
   width: 100vw !important;
   height: 56px !important;
   background: #f0f0f0 !important;
@@ -94,13 +94,16 @@ body .footer {
   will-change: transform !important;
 }
 
+/* Temporär auskommentiert für Layout-Tests */
+/*
 body #safe-area-debug {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
   width: 100% !important;
-  height: var(--effective-safe-area-inset-bottom) !important; /* Muss 34px sein */
+  height: var(--effective-safe-area-inset-bottom) !important;
   background: rgba(0, 255, 0, 0.5) !important;
   z-index: 9999 !important;
   will-change: height !important;
 }
+*/

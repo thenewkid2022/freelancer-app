@@ -18,6 +18,8 @@ const App: React.FC = () => {
   const { darkMode } = useThemeContext();
 
   useEffect(() => {
+    // Temporär auskommentiert für Layout-Tests
+    /*
     // Debug-Element für safe-area-inset-bottom erstellen
     const debugDiv = document.createElement('div');
     debugDiv.id = 'safe-area-debug';
@@ -30,6 +32,7 @@ const App: React.FC = () => {
         element.remove();
       }
     };
+    */
   }, []); // Leeres Dependency Array, da der Effekt nur einmal beim Mounten ausgeführt werden soll
 
   const mainStyles = useMemo(() => ({
@@ -37,7 +40,7 @@ const App: React.FC = () => {
     display: 'flex',
     flexDirection: 'column',
     pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-    pb: `calc(56px + var(--effective-safe-area-inset-bottom, 0px))`, // Aktualisiert für 34px
+    pb: 'calc(56px + env(safe-area-inset-bottom, 0px))', // Dynamisches Padding für den Footer
     minHeight: `calc(var(--vh, 1vh) * 100)`,
     boxSizing: 'border-box',
     overflow: 'auto',
