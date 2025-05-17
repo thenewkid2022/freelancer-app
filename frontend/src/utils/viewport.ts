@@ -9,9 +9,10 @@ export const setViewportHeight = () => {
   const safeVh = Math.min(Math.max(vh, 0.1), 100);
   document.documentElement.style.setProperty('--vh', `${safeVh}px`);
   
-  // Safe Area Berechnung - unverändert lassen
+  // Safe Area Berechnung
   const safeAreaBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0', 10);
   const effectiveSafeAreaBottom = isStandalone ? Math.max(34, safeAreaBottom) : safeAreaBottom;
+  document.documentElement.style.setProperty('--safe-area-bottom', `${effectiveSafeAreaBottom}px`);
   document.documentElement.style.setProperty('--effective-safe-area-inset-bottom', `${effectiveSafeAreaBottom}px`);
 };
 
@@ -19,8 +20,13 @@ export const setViewportHeight = () => {
 export const setupViewportListeners = () => {
   const debouncedSetVh = debounce(setViewportHeight, 100);
   
-  setViewportHeight(); // Initial setzen
+  // Sofortige Initialisierung ohne Debounce
+  setViewportHeight();
   
+  // Verzögerte zweite Initialisierung für den Fall, dass die erste zu früh war
+  setTimeout(setViewportHeight, 100);
+  
+  // Event-Listener mit Debounce für nachfolgende Änderungen
   const events = ['resize', 'orientationchange', 'scroll', 'visibilitychange'];
   events.forEach(event => window.addEventListener(event, debouncedSetVh));
   
@@ -28,10 +34,14 @@ export const setupViewportListeners = () => {
     window.visualViewport.addEventListener('resize', debouncedSetVh);
   }
   
+  // Zusätzlicher Event-Listener für den Load-Event
+  window.addEventListener('load', setViewportHeight);
+  
   return () => {
     events.forEach(event => window.removeEventListener(event, debouncedSetVh));
     if (window.visualViewport) {
       window.visualViewport.removeEventListener('resize', debouncedSetVh);
     }
+    window.removeEventListener('load', setViewportHeight);
   };
 }; 

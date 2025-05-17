@@ -28,8 +28,8 @@ declare global {
   }
 }
 
-// Viewport-Listener sofort initialisieren, bevor die App gerendert wird
-setupViewportListeners();
+// Viewport-Listener nach DOM-Content-Loaded initialisieren
+document.addEventListener('DOMContentLoaded', setupViewportListeners);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
