@@ -49,7 +49,14 @@ export const PageContainer: React.FC<ResponsiveContainerProps> = (props) => (
       position: 'relative',
       display: 'flex',
       flexDirection: 'column',
-      minHeight: '100%',
+      height: '100%',
+      overflow: 'hidden',
+      '& > *': {
+        flex: 1,
+        overflow: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        pb: { xs: 2, sm: 3 },
+      },
       ...props.sx,
     }}
     {...props}

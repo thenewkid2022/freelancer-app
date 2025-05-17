@@ -121,8 +121,9 @@ const App: React.FC = () => {
         sx={{
           flex: 1,
           position: 'relative',
-          overflow: 'auto',
-          WebkitOverflowScrolling: 'touch',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
           pt: {
             xs: 'calc(56px + env(safe-area-inset-top, 0px))',
             sm: 'calc(64px + env(safe-area-inset-top, 0px))'
@@ -134,8 +135,9 @@ const App: React.FC = () => {
           boxSizing: 'border-box',
           '& > *': { 
             width: '100%',
-            minHeight: '100%',
+            height: '100%',
             position: 'relative',
+            overflow: 'hidden',
           },
           transition: 'padding 0.2s ease-in-out',
         }}
@@ -158,6 +160,7 @@ const App: React.FC = () => {
             zIndex: 1200,
             transition: 'height 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.3s ease-in-out',
             transform: 'translateZ(0)',
+            boxShadow: '0 -2px 4px rgba(0,0,0,0.05)',
           }}
         >
           <BottomNavigation
