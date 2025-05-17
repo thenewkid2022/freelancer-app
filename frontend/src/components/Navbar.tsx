@@ -106,10 +106,10 @@ const Navbar: React.FC = () => {
     <AppBar 
       position="fixed" 
       sx={{ 
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1200,
+        top: 'env(safe-area-inset-top, 0px)',
+        left: 'env(safe-area-inset-left, 0px)',
+        right: 'env(safe-area-inset-right, 0px)',
+        zIndex: 1300,
         height: { xs: 56, sm: 64 },
         backgroundColor: 'background.paper',
         borderBottom: '1px solid',
