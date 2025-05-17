@@ -22,7 +22,6 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useResponsive } from './hooks/useResponsive';
 import { PageContainer } from './components/layout/Container';
-import { setupViewportListeners } from './utils/viewport';
 import { useAuth } from './contexts/AuthContext';
 
 const pages = [
@@ -38,10 +37,6 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
-
-  React.useEffect(() => {
-    return setupViewportListeners();
-  }, []);
 
   const MainComponent = React.memo(() => (
     <Routes>
