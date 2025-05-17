@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Typography,
   Paper,
@@ -29,6 +29,58 @@ const Zeiterfassung: React.FC = () => {
   const [activeTimeEntry, setActiveTimeEntry] = useState<{ id: string; startTime: string } | null>(null);
   const [timer, setTimer] = useState(0);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Scroll-Handler
+  const handleScroll = useCallback(() => {
+    if (formRef.current) {
+      setScrollPosition(formRef.current.scrollTop);
+    }
+  }, []);
+
+  // Tastatur-Handler
+  useEffect(() => {
+    const handleFocus = () => {
+      // Verzögertes Scrollen, um sicherzustellen, dass die Tastatur vollständig geöffnet ist
+      setTimeout(() => {
+        if (formRef.current) {
+          const activeElement = document.activeElement as HTMLElement;
+          if (activeElement) {
+            const rect = activeElement.getBoundingClientRect();
+            const offset = rect.top - window.innerHeight / 2;
+            formRef.current.scrollTo({
+              top: scrollPosition + offset,
+              behavior: 'smooth'
+            });
+          }
+        }
+      }, 100);
+    };
+
+    const handleBlur = () => {
+      // Scroll-Position beim Schließen der Tastatur beibehalten
+      if (formRef.current) {
+        formRef.current.scrollTo({
+          top: scrollPosition,
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    const inputs = formRef.current?.querySelectorAll('input, textarea');
+    inputs?.forEach(input => {
+      input.addEventListener('focus', handleFocus);
+      input.addEventListener('blur', handleBlur);
+    });
+
+    return () => {
+      inputs?.forEach(input => {
+        input.removeEventListener('focus', handleFocus);
+        input.removeEventListener('blur', handleBlur);
+      });
+    };
+  }, [scrollPosition]);
 
   // Starten der Zeiterfassung
   const startTimeEntry = useMutation({
@@ -122,19 +174,32 @@ const Zeiterfassung: React.FC = () => {
 
   return (
     <Box
+      ref={formRef}
+      onScroll={handleScroll}
       sx={{
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         minHeight: '100%',
         flexDirection: { xs: 'column', md: 'row' },
         gap: { xs: 4, md: 8 },
         pt: 2,
         pb: { xs: 8, md: 2 },
+        overflow: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        position: 'relative',
+        '&::-webkit-scrollbar': {
+          display: 'none'
+        },
+        overscrollBehavior: 'none',
+        transform: 'translateZ(0)',
+        touchAction: 'pan-y',
       }}
     >
       <Box
         sx={{
+          position: 'sticky',
+          top: 0,
           mb: { xs: 3, md: 0 },
           p: 2,
           borderRadius: 2,
@@ -146,6 +211,7 @@ const Zeiterfassung: React.FC = () => {
           width: '100%',
           fontSize: '1rem',
           mx: { md: 2 },
+          zIndex: 1,
         }}
       >
         Erfasse deine täglichen Projektzeiten.<br />
@@ -155,6 +221,7 @@ const Zeiterfassung: React.FC = () => {
       <Paper
         elevation={3}
         sx={{
+          position: 'relative',
           p: isMobile ? 0.5 : 2,
           borderRadius: 2,
           width: '100%',
@@ -162,8 +229,10 @@ const Zeiterfassung: React.FC = () => {
           minWidth: 260,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           alignItems: 'center',
+          overflow: 'hidden',
+          transform: 'translateZ(0)',
         }}
       >
         <Stack spacing={isMobile ? 1 : 1.5} sx={{ flexGrow: 1, width: '100%' }}>

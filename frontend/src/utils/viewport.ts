@@ -4,7 +4,7 @@ export const setViewportHeight = () => {
   // Sofortige Berechnung der Viewport-Höhe
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   
-  // Wichtig: visualViewport.height statt innerHeight für iOS
+  // Sofortige Berechnung der Viewport-Höhe
   const viewportHeight = window.visualViewport?.height || window.innerHeight;
   
   // Sicherstellen, dass wir einen gültigen Wert haben
@@ -16,6 +16,7 @@ export const setViewportHeight = () => {
   
   // CSS-Variablen setzen
   document.documentElement.style.setProperty('--vh', `${safeVh}px`);
+  document.documentElement.style.setProperty('--actual-vh', `${viewportHeight}px`);
   
   // Verbesserte Safe Area Berechnung für iOS
   const safeAreaBottom = parseInt(
@@ -33,8 +34,11 @@ export const setViewportHeight = () => {
   document.documentElement.style.setProperty('--safe-area-bottom', `${effectiveSafeAreaBottom}px`);
   document.documentElement.style.setProperty('--effective-safe-area-inset-bottom', `${effectiveSafeAreaBottom}px`);
   
-  // Zusätzliche CSS-Variable für die tatsächliche Viewport-Höhe
-  document.documentElement.style.setProperty('--actual-vh', `${viewportHeight}px`);
+  // Neue CSS-Variable für die Tastatur-Höhe
+  const keyboardHeight = window.visualViewport 
+    ? window.innerHeight - window.visualViewport.height 
+    : 0;
+  document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
 };
 
 // Optimierte Event-Listener-Konfiguration
@@ -55,13 +59,15 @@ export const setupViewportListeners = () => {
     'orientationchange',
     'scroll',
     'visibilitychange',
-    'focusin',  // Neu: Für Tastatur-Events
-    'focusout'  // Neu: Für Tastatur-Events
+    'focusin',
+    'focusout',
+    'blur',  // Neu: Für bessere Tastatur-Handling
+    'resize', // Neu: Für bessere Tastatur-Handling
   ];
   
   events.forEach(event => window.addEventListener(event, debouncedSetVh));
   
-  // Visual Viewport Events
+  // Visual Viewport Events mit sofortiger Reaktion
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', setViewportHeight);
     window.visualViewport.addEventListener('scroll', setViewportHeight);
