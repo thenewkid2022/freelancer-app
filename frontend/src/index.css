@@ -5,13 +5,13 @@
 :root {
   --transition-duration: 0.3s;
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-  --effective-safe-area-inset-bottom: 20px;
+  --effective-safe-area-inset-bottom: 34px;
 }
 
 @media (display-mode: standalone) {
   :root {
     --safe-area-inset-bottom: 0px;
-    --effective-safe-area-inset-bottom: 34px; /* Aktualisiert für iPhone 15 */
+    --effective-safe-area-inset-bottom: 34px;
   }
 }
 
@@ -78,29 +78,29 @@ html, body, #root {
   }
 }
 
-.footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: var(--effective-safe-area-inset-bottom);
-  width: 100vw;
-  height: 56px;
-  background: #f0f0f0;
-  z-index: 1200;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  will-change: transform;
+body .footer {
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: var(--effective-safe-area-inset-bottom) !important;
+  width: 100vw !important;
+  height: 56px !important;
+  background: #f0f0f0 !important;
+  z-index: 1200 !important;
+  border-top: 1px solid #e0e0e0 !important;
+  display: flex !important;
+  justify-content: space-around !important;
+  align-items: center !important;
+  will-change: transform !important;
 }
 
-#safe-area-debug {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: var(--effective-safe-area-inset-bottom);
-  background: rgba(0, 255, 0, 0.5);
-  z-index: 9999;
-  will-change: height;
+body #safe-area-debug {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: var(--effective-safe-area-inset-bottom) !important;
+  background: rgba(0, 255, 0, 0.5) !important;
+  z-index: 9999 !important;
+  will-change: height !important;
 }
