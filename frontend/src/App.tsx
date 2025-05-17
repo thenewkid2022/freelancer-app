@@ -32,15 +32,6 @@ const App: React.FC = () => {
     };
   }, []); // Leeres Dependency Array, da der Effekt nur einmal beim Mounten ausgeführt werden soll
 
-  // Dynamische Viewport-Höhe für mobile Geräte
-  function setViewportHeight() {
-    const vh = window.innerHeight * 0.01; // Verwende window.innerHeight statt document.documentElement.clientHeight
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-  }
-  window.addEventListener('resize', setViewportHeight);
-  window.addEventListener('orientationchange', setViewportHeight); // Für Gerätedrehungen
-  setViewportHeight();
-
   const mainStyles = useMemo(() => ({
     flexGrow: 1,
     display: 'flex',

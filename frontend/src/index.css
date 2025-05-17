@@ -11,7 +11,7 @@
 @media (display-mode: standalone) {
   :root {
     --safe-area-inset-bottom: 0px;
-    --effective-safe-area-inset-bottom: 34px;
+    --effective-safe-area-inset-bottom: 34px !important;
   }
 }
 
@@ -82,7 +82,7 @@ body .footer {
   position: fixed !important;
   left: 0 !important;
   right: 0 !important;
-  bottom: var(--effective-safe-area-inset-bottom) !important;
+  bottom: var(--effective-safe-area-inset-bottom) !important; /* Muss 34px sein */
   width: 100vw !important;
   height: 56px !important;
   background: #f0f0f0 !important;
@@ -99,7 +99,7 @@ body #safe-area-debug {
   bottom: 0 !important;
   left: 0 !important;
   width: 100% !important;
-  height: var(--effective-safe-area-inset-bottom) !important;
+  height: var(--effective-safe-area-inset-bottom) !important; /* Muss 34px sein */
   background: rgba(0, 255, 0, 0.5) !important;
   z-index: 9999 !important;
   will-change: height !important;
