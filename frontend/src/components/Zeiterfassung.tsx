@@ -125,7 +125,7 @@ const Zeiterfassung: React.FC = () => {
       sx={{
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         minHeight: '100%',
         flexDirection: { xs: 'column', md: 'row' },
         gap: { xs: 4, md: 8 },
