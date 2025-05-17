@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useThemeContext } from './contexts/ThemeContext';
@@ -20,6 +20,9 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useResponsive } from './hooks/useResponsive';
+import { PageContainer } from './components/layout/Container';
+import { setupViewportListeners } from './utils/viewport';
 
 const pages = [
   { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
@@ -30,95 +33,157 @@ const pages = [
 
 const App: React.FC = () => {
   const { darkMode } = useThemeContext();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const setVh = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-    setVh();
-    window.addEventListener('resize', setVh);
-    document.addEventListener('visibilitychange', setVh);
-    return () => {
-      window.removeEventListener('resize', setVh);
-      document.removeEventListener('visibilitychange', setVh);
-    };
+  React.useEffect(() => {
+    return setupViewportListeners();
   }, []);
 
-  const mainStyles = useMemo(() => ({
-    flexGrow: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-    pb: 'calc(56px + env(safe-area-inset-bottom, 0px))',
-    boxSizing: 'border-box',
-    '& > *': { width: '100%' }
-  }), []);
-
   const MainComponent = React.memo(() => (
-    <Box component="main" sx={mainStyles}>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<PrivateRoute><Container maxWidth={false} sx={{ p: 0, m: 0, display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}><Zeiterfassung /></Container></PrivateRoute>} />
-        <Route path="/time-entries" element={<PrivateRoute><Container maxWidth="lg" sx={{ flex: 1, overflow: 'auto', px: { xs: 1, sm: 2, md: 3 }, display: 'flex', flexDirection: 'column' }}><TimeEntries /></Container></PrivateRoute>} />
-        <Route path="/statistics" element={<PrivateRoute><Container maxWidth="lg" sx={{ flex: 1, overflow: 'auto', px: { xs: 1, sm: 2, md: 3 }, display: 'flex', flexDirection: 'column' }}><Statistics /></Container></PrivateRoute>} />
-        <Route path="/profile" element={<PrivateRoute><Container maxWidth="lg" sx={{ flex: 1, overflow: 'auto', px: { xs: 1, sm: 2, md: 3 }, display: 'flex', flexDirection: 'column' }}><Profile /></Container></PrivateRoute>} />
-        <Route path="/export" element={<PrivateRoute><Container maxWidth="lg" sx={{ flex: 1, height: '100%' }}><Export /></Container></PrivateRoute>} />
-      </Routes>
-    </Box>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/dashboard" element={
+        <PrivateRoute>
+          <PageContainer noPadding>
+            <Zeiterfassung />
+          </PageContainer>
+        </PrivateRoute>
+      } />
+      <Route path="/time-entries" element={
+        <PrivateRoute>
+          <PageContainer>
+            <TimeEntries />
+          </PageContainer>
+        </PrivateRoute>
+      } />
+      <Route path="/statistics" element={
+        <PrivateRoute>
+          <PageContainer>
+            <Statistics />
+          </PageContainer>
+        </PrivateRoute>
+      } />
+      <Route path="/profile" element={
+        <PrivateRoute>
+          <PageContainer>
+            <Profile />
+          </PageContainer>
+        </PrivateRoute>
+      } />
+      <Route path="/export" element={
+        <PrivateRoute>
+          <PageContainer>
+            <Export />
+          </PageContainer>
+        </PrivateRoute>
+      } />
+    </Routes>
   ));
 
   return (
-    <Box 
-      className={darkMode ? 'dark' : ''} 
-      sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}
+    <Box
+      className={darkMode ? 'dark' : ''}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: 'calc(var(--vh, 1vh) * 100)',
+        bgcolor: 'background.default',
+        color: 'text.primary',
+        margin: 0,
+        overflow: 'hidden',
+      }}
     >
-      <Navbar />
-      <MainComponent />
+      <Box
+        component="header"
+        sx={{
+          position: 'fixed',
+          top: 'env(safe-area-inset-top, 0px)',
+          left: 0,
+          right: 0,
+          height: { xs: '56px', sm: '64px' },
+          bgcolor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          zIndex: 1300,
+          transition: 'height 0.2s ease-in-out, background-color 0.3s ease-in-out',
+          transform: 'translateZ(0)',
+        }}
+      >
+        <Navbar />
+      </Box>
+
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          pt: {
+            xs: 'calc(56px + env(safe-area-inset-top, 0px))',
+            sm: 'calc(64px + env(safe-area-inset-top, 0px))'
+          },
+          pb: {
+            xs: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+            sm: 0
+          },
+          boxSizing: 'border-box',
+          '& > *': { width: '100%' },
+          transition: 'padding 0.2s ease-in-out',
+        }}
+      >
+        <MainComponent />
+      </Box>
+
       {isMobile && (
-        <BottomNavigation
-          value={location.pathname}
-          onChange={(event, newValue) => { navigate(newValue); }}
-          showLabels={false}
+        <Box
+          component="footer"
           sx={{
             position: 'fixed',
             bottom: 'env(safe-area-inset-bottom, 0px)',
             left: 0,
             right: 0,
-            height: 56,
-            zIndex: 1400,
-            backgroundColor: 'background.paper',
+            height: { xs: '56px', sm: 0 },
+            bgcolor: 'background.paper',
             borderTop: '1px solid',
             borderColor: 'divider',
+            zIndex: 1300,
+            transition: 'height 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.3s ease-in-out',
+            transform: 'translateZ(0)',
           }}
         >
-          {pages.map((page) => (
-            <BottomNavigationAction
-              key={page.path}
-              label={page.name}
-              icon={page.icon}
-              value={page.path}
-              showLabel={location.pathname === page.path}
-              sx={{
-                flex: 1,
-                minWidth: 0,
-                maxWidth: '100%',
+          <BottomNavigation
+            value={location.pathname}
+            onChange={(event, newValue) => { navigate(newValue); }}
+            showLabels={false}
+            sx={{
+              height: '100%',
+              '& .MuiBottomNavigationAction-root': {
+                minWidth: 'auto',
                 padding: '6px 0',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                '.MuiSvgIcon-root': { fontSize: 28, marginBottom: '2px' },
-              }}
-            />
-          ))}
-        </BottomNavigation>
+                '.MuiSvgIcon-root': { 
+                  fontSize: { xs: 24, sm: 28 },
+                  marginBottom: '2px',
+                  transition: 'font-size 0.2s ease-in-out',
+                },
+              }
+            }}
+          >
+            {pages.map((page) => (
+              <BottomNavigationAction
+                key={page.path}
+                label={page.name}
+                icon={page.icon}
+                value={page.path}
+                showLabel={location.pathname === page.path}
+              />
+            ))}
+          </BottomNavigation>
+        </Box>
       )}
+
       <ToastContainer
         position="bottom-right"
         autoClose={3000}

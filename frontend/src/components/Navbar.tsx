@@ -68,19 +68,17 @@ const Navbar: React.FC = () => {
 
   if (!user) {
     return (
-      <AppBar position="static" sx={{ 
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1200,
-        height: { xs: 56, sm: 64 },
-        backgroundColor: 'background.paper',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-      }}>
+      <AppBar 
+        position="static" 
+        sx={{ 
+          height: '100%',
+          backgroundColor: 'background.paper',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
         <Container maxWidth={false}>
-          <Toolbar disableGutters sx={{ minHeight: { xs: 56, sm: 64 } }}>
+          <Toolbar disableGutters sx={{ minHeight: '100%' }}>
             <Typography
               variant="h6"
               noWrap
@@ -104,20 +102,16 @@ const Navbar: React.FC = () => {
 
   return (
     <AppBar 
-      position="fixed" 
+      position="static"
       sx={{ 
-        top: 'env(safe-area-inset-top, 0px)',
-        left: 'env(safe-area-inset-left, 0px)',
-        right: 'env(safe-area-inset-right, 0px)',
-        zIndex: 1300,
-        height: { xs: 56, sm: 64 },
+        height: '100%',
         backgroundColor: 'background.paper',
         borderBottom: '1px solid',
         borderColor: 'divider',
       }}
     >
       <Container maxWidth={false}>
-        <Toolbar disableGutters sx={{ minHeight: { xs: 56, sm: 64 } }}>
+        <Toolbar disableGutters sx={{ minHeight: '100%' }}>
           <Typography
             variant="h6"
             noWrap
