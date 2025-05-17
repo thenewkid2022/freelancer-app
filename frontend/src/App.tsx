@@ -50,8 +50,8 @@ const App: React.FC = () => {
     display: 'flex',
     flexDirection: 'column',
     pt: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-    pb: 'calc(56px + var(--safe-area-inset-bottom, 0px))', // Dynamisches Padding
-    minHeight: `calc(var(--vh, 1vh) * 100)`,
+    pb: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+    minHeight: 0,
     boxSizing: 'border-box',
     overflow: 'auto',
     '& > *': { width: '100%' }
