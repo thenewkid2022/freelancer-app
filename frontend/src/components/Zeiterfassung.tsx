@@ -341,8 +341,8 @@ const Zeiterfassung: React.FC = () => {
           {/* Action Buttons */}
           <Box
             sx={{
-              position: 'sticky',
-              bottom: { xs: 'calc(56px + var(--safe-area-bottom, 0px))', sm: 0 },
+              position: 'fixed',
+              bottom: { xs: 'calc(56px + env(safe-area-inset-bottom, 0px))', sm: 'calc(64px + env(safe-area-inset-bottom, 0px))' },
               left: 0,
               right: 0,
               p: 2,
@@ -351,10 +351,11 @@ const Zeiterfassung: React.FC = () => {
               borderColor: 'divider',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
-              zIndex: 1000,
+              zIndex: 1200,
+              boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.1)',
             }}
           >
-            <Stack direction="row" spacing={2} justifyContent="center">
+            <Stack direction="row" spacing={2} justifyContent="center" sx={{ maxWidth: 600, mx: 'auto' }}>
               <Button
                 variant="contained"
                 color="success"
@@ -368,6 +369,7 @@ const Zeiterfassung: React.FC = () => {
                   py: 1.5,
                   fontWeight: 600,
                   minWidth: 120,
+                  boxShadow: 2,
                 }}
               >
                 Start
@@ -385,6 +387,7 @@ const Zeiterfassung: React.FC = () => {
                   py: 1.5,
                   fontWeight: 600,
                   minWidth: 120,
+                  boxShadow: 2,
                 }}
               >
                 Stop
