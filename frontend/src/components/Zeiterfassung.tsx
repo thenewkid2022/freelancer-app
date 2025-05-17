@@ -130,6 +130,7 @@ const Zeiterfassung: React.FC = () => {
         flexDirection: { xs: 'column', md: 'row' },
         gap: { xs: 4, md: 8 },
         pt: 2,
+        pb: { xs: 8, md: 2 },
       }}
     >
       <Box
