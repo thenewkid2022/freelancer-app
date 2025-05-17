@@ -50,12 +50,9 @@ export const PageContainer: React.FC<ResponsiveContainerProps> = (props) => (
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      overflow: 'hidden',
       '& > *': {
         flex: 1,
-        overflow: 'auto',
-        WebkitOverflowScrolling: 'touch',
-        pb: { xs: 2, sm: 3 },
+        width: '100%',
       },
       ...props.sx,
     }}

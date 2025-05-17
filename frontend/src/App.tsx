@@ -121,9 +121,8 @@ const App: React.FC = () => {
         sx={{
           flex: 1,
           position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
+          overflow: 'auto',
+          WebkitOverflowScrolling: 'touch',
           pt: {
             xs: 'calc(56px + env(safe-area-inset-top, 0px))',
             sm: 'calc(64px + env(safe-area-inset-top, 0px))'
@@ -135,9 +134,8 @@ const App: React.FC = () => {
           boxSizing: 'border-box',
           '& > *': { 
             width: '100%',
-            height: '100%',
+            minHeight: '100%',
             position: 'relative',
-            overflow: 'hidden',
           },
           transition: 'padding 0.2s ease-in-out',
         }}
