@@ -20,7 +20,7 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
 
   return (
     <MuiContainer
-      maxWidth="lg"
+      maxWidth={isMobile ? false : "lg"}
       {...props}
       sx={{
         flex: 1,

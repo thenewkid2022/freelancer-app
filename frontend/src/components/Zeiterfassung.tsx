@@ -233,169 +233,153 @@ const Zeiterfassung: React.FC = () => {
   return (
     <Box
       sx={{
-        minHeight: '100%',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative',
-        overflow: 'hidden',
+        bgcolor: 'background.default',
       }}
     >
-      {/* Info Banner */}
-      <InfoBanner open={showInfo} onClose={() => setShowInfo(false)} />
+      {/* Info-Banner als normaler Block */}
+      {showInfo && (
+        <Box sx={{ mb: 2 }}>
+          <InfoBanner open={showInfo} onClose={() => setShowInfo(false)} />
+        </Box>
+      )}
 
-      {/* Timer Section */}
-      <Box
+      {/* Hauptinhalt */}
+      <Stack
+        spacing={3}
         sx={{
-          position: 'sticky',
-          top: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-          zIndex: 1000,
-          p: 2,
-          bgcolor: 'background.default',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-        }}
-      >
-        <Timer seconds={timer} isRunning={!!activeTimeEntry} />
-      </Box>
-
-      {/* Form Section */}
-      <Box
-        ref={formRef}
-        sx={{
+          width: '100%',
+          maxWidth: { sm: 600 },
+          mx: { xs: 0, sm: 'auto' },
           flex: 1,
-          p: 2,
-          overflow: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          overscrollBehavior: 'contain',
-          '&::-webkit-scrollbar': { display: 'none' },
+          p: { xs: 1, sm: 2 },
+          boxSizing: 'border-box',
         }}
       >
-        <Stack spacing={3} sx={{ maxWidth: 600, mx: 'auto' }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              bgcolor: 'background.paper',
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Stack spacing={3}>
-              <TextField
-                label="Projektnummer"
-                placeholder="z.B. PRJ-001"
-                fullWidth
-                value={projectNumber}
-                onChange={(e) => setProjectNumber(e.target.value)}
-                disabled={!!activeTimeEntry}
-                InputProps={{
-                  startAdornment: <AssignmentIcon color="action" sx={{ mr: 1 }} />,
-                  sx: { borderRadius: 2 }
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: 'background.default',
-                  }
-                }}
-              />
-              <TextField
-                label="Projektname"
-                placeholder="z.B. Website-Relaunch"
-                fullWidth
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                disabled={!!activeTimeEntry}
-                InputProps={{
-                  sx: { borderRadius: 2 }
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: 'background.default',
-                  }
-                }}
-              />
-              <TextField
-                label="Beschreibung"
-                placeholder="Kurze Beschreibung der Tätigkeit"
-                fullWidth
-                multiline
-                minRows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                disabled={!!activeTimeEntry}
-                InputProps={{
-                  sx: { borderRadius: 2 }
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: 'background.default',
-                  }
-                }}
-              />
-            </Stack>
-          </Paper>
+        {/* Timer */}
+        <Box
+          sx={{
+            width: '100%',
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 1,
+            p: 2,
+            mb: 1,
+          }}
+        >
+          <Timer seconds={timer} isRunning={!!activeTimeEntry} />
+        </Box>
 
-          {/* Action Buttons */}
-          <Box
+        {/* Formular */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 1.5, sm: 3 },
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            width: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          <Stack spacing={2}>
+            <TextField
+              label="Projektnummer"
+              placeholder="z.B. PRJ-001"
+              fullWidth
+              value={projectNumber}
+              onChange={(e) => setProjectNumber(e.target.value)}
+              disabled={!!activeTimeEntry}
+              InputProps={{
+                startAdornment: <AssignmentIcon color="action" sx={{ mr: 1 }} />,
+                sx: { borderRadius: 2 }
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  bgcolor: 'background.default',
+                }
+              }}
+            />
+            <TextField
+              label="Projektname"
+              placeholder="z.B. Website-Relaunch"
+              fullWidth
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              disabled={!!activeTimeEntry}
+              InputProps={{
+                sx: { borderRadius: 2 }
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  bgcolor: 'background.default',
+                }
+              }}
+            />
+            <TextField
+              label="Beschreibung"
+              placeholder="Kurze Beschreibung der Tätigkeit"
+              fullWidth
+              multiline
+              minRows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={!!activeTimeEntry}
+              InputProps={{
+                sx: { borderRadius: 2 }
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  bgcolor: 'background.default',
+                }
+              }}
+            />
+          </Stack>
+        </Paper>
+
+        {/* Action Buttons */}
+        <Stack direction="row" spacing={2} justifyContent="center" sx={{ width: '100%' }}>
+          <Button
+            variant="contained"
+            color="success"
+            size="large"
+            startIcon={<PlayArrowIcon />}
+            onClick={() => startTimeEntry.mutate()}
+            disabled={!!activeTimeEntry || !projectNumber || !projectName}
             sx={{
-              position: 'fixed',
-              bottom: { xs: 'calc(56px + env(safe-area-inset-bottom, 0px))', sm: 'calc(64px + env(safe-area-inset-bottom, 0px))' },
-              left: 0,
-              right: 0,
-              p: 2,
-              bgcolor: 'background.default',
-              borderTop: '1px solid',
-              borderColor: 'divider',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              zIndex: 1200,
-              boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.1)',
+              borderRadius: 2,
+              px: 4,
+              py: 1.5,
+              fontWeight: 600,
+              minWidth: 120,
+              boxShadow: 2,
             }}
           >
-            <Stack direction="row" spacing={2} justifyContent="center" sx={{ maxWidth: 600, mx: 'auto' }}>
-              <Button
-                variant="contained"
-                color="success"
-                size="large"
-                startIcon={<PlayArrowIcon />}
-                onClick={() => startTimeEntry.mutate()}
-                disabled={!!activeTimeEntry || !projectNumber || !projectName}
-                sx={{
-                  borderRadius: 2,
-                  px: 4,
-                  py: 1.5,
-                  fontWeight: 600,
-                  minWidth: 120,
-                  boxShadow: 2,
-                }}
-              >
-                Start
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                size="large"
-                startIcon={<StopIcon />}
-                onClick={() => stopTimeEntry.mutate()}
-                disabled={!activeTimeEntry}
-                sx={{
-                  borderRadius: 2,
-                  px: 4,
-                  py: 1.5,
-                  fontWeight: 600,
-                  minWidth: 120,
-                  boxShadow: 2,
-                }}
-              >
-                Stop
-              </Button>
-            </Stack>
-          </Box>
+            Start
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            size="large"
+            startIcon={<StopIcon />}
+            onClick={() => stopTimeEntry.mutate()}
+            disabled={!activeTimeEntry}
+            sx={{
+              borderRadius: 2,
+              px: 4,
+              py: 1.5,
+              fontWeight: 600,
+              minWidth: 120,
+              boxShadow: 2,
+            }}
+          >
+            Stop
+          </Button>
         </Stack>
-      </Box>
+      </Stack>
     </Box>
   );
 };
