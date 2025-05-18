@@ -143,10 +143,6 @@ const App: React.FC = () => {
           right: 0,
           overflowY: 'auto',
           overflowX: 'hidden',
-          WebkitOverflowScrolling: 'touch',
-          overscrollBehaviorY: 'contain',
-          pb: isMobile ? 'env(safe-area-inset-bottom, 0px)' : 0,
-          pt: 'env(safe-area-inset-top, 0px)',
         }}
       >
         <MainComponent />
