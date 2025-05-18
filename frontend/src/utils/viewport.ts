@@ -41,6 +41,9 @@ export const setViewportHeight = () => {
   document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
 };
 
+// Initialisiere --vh sofort beim Laden des Moduls
+setViewportHeight();
+
 // Optimierte Event-Listener-Konfiguration
 export const setupViewportListeners = () => {
   // Sofortige Initialisierung

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
@@ -38,6 +38,7 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
+  const mainRef = useRef<HTMLDivElement>(null);
 
   const MainComponent = React.memo(() => (
     <Routes>
@@ -85,8 +86,22 @@ const App: React.FC = () => {
   ));
 
   useEffect(() => {
-    const cleanup = setupViewportListeners();
-    return cleanup;
+    const updateHeight = () => {
+      if (mainRef.current) {
+        const vh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vh') || '1');
+        mainRef.current.style.height = `${vh * 100 - 56 - 56}px`;
+      }
+    };
+
+    updateHeight();
+
+    window.addEventListener('resize', updateHeight);
+    window.visualViewport?.addEventListener('resize', updateHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+      window.visualViewport?.removeEventListener('resize', updateHeight);
+    };
   }, []);
 
   return (
@@ -122,16 +137,9 @@ const App: React.FC = () => {
 
       <Box
         component="main"
+        ref={mainRef}
         sx={{
           flex: 1,
-          pt: {
-            xs: 'calc(56px + env(safe-area-inset-top, 0px))',
-            sm: 'calc(64px + env(safe-area-inset-top, 0px))'
-          },
-          pb: { xs: 'calc(56px + env(safe-area-inset-bottom, 0px))', sm: '64px' },
-          boxSizing: 'border-box',
-          width: '100%',
-          height: 'calc(var(--vh, 1vh) * 100 - 56px - 56px)',
           overflow: 'auto',
         }}
       >
