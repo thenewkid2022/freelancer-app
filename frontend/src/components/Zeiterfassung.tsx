@@ -227,29 +227,27 @@ const Zeiterfassung: React.FC = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
         bgcolor: 'background.default',
       }}
     >
-      {/* Info-Banner */}
+      {/* Info-Banner als normaler Block */}
       {showInfo && (
-        <Paper sx={{ mb: 2, p: 2, bgcolor: 'info.light', color: 'info.contrastText' }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <InfoIcon />
-            <Typography variant="body2" sx={{ flex: 1 }}>
-              Erfasse deine täglichen Projektzeiten. Führe am Ende des Tages einen Tagesausgleich durch.
-            </Typography>
-            <IconButton size="small" onClick={() => setShowInfo(false)} sx={{ color: 'inherit' }}>
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </Stack>
-        </Paper>
+        <Box sx={{ mb: 2 }}>
+          <InfoBanner open={showInfo} onClose={() => setShowInfo(false)} />
+        </Box>
       )}
 
       {/* Hauptinhalt */}
-      <Box sx={{ flex: 1, overflow: 'auto', width: '100%', maxWidth: 600, mx: 'auto', p: { xs: 1, sm: 2 } }}>
+      <Stack
+        spacing={3}
+        sx={{
+          width: '100%',
+          maxWidth: { sm: 600 },
+          mx: { xs: 0, sm: 'auto' },
+          p: { xs: 1, sm: 2 },
+          boxSizing: 'border-box',
+        }}
+      >
         {/* Timer */}
         <Box sx={{ mb: 2 }}>
           <Timer seconds={timer} isRunning={!!activeTimeEntry} />
@@ -351,7 +349,7 @@ const Zeiterfassung: React.FC = () => {
             Stop
           </Button>
         </Stack>
-      </Box>
+      </Stack>
     </Box>
   );
 };

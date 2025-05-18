@@ -23,11 +23,8 @@ export const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
       maxWidth={isMobile ? false : "lg"}
       {...props}
       sx={{
-        flex: 1,
-        overflow: 'auto',
         px: noPadding ? 0 : { xs: 1, sm: 2, md: 3 },
         py: noPadding ? 0 : { xs: 1, sm: 2 },
-        height: fullHeight ? '100%' : 'auto',
         display: 'flex',
         flexDirection: 'column',
         ...(centered && {
@@ -49,11 +46,7 @@ export const PageContainer: React.FC<ResponsiveContainerProps> = (props) => (
       position: 'relative',
       display: 'flex',
       flexDirection: 'column',
-      height: '100%',
-      '& > *': {
-        flex: 1,
-        width: '100%',
-      },
+      width: '100%',
       ...props.sx,
     }}
     {...props}
