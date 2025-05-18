@@ -91,11 +91,10 @@ const App: React.FC = () => {
 
   return (
     <Box
-      className={darkMode ? 'dark' : ''}
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(var(--vh, 1vh) * 100)',
+        minHeight: '100vh',
         bgcolor: 'background.default',
         color: 'text.primary',
         margin: 0,
@@ -126,24 +125,15 @@ const App: React.FC = () => {
         component="main"
         sx={{
           flex: 1,
-          position: 'relative',
-          overflow: 'auto',
-          WebkitOverflowScrolling: 'touch',
           pt: {
             xs: 'calc(56px + env(safe-area-inset-top, 0px))',
             sm: 'calc(64px + env(safe-area-inset-top, 0px))'
           },
-          pb: {
-            xs: 'calc(56px + env(safe-area-inset-bottom, 0px) + 60px)',
-            sm: 'calc(64px + env(safe-area-inset-bottom, 0px) + 60px)'
-          },
+          pb: { xs: '56px', sm: '64px' },
           boxSizing: 'border-box',
-          '& > *': { 
-            width: '100%',
-            minHeight: '100%',
-            position: 'relative',
-          },
-          transition: 'padding 0.2s ease-in-out',
+          width: '100%',
+          minHeight: 0,
+          overflow: 'auto',
         }}
       >
         <MainComponent />
@@ -154,21 +144,15 @@ const App: React.FC = () => {
           component="footer"
           sx={{
             position: 'fixed',
-            bottom: 'var(--safe-area-bottom, env(safe-area-inset-bottom, 0px))',
+            bottom: 0,
             left: 0,
             right: 0,
-            height: { xs: '56px', sm: 0 },
+            height: { xs: '56px', sm: '64px' },
             bgcolor: 'background.paper',
             borderTop: '1px solid',
             borderColor: 'divider',
             zIndex: 1200,
-            transition: 'height 0.2s ease-in-out, transform 0.2s ease-in-out, background-color 0.3s ease-in-out',
-            transform: 'translateZ(0)',
             boxShadow: '0 -2px 4px rgba(0,0,0,0.05)',
-            '@supports not (padding: env(safe-area-inset-bottom))': {
-              bottom: 'var(--safe-area-bottom, 0px)',
-              paddingBottom: 'var(--safe-area-bottom, 0px)',
-            },
           }}
         >
           <BottomNavigation

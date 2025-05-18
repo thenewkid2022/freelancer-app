@@ -102,14 +102,8 @@ const InfoBanner = ({ open, onClose }: { open: boolean; onClose: () => void }) =
   <Fade in={open}>
     <Paper
       sx={{
-        position: 'fixed',
-        top: { xs: 'calc(56px + env(safe-area-inset-top, 0px))', sm: 'calc(64px + env(safe-area-inset-top, 0px))' },
-        left: 0,
-        right: 0,
-        zIndex: 1200,
         p: 2,
-        mx: 2,
-        mt: 2,
+        mb: 2,
         borderRadius: 2,
         bgcolor: 'info.light',
         color: 'info.contrastText',
@@ -239,52 +233,30 @@ const Zeiterfassung: React.FC = () => {
         bgcolor: 'background.default',
       }}
     >
-      {/* Info-Banner als normaler Block */}
+      {/* Info-Banner */}
       {showInfo && (
-        <Box sx={{ mb: 2 }}>
-          <InfoBanner open={showInfo} onClose={() => setShowInfo(false)} />
-        </Box>
+        <Paper sx={{ mb: 2, p: 2, bgcolor: 'info.light', color: 'info.contrastText' }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <InfoIcon />
+            <Typography variant="body2" sx={{ flex: 1 }}>
+              Erfasse deine täglichen Projektzeiten. Führe am Ende des Tages einen Tagesausgleich durch.
+            </Typography>
+            <IconButton size="small" onClick={() => setShowInfo(false)} sx={{ color: 'inherit' }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </Paper>
       )}
 
       {/* Hauptinhalt */}
-      <Stack
-        spacing={3}
-        sx={{
-          width: '100%',
-          maxWidth: { sm: 600 },
-          mx: { xs: 0, sm: 'auto' },
-          flex: 1,
-          p: { xs: 1, sm: 2 },
-          boxSizing: 'border-box',
-        }}
-      >
+      <Box sx={{ flex: 1, overflow: 'auto', width: '100%', maxWidth: 600, mx: 'auto', p: { xs: 1, sm: 2 } }}>
         {/* Timer */}
-        <Box
-          sx={{
-            width: '100%',
-            bgcolor: 'background.paper',
-            borderRadius: 2,
-            boxShadow: 1,
-            p: 2,
-            mb: 1,
-          }}
-        >
+        <Box sx={{ mb: 2 }}>
           <Timer seconds={timer} isRunning={!!activeTimeEntry} />
         </Box>
 
         {/* Formular */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 1.5, sm: 3 },
-            borderRadius: 3,
-            bgcolor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'divider',
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
+        <Paper sx={{ p: 2, mb: 2 }}>
           <Stack spacing={2}>
             <TextField
               label="Projektnummer"
@@ -340,8 +312,8 @@ const Zeiterfassung: React.FC = () => {
           </Stack>
         </Paper>
 
-        {/* Action Buttons */}
-        <Stack direction="row" spacing={2} justifyContent="center" sx={{ width: '100%' }}>
+        {/* Action-Buttons */}
+        <Stack direction="row" spacing={2} justifyContent="center">
           <Button
             variant="contained"
             color="success"
@@ -379,7 +351,7 @@ const Zeiterfassung: React.FC = () => {
             Stop
           </Button>
         </Stack>
-      </Stack>
+      </Box>
     </Box>
   );
 };
