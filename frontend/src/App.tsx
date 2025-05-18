@@ -39,6 +39,8 @@ const App: React.FC = () => {
   const location = useLocation();
   const { user, isAuthenticated } = useAuth();
   const mainRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
 
   const MainComponent = React.memo(() => (
     <Routes>
@@ -86,30 +88,32 @@ const App: React.FC = () => {
   ));
 
   useEffect(() => {
-    const updateHeight = () => {
-      if (mainRef.current) {
-        const vh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vh') || '1');
-        mainRef.current.style.height = `${vh * 100 - 56 - 56}px`;
+    const updateMainHeight = () => {
+      if (mainRef.current && headerRef.current && footerRef.current) {
+        const headerHeight = headerRef.current.clientHeight;
+        const footerHeight = isMobile ? footerRef.current.clientHeight : 0; // Footer nur auf Mobilgeräten
+        const vh = window.innerHeight;
+        mainRef.current.style.height = `${vh - headerHeight - footerHeight}px`;
       }
     };
 
-    updateHeight();
+    updateMainHeight();
 
-    window.addEventListener('resize', updateHeight);
-    window.visualViewport?.addEventListener('resize', updateHeight);
+    window.addEventListener('resize', updateMainHeight);
+    window.visualViewport?.addEventListener('resize', updateMainHeight);
 
     return () => {
-      window.removeEventListener('resize', updateHeight);
-      window.visualViewport?.removeEventListener('resize', updateHeight);
+      window.removeEventListener('resize', updateMainHeight);
+      window.visualViewport?.removeEventListener('resize', updateMainHeight);
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(var(--vh, 1vh) * 100)',
+        height: '100vh',
         bgcolor: 'background.default',
         color: 'text.primary',
         margin: 0,
@@ -117,18 +121,18 @@ const App: React.FC = () => {
       }}
     >
       <Box
+        ref={headerRef}
         component="header"
         sx={{
           position: 'fixed',
           top: 'env(safe-area-inset-top, 0px)',
           left: 0,
           right: 0,
-          height: { xs: '56px', sm: '64px' },
           bgcolor: 'background.paper',
           borderBottom: '1px solid',
           borderColor: 'divider',
           zIndex: 1200,
-          transition: 'height 0.2s ease-in-out, background-color 0.3s ease-in-out',
+          transition: 'background-color 0.3s ease-in-out',
           transform: 'translateZ(0)',
         }}
       >
@@ -148,13 +152,13 @@ const App: React.FC = () => {
 
       {isMobile && (
         <Box
+          ref={footerRef}
           component="footer"
           sx={{
             position: 'fixed',
             bottom: 'env(safe-area-inset-bottom, 0px)',
             left: 0,
             right: 0,
-            height: { xs: '56px', sm: '64px' },
             bgcolor: 'background.paper',
             borderTop: '1px solid',
             borderColor: 'divider',
@@ -209,4 +213,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App; 
+export default App;
