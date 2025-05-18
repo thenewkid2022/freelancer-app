@@ -94,7 +94,7 @@ const App: React.FC = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
+        height: 'calc(var(--vh, 1vh) * 100)',
         bgcolor: 'background.default',
         color: 'text.primary',
         margin: 0,
@@ -143,16 +143,12 @@ const App: React.FC = () => {
         <Box
           component="footer"
           sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
             height: { xs: '56px', sm: '64px' },
             bgcolor: 'background.paper',
             borderTop: '1px solid',
             borderColor: 'divider',
-            zIndex: 1200,
             boxShadow: '0 -2px 4px rgba(0,0,0,0.05)',
+            width: '100%',
           }}
         >
           <BottomNavigation
