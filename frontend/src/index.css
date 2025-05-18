@@ -130,6 +130,11 @@ html, body, #root {
   body {
     overscroll-behavior-y: none;
   }
+
+  main {
+    -webkit-overflow-scrolling: touch; /* Sanftes Scrollen auf iOS */
+    overscroll-behavior-y: contain; /* Verhindert Überscrollen */
+  }
 }
 
 /* Temporär auskommentiert für Layout-Tests */

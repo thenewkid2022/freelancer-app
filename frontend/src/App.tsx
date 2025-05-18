@@ -88,31 +88,28 @@ const App: React.FC = () => {
   ));
 
   useEffect(() => {
-    const updateMainHeight = () => {
+    const updateMainPosition = () => {
       if (mainRef.current && headerRef.current && footerRef.current) {
         const headerHeight = headerRef.current.clientHeight;
-        const footerHeight = isMobile ? footerRef.current.clientHeight : 0; // Footer nur auf Mobilgeräten
-        const vh = window.innerHeight;
-        mainRef.current.style.height = `${vh - headerHeight - footerHeight}px`;
+        const footerHeight = isMobile ? footerRef.current.clientHeight : 0;
+        mainRef.current.style.top = `${headerHeight}px`;
+        mainRef.current.style.bottom = `${footerHeight}px`;
       }
     };
 
-    updateMainHeight();
-
-    window.addEventListener('resize', updateMainHeight);
-    window.visualViewport?.addEventListener('resize', updateMainHeight);
+    updateMainPosition();
+    window.addEventListener('resize', updateMainPosition);
+    window.visualViewport?.addEventListener('resize', updateMainPosition);
 
     return () => {
-      window.removeEventListener('resize', updateMainHeight);
-      window.visualViewport?.removeEventListener('resize', updateMainHeight);
+      window.removeEventListener('resize', updateMainPosition);
+      window.visualViewport?.removeEventListener('resize', updateMainPosition);
     };
   }, [isMobile]);
 
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
         height: '100vh',
         bgcolor: 'background.default',
         color: 'text.primary',
@@ -132,8 +129,6 @@ const App: React.FC = () => {
           borderBottom: '1px solid',
           borderColor: 'divider',
           zIndex: 1200,
-          transition: 'background-color 0.3s ease-in-out',
-          transform: 'translateZ(0)',
         }}
       >
         <Navbar />
@@ -143,8 +138,11 @@ const App: React.FC = () => {
         component="main"
         ref={mainRef}
         sx={{
-          flex: 1,
-          overflow: 'auto',
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
         <MainComponent />
@@ -162,8 +160,6 @@ const App: React.FC = () => {
             bgcolor: 'background.paper',
             borderTop: '1px solid',
             borderColor: 'divider',
-            boxShadow: '0 -2px 4px rgba(0,0,0,0.05)',
-            width: '100%',
             zIndex: 1100,
           }}
         >
@@ -179,7 +175,6 @@ const App: React.FC = () => {
                 '.MuiSvgIcon-root': { 
                   fontSize: { xs: 24, sm: 28 },
                   marginBottom: '2px',
-                  transition: 'font-size 0.2s ease-in-out',
                 },
               }
             }}
