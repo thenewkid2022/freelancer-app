@@ -143,12 +143,17 @@ const App: React.FC = () => {
         <Box
           component="footer"
           sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
             height: { xs: '56px', sm: '64px' },
             bgcolor: 'background.paper',
             borderTop: '1px solid',
             borderColor: 'divider',
             boxShadow: '0 -2px 4px rgba(0,0,0,0.05)',
             width: '100%',
+            zIndex: 1100,
           }}
         >
           <BottomNavigation
