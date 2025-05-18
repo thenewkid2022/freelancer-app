@@ -94,7 +94,7 @@ const App: React.FC = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: 'calc(var(--vh, 1vh) * 100)',
+        minHeight: 'calc(var(--vh, 1vh) * 100)',
         bgcolor: 'background.default',
         color: 'text.primary',
         margin: 0,
@@ -132,7 +132,7 @@ const App: React.FC = () => {
           pb: { xs: '56px', sm: '64px' },
           boxSizing: 'border-box',
           width: '100%',
-          minHeight: 0,
+          minHeight: 'calc(var(--vh, 1vh) * 100 - 56px - 56px)',
           overflow: 'auto',
         }}
       >
@@ -144,7 +144,7 @@ const App: React.FC = () => {
           component="footer"
           sx={{
             position: 'fixed',
-            bottom: 0,
+            bottom: 'env(safe-area-inset-bottom, 0px)',
             left: 0,
             right: 0,
             height: { xs: '56px', sm: '64px' },

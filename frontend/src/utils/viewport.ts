@@ -46,14 +46,13 @@ export const setupViewportListeners = () => {
   // Sofortige Initialisierung
   setViewportHeight();
   
-  // Verzögerte Initialisierungen für verschiedene iOS-Szenarien
-  const initialDelays = [100, 300, 500];
+  // Mehrfache verzögerte Initialisierungen für iOS-Szenarien
+  const initialDelays = [0, 100, 300, 500];
   initialDelays.forEach(delay => setTimeout(setViewportHeight, delay));
   
   // Debounced Version für kontinuierliche Updates
   const debouncedSetVh = debounce(setViewportHeight, 100);
   
-  // Erweiterte Event-Listener-Liste
   const events = [
     'resize',
     'orientationchange',
@@ -61,8 +60,7 @@ export const setupViewportListeners = () => {
     'visibilitychange',
     'focusin',
     'focusout',
-    'blur',  // Neu: Für bessere Tastatur-Handling
-    'resize', // Neu: Für bessere Tastatur-Handling
+    'blur',
   ];
   
   events.forEach(event => window.addEventListener(event, debouncedSetVh));
