@@ -94,12 +94,11 @@ const App: React.FC = () => {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: 'calc(var(--vh, 1vh) * 100)',
+        height: 'calc(var(--vh, 1vh) * 100)',
         bgcolor: 'background.default',
         color: 'text.primary',
         margin: 0,
         overflow: 'hidden',
-        position: 'relative',
       }}
     >
       <Box
@@ -129,10 +128,10 @@ const App: React.FC = () => {
             xs: 'calc(56px + env(safe-area-inset-top, 0px))',
             sm: 'calc(64px + env(safe-area-inset-top, 0px))'
           },
-          pb: { xs: '56px', sm: '64px' },
+          pb: { xs: 'calc(56px + env(safe-area-inset-bottom, 0px))', sm: '64px' },
           boxSizing: 'border-box',
           width: '100%',
-          minHeight: 'calc(var(--vh, 1vh) * 100 - 56px - 56px)',
+          height: 'calc(var(--vh, 1vh) * 100 - 56px - 56px)',
           overflow: 'auto',
         }}
       >

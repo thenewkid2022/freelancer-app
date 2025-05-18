@@ -47,7 +47,7 @@ export const setupViewportListeners = () => {
   setViewportHeight();
   
   // Mehrfache verzögerte Initialisierungen für iOS-Szenarien
-  const initialDelays = [0, 100, 300, 500];
+  const initialDelays = [0, 100, 300, 500, 1000];
   initialDelays.forEach(delay => setTimeout(setViewportHeight, delay));
   
   // Debounced Version für kontinuierliche Updates

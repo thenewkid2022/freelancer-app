@@ -6,21 +6,21 @@
   --transition-duration: 0.3s;
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  --effective-safe-area-inset-bottom: 34px;
+  --effective-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --vh: 1vh; /* Fallback für Browser ohne JavaScript */
 }
 
 /* iPhone-Modelle mit Home-Bar (z.B. iPhone X, XS, 11, 12, 13, 14, 15) */
 @media (max-height: 932px) and (min-width: 430px) {
   :root {
-    --safe-area-bottom: env(safe-area-inset-bottom, 34px); /* Typischer Wert für neuere iPhones */
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
 /* Ältere iPhone-Modelle mit Home-Bar (z.B. iPhone X, XS) */
 @media (max-height: 812px) and (min-width: 375px) {
   :root {
-    --safe-area-bottom: env(safe-area-inset-bottom, 34px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
@@ -34,14 +34,14 @@
 /* iPad Pro und ähnliche Modelle */
 @media (min-width: 1024px) {
   :root {
-    --safe-area-bottom: env(safe-area-inset-bottom, 20px); /* Typischer Wert für iPads */
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
 /* Landscape-Modus für iPhones */
 @media (max-width: 932px) and (orientation: landscape) {
   :root {
-    --safe-area-bottom: env(safe-area-inset-bottom, 21px); /* Reduzierter Wert im Landscape-Modus */
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
