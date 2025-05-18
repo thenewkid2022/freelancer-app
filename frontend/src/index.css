@@ -115,35 +115,25 @@ html, body, #root {
   html, body, #root {
     height: calc(var(--vh, 1vh) * 100);
     min-height: calc(var(--vh, 1vh) * 100);
-    width: 100vw;
     overflow: hidden;
-    position: relative;
   }
 
   body {
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     position: fixed;
-    width: 100vw;
-    height: 100vh;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    padding-top: env(safe-area-inset-top, 0px);
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Verhindert Bounce-Effekt auf iOS */
+  body {
+    overscroll-behavior-y: none;
   }
 
   main {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
-    /* Die Höhe wird per JS gesetzt */
-  }
-
-  footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: env(safe-area-inset-bottom, 0px);
-    z-index: 1100;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: var(--footer-bg, #fff);
+    -webkit-overflow-scrolling: touch; /* Sanftes Scrollen auf iOS */
+    overscroll-behavior-y: contain; /* Verhindert Überscrollen */
   }
 }
 

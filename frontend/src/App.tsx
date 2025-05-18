@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
@@ -41,7 +41,6 @@ const App: React.FC = () => {
   const mainRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
-  const [footerVisible, setFooterVisible] = useState(true);
 
   const MainComponent = React.memo(() => (
     <Routes>
@@ -88,56 +87,30 @@ const App: React.FC = () => {
     </Routes>
   ));
 
-  // Footer bei offener Tastatur ausblenden (iOS Workaround)
-  useEffect(() => {
-    const handleKeyboard = () => {
-      if (window.visualViewport && isMobile) {
-        // Wenn die sichtbare Höhe deutlich kleiner ist, ist vermutlich die Tastatur offen
-        const keyboardOpen = window.visualViewport.height < window.innerHeight - 100;
-        setFooterVisible(!keyboardOpen);
-      }
-    };
-    window.visualViewport?.addEventListener('resize', handleKeyboard);
-    window.addEventListener('resize', handleKeyboard);
-    return () => {
-      window.visualViewport?.removeEventListener('resize', handleKeyboard);
-      window.removeEventListener('resize', handleKeyboard);
-    };
-  }, [isMobile]);
-
-  // Main-Container dynamisch anpassen (iOS PWA: --vh nutzen)
   useEffect(() => {
     const updateMainPosition = () => {
-      if (mainRef.current && headerRef.current) {
+      if (mainRef.current && headerRef.current && footerRef.current) {
         const headerHeight = headerRef.current.clientHeight;
-        // Footer-Höhe nur, wenn sichtbar und mobile
-        const footerHeight = (isMobile && footerVisible && footerRef.current) ? footerRef.current.clientHeight : 0;
-        // Nutze --vh Variable, falls vorhanden (iOS PWA Workaround)
-        const vh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vh')) || (window.innerHeight * 0.01);
-        const totalVh = vh * 100;
-        mainRef.current.style.position = 'fixed';
-        mainRef.current.style.left = '0';
-        mainRef.current.style.right = '0';
+        const footerHeight = isMobile ? footerRef.current.clientHeight : 0;
         mainRef.current.style.top = `${headerHeight}px`;
         mainRef.current.style.bottom = `${footerHeight}px`;
-        mainRef.current.style.height = `calc(${totalVh}px - ${headerHeight}px - ${footerHeight}px)`;
-        mainRef.current.style.overflowY = 'auto';
-        mainRef.current.style.overflowX = 'hidden';
       }
     };
+
     updateMainPosition();
     window.addEventListener('resize', updateMainPosition);
     window.visualViewport?.addEventListener('resize', updateMainPosition);
+
     return () => {
       window.removeEventListener('resize', updateMainPosition);
       window.visualViewport?.removeEventListener('resize', updateMainPosition);
     };
-  }, [isMobile, footerVisible]);
+  }, [isMobile]);
 
   return (
     <Box
       sx={{
-        height: '100dvh', // Modernes CSS, fallback siehe index.css
+        height: '100vh',
         bgcolor: 'background.default',
         color: 'text.primary',
         margin: 0,
@@ -165,13 +138,17 @@ const App: React.FC = () => {
         component="main"
         ref={mainRef}
         sx={{
-          // Die Höhe wird per JS gesetzt
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
         <MainComponent />
       </Box>
 
-      {isMobile && footerVisible && (
+      {isMobile && (
         <Box
           ref={footerRef}
           component="footer"
@@ -184,7 +161,6 @@ const App: React.FC = () => {
             borderTop: '1px solid',
             borderColor: 'divider',
             zIndex: 1100,
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           }}
         >
           <BottomNavigation
