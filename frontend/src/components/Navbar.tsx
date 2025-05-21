@@ -76,6 +76,7 @@ const Navbar: React.FC = () => {
           backgroundColor: 'background.paper',
           borderBottom: '1px solid',
           borderColor: 'divider',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
         }}
       >
         <Container maxWidth={false}>
@@ -109,6 +110,7 @@ const Navbar: React.FC = () => {
         backgroundColor: 'background.paper',
         borderBottom: '1px solid',
         borderColor: 'divider',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
       <Container maxWidth={false}>

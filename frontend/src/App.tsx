@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
@@ -23,7 +23,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useResponsive } from './hooks/useResponsive';
 import { PageContainer } from './components/layout/Container';
 import { useAuth } from './contexts/AuthContext';
-import { setupViewportListeners } from './utils/viewport';
 
 const pages = [
   { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
@@ -37,10 +36,7 @@ const App: React.FC = () => {
   const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated } = useAuth();
-  const mainRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const footerRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated } = useAuth();
 
   const MainComponent = React.memo(() => (
     <Routes>
@@ -87,48 +83,25 @@ const App: React.FC = () => {
     </Routes>
   ));
 
-  useEffect(() => {
-    const updateMainPosition = () => {
-      if (mainRef.current && headerRef.current && footerRef.current) {
-        const headerHeight = headerRef.current.clientHeight;
-        const footerHeight = isMobile ? footerRef.current.clientHeight : 0;
-        mainRef.current.style.top = `${headerHeight}px`;
-        mainRef.current.style.bottom = `${footerHeight}px`;
-      }
-    };
-
-    updateMainPosition();
-    window.addEventListener('resize', updateMainPosition);
-    window.visualViewport?.addEventListener('resize', updateMainPosition);
-
-    return () => {
-      window.removeEventListener('resize', updateMainPosition);
-      window.visualViewport?.removeEventListener('resize', updateMainPosition);
-    };
-  }, [isMobile]);
-
   return (
     <Box
       sx={{
-        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
         bgcolor: 'background.default',
         color: 'text.primary',
-        margin: 0,
-        overflow: 'hidden',
       }}
     >
       <Box
-        ref={headerRef}
         component="header"
         sx={{
-          position: 'fixed',
-          top: 'env(safe-area-inset-top, 0px)',
-          left: 0,
-          right: 0,
+          position: 'sticky',
+          top: 0,
+          zIndex: 1200,
           bgcolor: 'background.paper',
           borderBottom: '1px solid',
           borderColor: 'divider',
-          zIndex: 1200,
         }}
       >
         <Navbar />
@@ -136,11 +109,8 @@ const App: React.FC = () => {
 
       <Box
         component="main"
-        ref={mainRef}
         sx={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
+          flexGrow: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
         }}
@@ -150,17 +120,14 @@ const App: React.FC = () => {
 
       {isMobile && (
         <Box
-          ref={footerRef}
           component="footer"
           sx={{
-            position: 'fixed',
-            bottom: 'env(safe-area-inset-bottom, 0px)',
-            left: 0,
-            right: 0,
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 1100,
             bgcolor: 'background.paper',
             borderTop: '1px solid',
             borderColor: 'divider',
-            zIndex: 1100,
           }}
         >
           <BottomNavigation
@@ -169,6 +136,7 @@ const App: React.FC = () => {
             showLabels={false}
             sx={{
               height: '100%',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
               '& .MuiBottomNavigationAction-root': {
                 minWidth: 'auto',
                 padding: '6px 0',
@@ -176,7 +144,7 @@ const App: React.FC = () => {
                   fontSize: { xs: 24, sm: 28 },
                   marginBottom: '2px',
                 },
-              }
+              },
             }}
           >
             {pages.map((page) => (
