@@ -121,7 +121,7 @@ html, body, #root {
   body {
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
-    position: fixed;
+    position: relative;
     width: 100%;
     height: 100%;
   }
