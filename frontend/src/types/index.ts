@@ -10,8 +10,6 @@ export interface User {
 
 export interface Project {
   _id: string;
-  id: string;
-  name: string;
   description?: string;
   startDate?: Date;
   endDate?: Date;

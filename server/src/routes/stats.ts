@@ -218,7 +218,7 @@ router.get('/freelancer',
         { $match: { freelancer: req.user._id } },
         {
           $group: {
-            _id: { projectNumber: '$projectNumber', projectName: '$projectName' },
+            _id: { projectNumber: '$projectNumber' },
             totalHours: {
               $sum: { $divide: ['$duration', 3600] }
             },

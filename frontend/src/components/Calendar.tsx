@@ -41,12 +41,7 @@ import { de } from 'date-fns/locale';
 
 interface TimeEntry {
   _id: string;
-  project: {
-    name: string;
-    client: {
-      name: string;
-    };
-  };
+  projectNumber?: string;
   startTime: string;
   endTime: string;
   duration: number;

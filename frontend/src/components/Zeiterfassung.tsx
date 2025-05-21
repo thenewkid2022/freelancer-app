@@ -130,7 +130,6 @@ const Zeiterfassung: React.FC = () => {
   const queryClient = useQueryClient();
   const [showInfo, setShowInfo] = useState(true);
   const [projectNumber, setProjectNumber] = useState('');
-  const [projectName, setProjectName] = useState('');
   const [description, setDescription] = useState('');
   const [activeTimeEntry, setActiveTimeEntry] = useState<{ id: string; startTime: string } | null>(null);
   const [timer, setTimer] = useState(0);
@@ -152,7 +151,6 @@ const Zeiterfassung: React.FC = () => {
         },
         body: JSON.stringify({
           projectNumber,
-          projectName,
           description,
           startTime: new Date().toISOString(),
         }),
@@ -193,7 +191,6 @@ const Zeiterfassung: React.FC = () => {
       setIntervalId(null);
       setTimer(0);
       setProjectNumber('');
-      setProjectName('');
       setDescription('');
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
     },
@@ -274,22 +271,6 @@ const Zeiterfassung: React.FC = () => {
               }}
             />
             <TextField
-              label="Projektname"
-              placeholder="z.B. Website-Relaunch"
-              fullWidth
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              disabled={!!activeTimeEntry}
-              InputProps={{
-                sx: { borderRadius: 2 }
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: 'background.default',
-                }
-              }}
-            />
-            <TextField
               label="Beschreibung"
               placeholder="Kurze Beschreibung der Tätigkeit"
               fullWidth
@@ -298,9 +279,7 @@ const Zeiterfassung: React.FC = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={!!activeTimeEntry}
-              InputProps={{
-                sx: { borderRadius: 2 }
-              }}
+              InputProps={{ sx: { borderRadius: 2 } }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   bgcolor: 'background.default',
@@ -318,7 +297,7 @@ const Zeiterfassung: React.FC = () => {
             size="large"
             startIcon={<PlayArrowIcon />}
             onClick={() => startTimeEntry.mutate()}
-            disabled={!!activeTimeEntry || !projectNumber || !projectName}
+            disabled={!!activeTimeEntry || !projectNumber}
             sx={{
               borderRadius: 2,
               px: 4,

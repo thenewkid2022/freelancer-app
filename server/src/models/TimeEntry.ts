@@ -4,7 +4,6 @@ import { IUser } from './User';
 export interface ITimeEntry {
   _id: Types.ObjectId;
   projectNumber: string;
-  projectName: string;
   userId: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
@@ -18,7 +17,6 @@ export interface ITimeEntry {
 
 export interface TimeEntryDocument extends Document {
   projectNumber: string;
-  projectName: string;
   userId: Types.ObjectId | IUser;
   description: string;
   startTime: Date;
@@ -38,10 +36,6 @@ interface TimeEntryModel extends Model<TimeEntryDocument> {
 
 export const timeEntrySchema = new Schema<TimeEntryDocument>({
   projectNumber: {
-    type: String,
-    required: true,
-  },
-  projectName: {
     type: String,
     required: true,
   },

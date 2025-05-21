@@ -53,10 +53,11 @@ import { de } from 'date-fns/locale';
 
 interface TimeEntry {
   _id: string;
-  project: {
+  project?: {
     _id: string;
     name: string;
   };
+  projectNumber?: string;
   duration: number;
   startTime: string;
 }
@@ -136,12 +137,13 @@ const Statistics: React.FC = () => {
   // Aktualisiere die Projektverteilung basierend auf den gefilterten Daten
   const timeByProject = useMemo(() => {
     return filteredTimeEntries.reduce((acc: any[], entry: TimeEntry) => {
-      const existing = acc.find(item => item.name === entry.project.name);
+      const key = entry.project?.name || entry.projectNumber || 'Kein Projekt';
+      const existing = acc.find(item => item.name === key);
       if (existing) {
         existing.value += entry.duration / 3600;
       } else {
         acc.push({
-          name: entry.project.name,
+          name: key,
           value: entry.duration / 3600,
         });
       }
