@@ -1,6 +1,6 @@
 {
-  "short_name": "Freelancer",
-  "name": "Freelancer Time Tracking",
+  "short_name": "Zeitrapport",
+  "name": "Zeitrapportierung",
   "icons": [
     {
       "src": "favicon.ico",
@@ -26,5 +26,5 @@
   "background_color": "#ffffff",
   "orientation": "portrait",
   "categories": ["productivity", "business"],
-  "description": "Zeiterfassung und Projektverwaltung für Freelancer"
+  "description": "Zeitrapportierung und Projektverwaltung"
 }

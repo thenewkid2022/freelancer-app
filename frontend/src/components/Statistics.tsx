@@ -314,7 +314,27 @@ const Statistics: React.FC = () => {
             cy="50%"
             outerRadius={120}
             innerRadius={60}
-            label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+            label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+              const RADIAN = Math.PI / 180;
+              const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+              const x = cx + radius * Math.cos(-midAngle * RADIAN);
+              const y = cy + radius * Math.sin(-midAngle * RADIAN);
+              return (
+                <text
+                  x={x}
+                  y={y}
+                  fill="#222"
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize={16}
+                  fontWeight={600}
+                  style={{ textShadow: '0 0 2px #fff, 0 0 2px #fff' }}
+                >
+                  {(percent * 100).toFixed(1)}%
+                </text>
+              );
+            }}
+            labelLine={false}
           >
             {topProjects.map((entry, index) => (
               <Cell 

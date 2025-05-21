@@ -94,7 +94,7 @@ const Navbar: React.FC = () => {
                 textDecoration: 'none',
               }}
             >
-              Freelancer App
+              Zeitrapportierung
             </Typography>
           </Toolbar>
         </Container>
@@ -128,7 +128,7 @@ const Navbar: React.FC = () => {
               textDecoration: 'none',
             }}
           >
-            Freelancer App
+            Zeitrapportierung
           </Typography>
 
           {!isMobile && (
@@ -155,7 +155,7 @@ const Navbar: React.FC = () => {
             </Box>
           )}
 
-          <Box sx={{ flexGrow: 0, display: 'flex', gap: 1 }}>
+          <Box sx={{ flexGrow: 0, display: 'flex', gap: 1, alignItems: 'center', ml: 'auto' }}>
             <IconButton
               size="large"
               aria-label="Benachrichtigungen anzeigen"
@@ -163,7 +163,7 @@ const Navbar: React.FC = () => {
               aria-haspopup="true"
               onClick={handleOpenNotifications}
               color="inherit"
-              sx={{ color: 'text.primary' }}
+              sx={{ color: 'text.primary', order: 1 }}
             >
               <Badge badgeContent={notifications.length} color="error">
                 <NotificationsIcon />
@@ -172,7 +172,7 @@ const Navbar: React.FC = () => {
 
             <IconButton
               onClick={handleOpenUserMenu}
-              sx={{ p: 0, ml: 1 }}
+              sx={{ p: 0, ml: 1, order: 2 }}
             >
               <Avatar 
                 alt={user.name || 'Benutzer'} 
