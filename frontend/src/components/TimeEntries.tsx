@@ -422,7 +422,7 @@ const TimeEntries: React.FC = () => {
   const leadingActions = (entry: TimeEntry) => (
     <LeadingActions>
       <SwipeAction onClick={() => handleOpenDialog(entry)}>
-        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', pr: 2, bgcolor: 'primary.main', color: '#fff', justifyContent: 'flex-end' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', pr: 2, bgcolor: 'primary.main', color: '#fff', justifyContent: 'flex-end' }}>
           <EditIcon /> Bearbeiten
         </Box>
       </SwipeAction>
@@ -432,7 +432,7 @@ const TimeEntries: React.FC = () => {
   const trailingActions = (entry: TimeEntry) => (
     <TrailingActions>
       <SwipeAction destructive onClick={() => deleteTimeEntry.mutate(entry._id)}>
-        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', pl: 2, bgcolor: 'error.main', color: '#fff' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', pl: 2, bgcolor: 'error.main', color: '#fff' }}>
           <DeleteIcon /> Löschen
         </Box>
       </SwipeAction>

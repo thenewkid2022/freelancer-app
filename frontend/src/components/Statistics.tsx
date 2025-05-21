@@ -437,9 +437,6 @@ const Statistics: React.FC = () => {
         width: '100%',
         maxWidth: '100%',
         overflowX: 'hidden',
-        height: '100%',
-        overflowY: 'auto',
-        WebkitOverflowScrolling: 'touch',
         pb: isMobile ? 2 : 0,
       }}
     >
