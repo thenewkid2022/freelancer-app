@@ -85,6 +85,21 @@ interface MergedEntry {
   correctedDuration?: number;
 }
 
+// Hilfsfunktion für die Dauer-Formatierung
+export function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0 && minutes > 0) {
+    return `${hours}h ${minutes}min`;
+  } else if (hours > 0) {
+    return `${hours}h`;
+  } else if (minutes > 0) {
+    return `${minutes}min`;
+  } else {
+    return '0min';
+  }
+}
+
 const TimeEntries: React.FC = () => {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
@@ -175,13 +190,6 @@ const TimeEntries: React.FC = () => {
       setError(error.message);
     },
   });
-
-  // Formatierung der Dauer
-  const formatDuration = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
-  };
 
   // Formatierung des Datums in Schweizer Zeit
   const formatDateTime = (dateString: string): string => {
@@ -447,205 +455,105 @@ const TimeEntries: React.FC = () => {
     }
   };
 
-  // Swipe Actions für mobile Ansicht
-  const leadingActions = (entry: TimeEntry) => (
-    <LeadingActions>
-      <SwipeAction onClick={() => handleOpenDialog(entry)}>
-        <Box sx={{ display: 'flex', alignItems: 'center', pr: 2, bgcolor: 'primary.main', color: '#fff', justifyContent: 'flex-end' }}>
-          <EditIcon /> Bearbeiten
-        </Box>
-      </SwipeAction>
-    </LeadingActions>
-  );
-
-  const trailingActions = (entry: TimeEntry) => (
-    <TrailingActions>
-      <SwipeAction destructive onClick={() => deleteTimeEntry.mutate(entry._id)}>
-        <Box sx={{ display: 'flex', alignItems: 'center', pl: 2, bgcolor: 'error.main', color: '#fff' }}>
-          <DeleteIcon /> Löschen
-        </Box>
-      </SwipeAction>
-    </TrailingActions>
-  );
-
-  const renderMobileView = () => (
-    <SwipeableList type={ListType.IOS}>
-      {eintraegeFuerTag
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-        .map((entry: TimeEntry) => (
-          <SwipeableListItem
-            key={entry._id}
-            leadingActions={leadingActions(entry)}
-            trailingActions={trailingActions(entry)}
-          >
-            <Box sx={{ width: '100%' }}>
-              <Card 
-                elevation={1}
-                sx={{ 
-                  width: '100%',
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                  p: 1.2,
-                  mb: 0.5,
-                  '@media (max-width: 600px)': {
-                    p: 0.7,
-                    mb: 0.7,
-                  },
-                }}
-              >
-                <CardContent sx={{ p: '8px !important', '&:last-child': { pb: '8px' } }}>
-                  <Stack spacing={1}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '1rem', flex: 1, pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {entry.project?.name || entry.projectNumber || 'Kein Projekt'}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
-                      <AccessTimeIcon fontSize="small" color="action" />
-                      <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                        {formatTime(entry.startTime)} – {formatTime(entry.endTime)}
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 'auto', alignItems: 'flex-end', gap: 0.3 }}>
-                        <Chip label={formatDuration(entry.duration)} size="small" color="primary" sx={{ fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center' }} />
-                        {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
-                          <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center' }} title="Korrigierte Zeit durch Tagesausgleich" />
-                        )}
-                      </Box>
-                    </Box>
-                    {entry.description && (
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mt: 0.5 }}>
-                        <DescriptionIcon fontSize="small" color="action" sx={{ mt: 0.2 }} />
-                        <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                          {entry.description}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Stack>
-                </CardContent>
-              </Card>
+  // Hilfsfunktion: Render Card für einen Merge-Eintrag
+  const renderMergeCard = (entry: MergedEntry) => (
+    <Paper
+      elevation={3}
+      sx={{
+        width: '100%',
+        borderRadius: 3,
+        boxShadow: '0 4px 20px 0 rgba(0,0,0,0.07)',
+        p: 2,
+        mb: 1.5,
+        bgcolor: 'background.paper',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: '0 8px 32px 0 rgba(0,0,0,0.10)'
+        },
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2
+      }}
+    >
+      {/* Projektnummer-Box */}
+      <Box sx={{
+        bgcolor: 'info.main',
+        color: 'info.contrastText',
+        borderRadius: 2,
+        minWidth: 48,
+        height: 48,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 700,
+        fontSize: '1.1rem',
+        mr: 2
+      }}>
+              {entry.projectNumber || 'Kein Projekt'}
+          </Box>
+      <Box sx={{ flex: 1 }}>
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack spacing={0.5} sx={{ flex: 1 }}>
+            <Typography variant="subtitle2" color="text.secondary">
+              {entry.startTime ? formatTime(entry.startTime) : '-'} – {entry.endTime ? formatTime(entry.endTime) : '-'}
+            </Typography>
+            {entry.comments && entry.comments.length > 0 && (
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <DescriptionIcon fontSize="small" color="action" />
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
+                  {entry.comments.join(' | ')}
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
+          {/* Dauer prominent */}
+          <Box sx={{
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            borderRadius: 2,
+            px: 2.5,
+            py: 1,
+            minWidth: 70,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1 }}>
+              {formatDuration(entry.totalDuration)}
+            </Typography>
+              {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
+              <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center', mt: 0.5 }} title="Korrigierte Zeit durch Tagesausgleich" />
+              )}
+              {entry.hasCorrectedDuration && !entry.correctedDuration && (
+              <Chip label="korrigiert" size="small" color="warning" sx={{ fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center', mt: 0.5 }} />
+              )}
             </Box>
-          </SwipeableListItem>
-        ))}
-    </SwipeableList>
-  );
-
-  const renderDesktopView = () => (
-    <Card elevation={0} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-      <CardContent sx={{ p: 0 }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>Projekt</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Startzeit</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Endzeit</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, minWidth: 110 }}>Dauer</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Beschreibung</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>Aktionen</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {eintraegeFuerTag
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((entry: TimeEntry) => (
-                  <TableRow 
-                    key={entry._id}
-                    sx={{ 
-                      '&:hover': { 
-                        backgroundColor: 'action.hover',
-                        transition: 'background-color 0.2s'
-                      }
-                    }}
-                  >
-                    <TableCell>
-                      <Chip
-                        label={entry.project?.name || entry.projectNumber || 'Kein Projekt'}
-                        size="small"
-                        sx={{ borderRadius: 1 }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <AccessTimeIcon fontSize="small" color="action" />
-                        <Typography variant="body2">
-                          {formatTime(entry.startTime)}
-                        </Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <AccessTimeIcon fontSize="small" color="action" />
-                        <Typography variant="body2">
-                          {formatTime(entry.endTime)}
-                        </Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', minWidth: 110 }}>
-                        <Chip
-                          label={formatDuration(entry.duration)}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                          sx={{ borderRadius: 1, mb: entry.correctedDuration && entry.correctedDuration !== entry.duration ? 0.5 : 0, minWidth: 64, textAlign: 'center' }}
-                        />
-                        {entry.correctedDuration && entry.correctedDuration !== entry.duration && (
-                          <Chip
-                            label={formatDuration(entry.correctedDuration)}
-                            size="small"
-                            color="warning"
-                            variant="filled"
-                            sx={{ borderRadius: 1, minWidth: 64, textAlign: 'center' }}
-                            title="Korrigierte Zeit durch Tagesausgleich"
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <DescriptionIcon fontSize="small" color="action" />
-                        <Typography variant="body2" noWrap>
-                          {entry.description}
-                        </Typography>
-                      </Stack>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenDialog(entry)}
-                          sx={{ 
-                            '&:hover': { 
-                              backgroundColor: 'primary.light',
-                              color: 'primary.contrastText'
-                            }
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry._id)}
-                          sx={{ 
-                            '&:hover': { 
-                              backgroundColor: 'error.light',
-                              color: 'error.contrastText'
-                            }
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </CardContent>
-    </Card>
+        </Stack>
+        {/* Aktionen */}
+          <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
+            <IconButton
+              size="small"
+              onClick={() => {
+                const entryId = entry.entryIds[0];
+                const found = timeEntries.find((e: any) => e._id === entryId);
+                if (handleOpenDialog && found) handleOpenDialog(found);
+              }}
+            sx={{ '&:hover': { backgroundColor: 'primary.light', color: 'primary.contrastText' }, transition: 'background 0.2s' }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry.entryIds[0])}
+            sx={{ '&:hover': { backgroundColor: 'error.light', color: 'error.contrastText' }, transition: 'background 0.2s' }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+      </Box>
+    </Paper>
   );
 
   // Laufende Zeitmessung im localStorage persistieren
@@ -716,13 +624,13 @@ const TimeEntries: React.FC = () => {
       </Box>
 
       {/* Buttons für Tagesausgleich und Rückgängig */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, mt: 2 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="center" sx={{ mt: 2, mb: 2 }}>
         <Button
           variant="contained"
           color="primary"
           size="large"
           onClick={handleAdjustmentDialogOpen}
-          sx={{ borderRadius: 3, fontWeight: 600, px: 4 }}
+          sx={{ borderRadius: 3, fontWeight: 600, px: 4, minWidth: 160 }}
         >
           Tagesausgleich
         </Button>
@@ -733,106 +641,159 @@ const TimeEntries: React.FC = () => {
             size="large"
             startIcon={<UndoIcon />}
             onClick={() => setIsUndoDialogOpen(true)}
-            sx={{ borderRadius: 3, fontWeight: 600, px: 4 }}
+            sx={{ borderRadius: 3, fontWeight: 600, px: 4, minWidth: 160 }}
           >
             Zurücksetzen
           </Button>
         )}
-      </Box>
+      </Stack>
 
       {error && (
-        <Alert severity="error" sx={{ borderRadius: 2 }}>
+        <Alert severity="error" sx={{ borderRadius: 2, mb: 2 }}>
           {error}
         </Alert>
       )}
 
-      {/* Gemergte Zeiteinträge */}
-      <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-        Gemergte Zeiteinträge (Tag/Projekt)
-      </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Projekt</TableCell>
-              <TableCell>Startzeit</TableCell>
-              <TableCell>Endzeit</TableCell>
-              <TableCell>Dauer</TableCell>
-              <TableCell>Beschreibung</TableCell>
-              <TableCell>Aktionen</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {mergedEntries.map((entry) => (
-              <TableRow key={`${entry.projectNumber || 'kein-projekt'}-${entry.date}`}>
-                <TableCell>
-                  <Chip label={entry.projectNumber || 'Kein Projekt'} size="small" />
-                </TableCell>
-                <TableCell>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <AccessTimeIcon fontSize="small" color="action" />
-                    <span>{entry.startTime ? formatTime(entry.startTime) : '-'}</span>
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <AccessTimeIcon fontSize="small" color="action" />
-                    <span>{entry.endTime ? formatTime(entry.endTime) : '-'}</span>
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <span>{formatDuration(entry.totalDuration)}</span>
-                    {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
-                      <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ ml: 1 }} title="Korrigierte Zeit durch Tagesausgleich" />
-                    )}
-                    {entry.hasCorrectedDuration && !entry.correctedDuration && (
-                      <Chip label="korrigiert" size="small" color="warning" sx={{ ml: 1 }} />
-                    )}
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <DescriptionIcon fontSize="small" color="action" />
-                    <span>{entry.comments.join(' | ')}</span>
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  <IconButton size="small" onClick={() => {
-                    const entryId = entry.entryIds[0];
-                    const found = timeEntries.find((e: any) => e._id === entryId);
-                    if (handleOpenDialog && found) handleOpenDialog(found);
-                  }}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry.entryIds[0])}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Pagination und Tagesansicht auf mergedEntries umstellen */}
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={mergedEntries.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        labelRowsPerPage="Einträge pro Seite"
-        sx={{ 
-          borderTop: '1px solid', 
-          borderColor: 'divider',
-          '.MuiTablePagination-select': {
-            borderRadius: 1
-          }
-        }}
-      />
+      {/* Gemergte Zeiteinträge Tabelle */}
+      {isMobile ? (
+        <Stack spacing={1.5} sx={{ width: '100%', mb: 2 }}>
+          {mergedEntries.map(renderMergeCard)}
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={mergedEntries.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Einträge pro Seite"
+            sx={{
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              mt: 1,
+              '.MuiTablePagination-select': { borderRadius: 1 },
+              '.MuiTablePagination-toolbar': { justifyContent: 'flex-end' },
+              background: 'transparent',
+            }}
+          />
+        </Stack>
+      ) : (
+        <Paper elevation={3} sx={{ borderRadius: 3, p: { xs: 1, sm: 2 }, mb: 2, boxShadow: '0 4px 20px 0 rgba(0,0,0,0.07)', overflowX: 'auto', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: '0 8px 32px 0 rgba(0,0,0,0.10)' } }}>
+          <TableContainer>
+            <Table size="small" sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default', borderTopLeftRadius: 12 }}>Projekt</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>Startzeit</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>Endzeit</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>Dauer</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>Beschreibung</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default', borderTopRightRadius: 12 }}>Aktionen</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {mergedEntries.map((entry) => (
+                  <TableRow key={`${entry.projectNumber || 'kein-projekt'}-${entry.date}`}
+                    sx={{
+                      '&:hover': { backgroundColor: 'action.hover', transition: 'background-color 0.2s' },
+                      borderRadius: 2
+                    }}
+                  >
+                    <TableCell>
+                      <Box sx={{
+                        bgcolor: 'info.main',
+                        color: 'info.contrastText',
+                        borderRadius: 2,
+                        minWidth: 48,
+                        height: 36,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                      }}>
+                        {entry.projectNumber || 'Kein Projekt'}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <AccessTimeIcon fontSize="small" color="action" />
+                        <span>{entry.startTime ? formatTime(entry.startTime) : '-'}</span>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <AccessTimeIcon fontSize="small" color="action" />
+                        <span>{entry.endTime ? formatTime(entry.endTime) : '-'}</span>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        borderRadius: 2,
+                        px: 2,
+                        py: 0.5,
+                        minWidth: 60,
+                        display: 'inline-block',
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        textAlign: 'center',
+                      }}>
+                        {formatDuration(entry.totalDuration)}
+                      </Box>
+                      {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
+                        <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ ml: 1, fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center' }} title="Korrigierte Zeit durch Tagesausgleich" />
+                      )}
+                      {entry.hasCorrectedDuration && !entry.correctedDuration && (
+                        <Chip label="korrigiert" size="small" color="warning" sx={{ ml: 1, fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center' }} />
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <DescriptionIcon fontSize="small" color="action" />
+                        <span>{entry.comments.filter(c => !!c && c !== '0').join(' | ')}</span>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1}>
+                        <IconButton size="small" onClick={() => {
+                          const entryId = entry.entryIds[0];
+                          const found = timeEntries.find((e: any) => e._id === entryId);
+                          if (handleOpenDialog && found) handleOpenDialog(found);
+                        }} sx={{ '&:hover': { backgroundColor: 'primary.light', color: 'primary.contrastText' }, transition: 'background 0.2s' }}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry.entryIds[0])} sx={{ '&:hover': { backgroundColor: 'error.light', color: 'error.contrastText' }, transition: 'background 0.2s' }}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={mergedEntries.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Einträge pro Seite"
+            sx={{
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              mt: 1,
+              '.MuiTablePagination-select': { borderRadius: 1 },
+              '.MuiTablePagination-toolbar': { justifyContent: 'flex-end' },
+              background: 'transparent',
+            }}
+          />
+        </Paper>
+      )}
 
       <Dialog
         open={isDialogOpen}

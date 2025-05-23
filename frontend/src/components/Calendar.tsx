@@ -38,6 +38,7 @@ import {
   subMonths,
 } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { formatDuration as sharedFormatDuration } from './TimeEntries';
 
 interface TimeEntry {
   _id: string;
@@ -139,9 +140,7 @@ const Calendar: React.FC = () => {
   };
 
   const formatDuration = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
+    return sharedFormatDuration(seconds);
   };
 
   const days = eachDayOfInterval({
