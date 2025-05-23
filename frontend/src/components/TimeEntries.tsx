@@ -28,6 +28,7 @@ import {
   Chip,
   DialogContentText,
   Tooltip,
+  Paper,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -42,6 +43,7 @@ import { AxiosResponse } from 'axios';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { SwipeableList, SwipeableListItem, Type as ListType, LeadingActions, TrailingActions, SwipeAction } from 'react-swipeable-list';
 import 'react-swipeable-list/dist/styles.css';
+import { format } from 'date-fns';
 
 interface Project {
   _id: string;
@@ -68,6 +70,19 @@ interface TimeEntryFormData {
   startTime: string;
   endTime: string;
   description: string;
+}
+
+interface MergedEntry {
+  project: { _id: string };
+  projectNumber?: string;
+  date: string;
+  totalDuration: number;
+  comments: string[];
+  entryIds: string[];
+  startTime?: string;
+  endTime?: string;
+  hasCorrectedDuration: boolean;
+  correctedDuration?: number;
 }
 
 const TimeEntries: React.FC = () => {
@@ -103,8 +118,22 @@ const TimeEntries: React.FC = () => {
     queryFn: async () => {
       return await apiClient.get('/time-entries');
     },
-  });
+  }) as { data: TimeEntry[]; isLoading: boolean };
   console.log('Geladene timeEntries:', timeEntries);
+
+  // --- NEU: Zusammengeführte Zeiteinträge für den gewählten Tag ---
+  const selectedDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
+
+  const { data: mergedEntries = [], isLoading: isLoadingMerged } = useQuery({
+    queryKey: ['mergedTimeEntries', selectedDateStr],
+    queryFn: async () => {
+      if (!selectedDateStr) return [];
+      return await apiClient.get<MergedEntry[]>('/time-entries/merged', {
+        params: { startDate: selectedDateStr, endDate: selectedDateStr },
+      });
+    },
+    enabled: !!selectedDateStr,
+  });
 
   // Zeiteintrag erstellen/aktualisieren
   const saveTimeEntry = useMutation({
@@ -470,7 +499,7 @@ const TimeEntries: React.FC = () => {
                   <Stack spacing={1}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '1rem', flex: 1, pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
+                        {entry.project?.name || entry.projectNumber || 'Kein Projekt'}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
@@ -532,7 +561,7 @@ const TimeEntries: React.FC = () => {
                   >
                     <TableCell>
                       <Chip
-                        label={entry.project?.name || entry.projectName || entry.projectNumber || 'Kein Projekt'}
+                        label={entry.project?.name || entry.projectNumber || 'Kein Projekt'}
                         size="small"
                         sx={{ borderRadius: 1 }}
                       />
@@ -598,7 +627,7 @@ const TimeEntries: React.FC = () => {
                         </IconButton>
                         <IconButton
                           size="small"
-                          onClick={() => deleteTimeEntry.mutate(entry._id)}
+                          onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry._id)}
                           sx={{ 
                             '&:hover': { 
                               backgroundColor: 'error.light',
@@ -618,6 +647,37 @@ const TimeEntries: React.FC = () => {
       </CardContent>
     </Card>
   );
+
+  // Laufende Zeitmessung im localStorage persistieren
+  useEffect(() => {
+    // Beim Laden prüfen, ob eine laufende Zeitmessung existiert
+    const runningEntry = localStorage.getItem('runningTimeEntry');
+    if (runningEntry) {
+      const parsed = JSON.parse(runningEntry);
+      setFormData({
+        startTime: parsed.startTime,
+        endTime: '',
+        description: parsed.description || '',
+      });
+    }
+  }, []);
+
+  const handleStartTimeEntry = (projectNumber: string, description: string) => {
+    const startTime = new Date().toISOString();
+    setFormData({ startTime, endTime: '', description });
+    localStorage.setItem('runningTimeEntry', JSON.stringify({
+      projectNumber,
+      description,
+      startTime
+    }));
+  };
+
+  const handleStopTimeEntry = () => {
+    const endTime = new Date().toISOString();
+    setFormData((prev) => ({ ...prev, endTime }));
+    localStorage.removeItem('runningTimeEntry');
+    // Hier ggf. saveTimeEntry.mutate() aufrufen
+  };
 
   if (isLoading) {
     return (
@@ -686,49 +746,93 @@ const TimeEntries: React.FC = () => {
         </Alert>
       )}
 
-      {isMobile ? (
-        <>
-          {renderMobileView()}
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={eintraegeFuerTag.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Einträge pro Seite"
-            sx={{ 
-              borderTop: '1px solid', 
-              borderColor: 'divider',
-              '.MuiTablePagination-select': {
-                borderRadius: 1
-              }
-            }}
-          />
-        </>
-      ) : (
-        <>
-          {renderDesktopView()}
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={eintraegeFuerTag.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Einträge pro Seite"
-            sx={{ 
-              borderTop: '1px solid', 
-              borderColor: 'divider',
-              '.MuiTablePagination-select': {
-                borderRadius: 1
-              }
-            }}
-          />
-        </>
-      )}
+      {/* Gemergte Zeiteinträge */}
+      <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        Gemergte Zeiteinträge (Tag/Projekt)
+      </Typography>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Projekt</TableCell>
+              <TableCell>Startzeit</TableCell>
+              <TableCell>Endzeit</TableCell>
+              <TableCell>Dauer</TableCell>
+              <TableCell>Beschreibung</TableCell>
+              <TableCell>Aktionen</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {mergedEntries.map((entry) => (
+              <TableRow key={`${entry.projectNumber || 'kein-projekt'}-${entry.date}`}>
+                <TableCell>
+                  <Chip label={entry.projectNumber || 'Kein Projekt'} size="small" />
+                </TableCell>
+                <TableCell>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <AccessTimeIcon fontSize="small" color="action" />
+                    <span>{entry.startTime ? formatTime(entry.startTime) : '-'}</span>
+                  </Stack>
+                </TableCell>
+                <TableCell>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <AccessTimeIcon fontSize="small" color="action" />
+                    <span>{entry.endTime ? formatTime(entry.endTime) : '-'}</span>
+                  </Stack>
+                </TableCell>
+                <TableCell>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <span>{formatDuration(entry.totalDuration)}</span>
+                    {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
+                      <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ ml: 1 }} title="Korrigierte Zeit durch Tagesausgleich" />
+                    )}
+                    {entry.hasCorrectedDuration && !entry.correctedDuration && (
+                      <Chip label="korrigiert" size="small" color="warning" sx={{ ml: 1 }} />
+                    )}
+                  </Stack>
+                </TableCell>
+                <TableCell>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <DescriptionIcon fontSize="small" color="action" />
+                    <span>{entry.comments.join(' | ')}</span>
+                  </Stack>
+                </TableCell>
+                <TableCell>
+                  <IconButton size="small" onClick={() => {
+                    const entryId = entry.entryIds[0];
+                    const found = timeEntries.find((e: any) => e._id === entryId);
+                    if (handleOpenDialog && found) handleOpenDialog(found);
+                  }}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry.entryIds[0])}>
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Pagination und Tagesansicht auf mergedEntries umstellen */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={mergedEntries.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        labelRowsPerPage="Einträge pro Seite"
+        sx={{ 
+          borderTop: '1px solid', 
+          borderColor: 'divider',
+          '.MuiTablePagination-select': {
+            borderRadius: 1
+          }
+        }}
+      />
 
       <Dialog
         open={isDialogOpen}

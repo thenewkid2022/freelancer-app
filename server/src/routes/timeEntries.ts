@@ -3,7 +3,10 @@ import { auth, requireRole } from '../middleware/auth';
 import { validateRequest } from '../middleware/validator';
 import { z } from 'zod';
 import { TimeEntry, TimeEntryDocument } from '../models/TimeEntry';
-import { NotFoundError, ForbiddenError } from '../utils/errors';
+import { NotFoundError, ForbiddenError, BadRequestError } from '../utils/errors';
+import { Types } from 'mongoose';
+import { startOfDay, endOfDay } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 const router = Router();
 
@@ -86,45 +89,68 @@ router.post('/',
     try {
       const { projectNumber, description, startTime, endTime, tags } = req.body;
       const userId = req.user._id;
-      // Datum extrahieren (nur Jahr-Monat-Tag)
-      const entryDate = new Date(startTime);
-      entryDate.setHours(0,0,0,0);
-      const nextDay = new Date(entryDate);
-      nextDay.setDate(entryDate.getDate() + 1);
 
-      // Suche nach bestehendem Eintrag für selben Nutzer, Projektnummer und Tag
-      const existing = await TimeEntry.findOne({
-        userId,
-        projectNumber,
-        startTime: { $gte: entryDate, $lt: nextDay }
-      });
-
-      // Dauer berechnen (in Sekunden)
       let duration = undefined;
       if (startTime && endTime) {
         duration = Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000);
       }
 
-      if (existing) {
-        // Beschreibung zusammenführen
-        const mergedDescription = existing.description
-          ? (description ? existing.description + '\n---\n' + description : existing.description)
-          : (description || '');
-        // Endzeit ggf. aktualisieren
-        const newEndTime = (!existing.endTime || (endTime && new Date(endTime) > existing.endTime))
-          ? endTime
-          : existing.endTime;
-        // Dauer aufsummieren
-        const newDuration = (existing.duration || 0) + (duration || 0);
-        // Tags zusammenführen (optional, hier als Set)
-        const mergedTags = Array.from(new Set([...(existing.tags || []), ...(tags || [])]));
-        existing.description = mergedDescription;
-        existing.endTime = newEndTime;
-        existing.duration = newDuration;
-        existing.tags = mergedTags;
-        await existing.save();
-        return res.status(200).json(existing);
+      // Tagesgrenzen in Europe/Zurich berechnen
+      const timeZone = 'Europe/Zurich';
+      const zonedDate = toZonedTime(new Date(startTime), timeZone);
+      const startOfLocalDay = startOfDay(zonedDate);
+      const endOfLocalDay = endOfDay(zonedDate);
+
+      console.log('Merge-Check:', {
+        userId,
+        projectNumber,
+        startOfLocalDay: startOfLocalDay.toISOString(),
+        endOfLocalDay: endOfLocalDay.toISOString(),
+        startTime,
+        endTime
+      });
+
+      const existingEntries = await TimeEntry.find({
+        userId,
+        projectNumber,
+        startTime: { $gte: startOfLocalDay, $lte: endOfLocalDay },
+        endTime: { $exists: true, $ne: null }
+      });
+
+      console.log('existingEntries:', existingEntries.map(e => ({
+        _id: e._id,
+        startTime: e.startTime,
+        endTime: e.endTime,
+        description: e.description
+      })));
+
+      if (existingEntries.length > 0 && endTime) {
+        // Alle Beschreibungen, Dauern, Tags, Start- und Endzeiten zusammenführen
+        const allDescriptions = existingEntries.map(e => e.description).concat(description).filter(Boolean);
+        const allDurations = existingEntries.map(e => e.duration || 0).reduce((a, b) => a + b, 0) + (duration || 0);
+        const allTags = Array.from(new Set(existingEntries.flatMap(e => e.tags || []).concat(tags || [])));
+        const earliestStart = [new Date(startTime), ...existingEntries.map(e => new Date(e.startTime))].sort()[0];
+        const latestEnd = [new Date(endTime), ...existingEntries.map(e => new Date(e.endTime))].sort().reverse()[0];
+
+        // Lösche alle alten Einträge
+        await TimeEntry.deleteMany({
+          _id: { $in: existingEntries.map(e => e._id) }
+        });
+
+        // Lege einen neuen, zusammengefassten Eintrag an
+        const mergedEntry = await TimeEntry.create({
+          userId,
+          projectNumber,
+          description: allDescriptions.join('\n---\n'),
+          startTime: earliestStart,
+          endTime: latestEnd,
+          duration: allDurations,
+          tags: allTags
+        });
+
+        return res.status(201).json(mergedEntry);
       } else {
+        // Neuen Eintrag anlegen (auch für laufende Einträge ohne endTime!)
         const timeEntry = await TimeEntry.create({
           ...req.body,
           userId,
@@ -232,6 +258,151 @@ router.get('/active', auth, async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 });
+
+/**
+ * @swagger
+ * /api/time-entries/merged:
+ *   get:
+ *     tags: [TimeEntries]
+ *     summary: Gibt zusammengeführte Zeiteinträge des Benutzers zurück
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Startdatum im Format YYYY-MM-DD (lokale Zeit)
+ *       - in: query
+ *         name: endDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Enddatum im Format YYYY-MM-DD (lokale Zeit)
+ *     responses:
+ *       200:
+ *         description: Liste der zusammengeführten Zeiteinträge
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   project:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   totalDuration:
+ *                     type: number
+ *                   comments:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   entryIds:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *       400:
+ *         description: Fehlende oder ungültige Parameter
+ *       401:
+ *         description: Nicht authentifiziert
+ */
+router.get('/merged',
+  auth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate } = req.query;
+
+      if (!startDate || !endDate) {
+        throw new BadRequestError('startDate und endDate sind erforderlich');
+      }
+
+      const mergedEntries = await TimeEntry.aggregate([
+        {
+          $match: {
+            userId: new Types.ObjectId(req.user._id),
+            startTime: { $exists: true, $ne: null, $type: "date" },
+            endTime: { $exists: true, $ne: null, $type: "date" }
+          },
+        },
+        {
+          $group: {
+            _id: {
+              projectNumber: "$projectNumber",
+              date: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$startTime",
+                  timezone: "Europe/Zurich",
+                },
+              },
+            },
+            totalDuration: { $sum: "$duration" },
+            comments: { $push: "$description" },
+            entryIds: { $push: "$_id" },
+            startTime: { $min: "$startTime" },
+            endTime: { $max: "$endTime" },
+            projectName: { $first: "$projectName" },
+            correctedDurations: { $push: "$correctedDuration" },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            projectNumber: "$_id.projectNumber",
+            date: "$_id.date",
+            totalDuration: 1,
+            comments: 1,
+            entryIds: 1,
+            startTime: 1,
+            endTime: 1,
+            projectName: 1,
+            correctedDuration: {
+              $sum: {
+                $filter: {
+                  input: "$correctedDurations",
+                  as: "cd",
+                  cond: { $ne: ["$$cd", null] }
+                }
+              }
+            },
+            hasCorrectedDuration: {
+              $gt: [
+                {
+                  $size: {
+                    $filter: {
+                      input: "$correctedDurations",
+                      as: "cd",
+                      cond: { $ne: ["$$cd", null] }
+                    }
+                  }
+                },
+                0
+              ]
+            }
+          },
+        },
+        {
+          $match: {
+            date: { $gte: startDate, $lte: endDate }
+          }
+        },
+      ]);
+
+      res.json(mergedEntries);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 /**
  * @swagger

@@ -196,8 +196,9 @@ const Zeiterfassung: React.FC = () => {
     },
   });
 
-  // Aktiven Eintrag beim Laden abrufen
+  // Timer-Intervall immer korrekt clearen
   useEffect(() => {
+    let localIntervalId: NodeJS.Timeout | null = null;
     const fetchActiveEntry = async () => {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/time-entries/active`, {
@@ -211,15 +212,32 @@ const Zeiterfassung: React.FC = () => {
           setActiveTimeEntry({ id: data._id, startTime: data.startTime });
           const start = new Date(data.startTime).getTime();
           setTimer(Math.floor((Date.now() - start) / 1000));
-          const id = setInterval(() => {
+          if (localIntervalId) clearInterval(localIntervalId);
+          localIntervalId = setInterval(() => {
             setTimer((prev) => prev + 1);
           }, 1000);
-          setIntervalId(id);
+          setIntervalId(localIntervalId);
         }
       }
     };
     fetchActiveEntry();
+    return () => {
+      if (localIntervalId) clearInterval(localIntervalId);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
+
+  // Beim Starten der Zeiterfassung vorheriges Intervall clearen
+  const handleStart = () => {
+    if (intervalId) clearInterval(intervalId);
+    startTimeEntry.mutate();
+  };
+
+  // Beim Stoppen der Zeiterfassung Intervall clearen
+  const handleStop = () => {
+    if (intervalId) clearInterval(intervalId);
+    stopTimeEntry.mutate();
+  };
 
   return (
     <Box
@@ -296,7 +314,7 @@ const Zeiterfassung: React.FC = () => {
             color="success"
             size="large"
             startIcon={<PlayArrowIcon />}
-            onClick={() => startTimeEntry.mutate()}
+            onClick={handleStart}
             disabled={!!activeTimeEntry || !projectNumber}
             sx={{
               borderRadius: 2,
@@ -314,7 +332,7 @@ const Zeiterfassung: React.FC = () => {
             color="error"
             size="large"
             startIcon={<StopIcon />}
-            onClick={() => stopTimeEntry.mutate()}
+            onClick={handleStop}
             disabled={!activeTimeEntry}
             sx={{
               borderRadius: 2,

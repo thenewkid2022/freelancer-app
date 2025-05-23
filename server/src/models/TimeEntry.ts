@@ -98,6 +98,12 @@ timeEntrySchema.pre('validate', function(this: TimeEntryDocument, next) {
   next();
 });
 
+// Index für effiziente Aggregation
+// Für häufige Filterungen und Gruppierungen nach userId, projectNumber und startTime
+// Siehe /api/time-entries/merged
+
+timeEntrySchema.index({ userId: 1, projectNumber: 1, startTime: 1 });
+
 // Statische Methode für Statistiken
 timeEntrySchema.statics.getStats = async function(userId: Types.ObjectId, startDate: Date, endDate: Date) {
   return this.aggregate([

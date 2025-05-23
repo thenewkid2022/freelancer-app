@@ -17,5 +17,8 @@
     "test:e2e": "cypress run --spec 'cypress/e2e/**/*.cy.ts'",
     "test:component": "cypress run --component",
     "test": "npm run test:backend && npm run test:e2e"
+  },
+  "dependencies": {
+    "date-fns-tz": "^3.2.0"
   }
 }

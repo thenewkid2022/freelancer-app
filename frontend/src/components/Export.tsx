@@ -8,12 +8,38 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
 
 const API_URL = process.env.REACT_APP_API_URL;
+
+interface MergedEntry {
+  project: { _id: string };
+  date: string;
+  totalDuration: number;
+  comments: string[];
+  entryIds: string[];
+}
 
 const Export: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Für den Export: Datumsauswahl und Formatierung
+  const [selectedDate, setSelectedDate] = React.useState<Date | null>(new Date());
+  const selectedDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
+
+  const { data: mergedEntries = [], isLoading: isLoadingMerged } = useQuery({
+    queryKey: ['mergedTimeEntries', selectedDateStr],
+    queryFn: async () => {
+      if (!selectedDateStr) return [];
+      const response = await axios.get<MergedEntry[]>('/time-entries/merged', {
+        params: { startDate: selectedDateStr, endDate: selectedDateStr },
+      });
+      return response.data;
+    },
+    enabled: !!selectedDateStr,
+  });
 
   // CSV-Export-Handler
   const handleExportCSV = async () => {

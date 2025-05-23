@@ -165,7 +165,7 @@ const Statistics: React.FC = () => {
     const dailyMap: Record<string, { hours: number; entries: number }> = {};
     
     filteredTimeEntries.forEach(entry => {
-      const day = new Date(entry.startTime).toLocaleDateString('de-DE');
+      const day = new Date(entry.startTime).toLocaleDateString('de-DE', { timeZone: 'Europe/Zurich' });
       if (!dailyMap[day]) {
         dailyMap[day] = { hours: 0, entries: 0 };
       }

@@ -278,4 +278,125 @@ router.get('/project/:projectNumber',
   }
 );
 
+/**
+ * @swagger
+ * /api/stats/merged:
+ *   get:
+ *     tags: [Stats]
+ *     summary: Gibt zusammengeführte Zeiteinträge (aggregiert) zurück
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Startdatum im Format YYYY-MM-DD (lokale Zeit)
+ *       - in: query
+ *         name: endDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Enddatum im Format YYYY-MM-DD (lokale Zeit)
+ *     responses:
+ *       200:
+ *         description: Liste der zusammengeführten Zeiteinträge
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   project:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   totalDuration:
+ *                     type: number
+ *                   comments:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   entryIds:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *       400:
+ *         description: Fehlende oder ungültige Parameter
+ *       401:
+ *         description: Nicht authentifiziert
+ */
+router.get('/merged',
+  auth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { startDate, endDate } = req.query;
+
+      if (!startDate || !endDate) {
+        throw new BadRequestError('startDate und endDate sind erforderlich');
+      }
+
+      const start = new Date(startDate as string);
+      const end = new Date(endDate as string);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new BadRequestError('Ungültiges Datumsformat');
+      }
+
+      // Aggregation wie bei /api/time-entries/merged
+      const mergedEntries = await TimeEntry.aggregate([
+        {
+          $match: {
+            userId: new Types.ObjectId(req.user._id),
+          },
+        },
+        {
+          $group: {
+            _id: {
+              projectNumber: "$projectNumber",
+              date: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$startTime",
+                  timezone: "Europe/Zurich",
+                },
+              },
+            },
+            totalDuration: { $sum: "$duration" },
+            comments: { $push: "$description" },
+            entryIds: { $push: "$_id" },
+          },
+        },
+        {
+          $match: {
+            "_id.date": { $gte: startDate as string, $lte: endDate as string },
+          },
+        },
+        {
+          $sort: { "_id.date": 1, "_id.projectNumber": 1 },
+        },
+      ]);
+
+      const mappedMergedEntries = mergedEntries.map(entry => ({
+        project: { _id: entry._id.projectNumber },
+        date: entry._id.date,
+        totalDuration: entry.totalDuration,
+        comments: entry.comments.filter(Boolean),
+        entryIds: entry.entryIds,
+      }));
+
+      res.json(mappedMergedEntries);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default router; 
