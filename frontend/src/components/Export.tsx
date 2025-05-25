@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Paper, Typography, Stack, Button, useTheme, useMediaQuery } from '@mui/material';
+import { Container, Typography, Stack, Button, useTheme, useMediaQuery, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -21,39 +21,38 @@ interface MergedEntry {
   entryIds: string[];
 }
 
-// Hilfsfunktion: UTC-Grenzen für lokalen Tag berechnen
-function getUTCRangeForLocalDay(localDate: Date) {
-  const start = new Date(localDate);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(localDate);
-  end.setHours(23, 59, 59, 999);
-  return {
-    startUTC: start.toISOString(),
-    endUTC: end.toISOString()
-  };
-}
-
 const Export: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Für den Export: Datumsauswahl und Formatierung
-  const [selectedDate, setSelectedDate] = React.useState<Date | null>(new Date());
-  const selectedDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
+  // Zeitfenster-Dialog
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  // Standard: aktueller Monat
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const [startDate, setStartDate] = React.useState<string>(format(firstDay, 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = React.useState<string>(format(lastDay, 'yyyy-MM-dd'));
+  const [exportRange, setExportRange] = React.useState<{start: string, end: string} | null>(null);
+  const [pendingExport, setPendingExport] = React.useState(false);
+  const [shouldExportNow, setShouldExportNow] = React.useState(false);
 
-  // Für mergedEntries Query: UTC-Grenzen berechnen und verwenden
-  const selectedDateRange = selectedDate ? getUTCRangeForLocalDay(selectedDate) : null;
+  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  const { data: mergedEntries = [], isLoading: isLoadingMerged } = useQuery({
-    queryKey: ['mergedTimeEntries', selectedDateRange],
+  // Query für gemergte Einträge im gewählten Zeitfenster
+  const { data: mergedEntries = [] } = useQuery({
+    queryKey: ['mergedTimeEntries', exportRange, userTimeZone],
     queryFn: async () => {
-      if (!selectedDateRange) return [];
-      const response = await axios.get<MergedEntry[]>('/time-entries/merged', {
-        params: { startDate: selectedDateRange.startUTC, endDate: selectedDateRange.endUTC },
+      if (!exportRange) return [];
+      const token = localStorage.getItem('token');
+      const response = await axios.get<MergedEntry[]>(`${API_URL}/time-entries/merged`, {
+        params: { startDate: exportRange.start, endDate: exportRange.end, timezone: userTimeZone },
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
       return response.data;
     },
-    enabled: !!selectedDateRange,
+    enabled: !!exportRange,
   });
 
   // CSV-Export-Handler
@@ -105,46 +104,110 @@ const Export: React.FC = () => {
 
   // PDF-Export-Handler
   const handleExportPDF = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/time-entries`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const entries = response.data;
-      if (!Array.isArray(entries) || entries.length === 0) {
-        alert('Keine Zeiteinträge zum Exportieren gefunden.');
-        return;
-      }
-      const doc = new jsPDF();
-      doc.text('Zeiteinträge', 14, 16);
-      autoTable(doc, {
-        startY: 22,
-        head: [[
-          'Projektname',
+    setDialogOpen(true);
+  };
+
+  // Nach Dialog-Bestätigung: Export starten
+  const handleDialogExport = async () => {
+    setDialogOpen(false);
+    setExportRange({
+      start: format(new Date(startDate), 'yyyy-MM-dd'),
+      end: format(new Date(endDate), 'yyyy-MM-dd'),
+    });
+    setShouldExportNow(true);
+  };
+
+  // useEffect für den PDF-Export:
+  React.useEffect(() => {
+    if (shouldExportNow) {
+      if (mergedEntries && mergedEntries.length > 0) {
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.setTextColor(33, 150, 243);
+        doc.text('Rapporteinträge', 148, 18, { align: 'center' });
+        doc.setFontSize(11);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Exportiert am: ${new Date().toLocaleDateString('de-CH')} ${new Date().toLocaleTimeString('de-CH')}`, 148, 26, { align: 'center' });
+        const head = [[
           'Projektnummer',
-          'Beschreibung',
+          'Datum',
           'Startzeit',
           'Endzeit',
-          'Dauer (h)',
-          'Korrigierte Dauer (h)'
-        ]],
-        body: entries.map((e: any) => [
-          e.projectName || e.project?.name || '',
+          'Kommentare',
+          'Dauer [min]',
+          'Korrigiert [min]'
+        ]];
+        const body = mergedEntries.map((e: any) => [
           e.projectNumber || e.project?._id || '',
-          e.description || '',
-          e.startTime ? new Date(e.startTime).toLocaleString('de-DE') : '',
-          e.endTime ? new Date(e.endTime).toLocaleString('de-DE') : '',
-          e.duration ? (e.duration / 3600).toFixed(2) : '',
-          e.correctedDuration ? (e.correctedDuration / 3600).toFixed(2) : ''
-        ]),
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [33, 150, 243] },
-      });
-      doc.save('zeiteintraege.pdf');
-    } catch (err) {
-      alert('Fehler beim PDF-Export: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+          e.date || '',
+          e.startTime ? new Date(e.startTime).toLocaleDateString('de-CH') : '',
+          e.startTime ? new Date(e.startTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) : '',
+          e.endTime ? new Date(e.endTime).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) : '',
+          e.comments && e.comments.length > 0
+            ? e.comments.map((c: string, i: number) => `${i + 1}. ${c}`).join('\n')
+            : '',
+          Math.round(e.totalDuration / 60).toString(),
+          e.correctedDuration ? Math.round(e.correctedDuration / 60).toString() : ''
+        ]);
+        autoTable(doc, {
+          startY: 38,
+          head,
+          body,
+          columnStyles: {
+            0: { cellWidth: 32, halign: 'center' },
+            1: { cellWidth: 28, halign: 'center' },
+            2: { cellWidth: 24, halign: 'center' },
+            3: { cellWidth: 24, halign: 'center' },
+            4: { cellWidth: 80 },
+            5: { cellWidth: 28, halign: 'center' },
+            6: { cellWidth: 32, halign: 'center' },
+          },
+          styles: {
+            font: 'helvetica',
+            fontSize: 10,
+            cellPadding: { top: 3, right: 2, bottom: 3, left: 2 },
+            overflow: 'linebreak',
+            valign: 'middle',
+            textColor: [33, 33, 33],
+          },
+          headStyles: {
+            fillColor: [33, 150, 243],
+            textColor: 255,
+            fontSize: 12,
+            fontStyle: 'bold',
+            halign: 'center',
+            lineWidth: 0.5,
+            lineColor: [33, 150, 243],
+            cellPadding: { top: 4, bottom: 4 },
+          },
+          alternateRowStyles: { fillColor: [245, 249, 255] },
+          rowPageBreak: 'avoid',
+          margin: { left: 14, right: 14 },
+          didParseCell: function (data) {
+            if (data.section === 'body' && data.column.index === 3 && data.cell.raw && data.cell.raw !== '') {
+              data.cell.styles.textColor = [255, 193, 7];
+              data.cell.styles.fontStyle = 'bold';
+            }
+          },
+          didDrawPage: (data) => {
+            if (data.pageNumber === doc.getNumberOfPages()) {
+              const total = mergedEntries.reduce((sum: number, e: any) => sum + (e.totalDuration || 0), 0);
+              doc.setFontSize(13);
+              doc.setFont('helvetica', 'bold');
+              doc.setTextColor(33, 150, 243);
+              doc.text(`Gesamtdauer: ${Math.round(total / 60)} Minuten`, 280, doc.internal.pageSize.getHeight() - 10, { align: 'right' });
+            }
+          },
+        });
+        doc.save('zeiteintraege.pdf');
+        setShouldExportNow(false);
+      } else if (mergedEntries && mergedEntries.length === 0) {
+        alert('Keine Zeiteinträge zum Exportieren gefunden.');
+        setShouldExportNow(false);
+      }
     }
-  };
+  }, [shouldExportNow, mergedEntries]);
 
   // Excel-Export-Handler
   const handleExportExcel = async () => {
@@ -225,6 +288,33 @@ const Export: React.FC = () => {
           </Button>
         </Stack>
       </Stack>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Export-Zeitraum wählen</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Startdatum"
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+            <TextField
+              label="Enddatum"
+              type="date"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>Abbrechen</Button>
+          <Button onClick={handleDialogExport} variant="contained">Exportieren</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

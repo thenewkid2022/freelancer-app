@@ -282,6 +282,10 @@ router.get('/active', auth, async (req: Request, res: Response, next: NextFuncti
  *           type: string
  *           format: date
  *         description: Enddatum im Format YYYY-MM-DD (lokale Zeit)
+ *       - in: query
+ *         name: timezone
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Liste der zusammengeführten Zeiteinträge
@@ -319,11 +323,14 @@ router.get('/merged',
   auth,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { startDate, endDate } = req.query;
+      const { startDate, endDate, timezone } = req.query;
 
       if (!startDate || !endDate) {
         throw new BadRequestError('startDate und endDate sind erforderlich');
       }
+
+      // Zeitzone dynamisch aus Query übernehmen, Fallback Europe/Zurich
+      const tz = typeof timezone === 'string' && timezone ? timezone : 'Europe/Zurich';
 
       const mergedEntries = await TimeEntry.aggregate([
         {
@@ -341,7 +348,7 @@ router.get('/merged',
                 $dateToString: {
                   format: "%Y-%m-%d",
                   date: "$startTime",
-                  timezone: "Europe/Zurich",
+                  timezone: tz,
                 },
               },
             },
@@ -396,6 +403,9 @@ router.get('/merged',
           }
         },
       ]);
+
+      console.log('Merged Export:', { startDate, endDate, timezone: tz });
+      console.log('Merged Result:', mergedEntries.length, mergedEntries.map(e => e.date));
 
       res.json(mergedEntries);
     } catch (error) {

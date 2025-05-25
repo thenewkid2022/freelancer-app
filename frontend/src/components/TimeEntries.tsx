@@ -29,6 +29,9 @@ import {
   DialogContentText,
   Tooltip,
   Paper,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -170,6 +173,7 @@ const TimeEntries: React.FC = () => {
   const [adjustedEntries, setAdjustedEntries] = useState<Array<{id: string, duration: number}>>([]);
   const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
   const [expandedMergeId, setExpandedMergeId] = useState<string | null>(null);
+  const [entrySelectionList, setEntrySelectionList] = useState<TimeEntry[] | null>(null);
 
   // Zeiteinträge abrufen
   const { data: timeEntries = [], isLoading } = useQuery({
@@ -641,9 +645,8 @@ const TimeEntries: React.FC = () => {
           </Box>
           <Box>
             <IconButton size="small" onClick={() => {
-              const entryId = entry.entryIds[0];
-              const found = timeEntries.find((e: any) => e._id === entryId);
-              if (handleOpenDialog && found) handleOpenDialog(found);
+              const entriesForMerge = timeEntries.filter(e => entry.entryIds.includes(e._id));
+              handleOpenEntrySelection(entriesForMerge);
             }}>
               <EditIcon />
             </IconButton>
@@ -695,6 +698,22 @@ const TimeEntries: React.FC = () => {
     const tzOffset = date.getTimezoneOffset() * 60000;
     return new Date(date.getTime() + tzOffset).toISOString();
   }
+
+  // Funktion zum Öffnen der Auswahl-Liste
+  const handleOpenEntrySelection = (entries: TimeEntry[]) => {
+    setEntrySelectionList(entries);
+  };
+
+  // Funktion zum Schließen der Auswahl-Liste
+  const handleCloseEntrySelection = () => {
+    setEntrySelectionList(null);
+  };
+
+  // Funktion zum Bearbeiten eines Eintrags aus der Liste
+  const handleEditFromSelection = (entry: TimeEntry) => {
+    handleOpenDialog(entry);
+    setEntrySelectionList(null);
+  };
 
   if (isLoading) {
     return (
@@ -905,13 +924,12 @@ const TimeEntries: React.FC = () => {
                     <TableCell>
                       <Stack direction="row" spacing={1}>
                         <IconButton size="small" onClick={() => {
-                          const entryId = entry.entryIds[0];
-                          const found = timeEntries.find((e: any) => e._id === entryId);
-                          if (handleOpenDialog && found) handleOpenDialog(found);
-                        }} sx={{ '&:hover': { backgroundColor: 'primary.light', color: 'primary.contrastText' }, transition: 'background 0.2s' }}>
+                          const entriesForMerge = timeEntries.filter(e => entry.entryIds.includes(e._id));
+                          handleOpenEntrySelection(entriesForMerge);
+                        }}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton size="small" onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry.entryIds[0])} sx={{ '&:hover': { backgroundColor: 'error.light', color: 'error.contrastText' }, transition: 'background 0.2s' }}>
+                        <IconButton size="small" onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry.entryIds[0])}>
                           <DeleteIcon />
                         </IconButton>
                       </Stack>
@@ -1149,6 +1167,26 @@ const TimeEntries: React.FC = () => {
           <Button color="warning" variant="contained" onClick={handleUndoAllAdjustments}>
             Ja, Korrekturen entfernen
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog für die Auswahl-Liste */}
+      <Dialog open={!!entrySelectionList} onClose={handleCloseEntrySelection} maxWidth="xs" fullWidth>
+        <DialogTitle>Eintrag auswählen</DialogTitle>
+        <DialogContent dividers>
+          <List>
+            {entrySelectionList?.map((e) => (
+              <ListItem button key={e._id} onClick={() => handleEditFromSelection(e)}>
+                <ListItemText
+                  primary={`${e.startTime ? formatTimeLocal(e.startTime) : ''} – ${e.endTime ? formatTimeLocal(e.endTime) : ''}`}
+                  secondary={e.description}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEntrySelection}>Abbrechen</Button>
         </DialogActions>
       </Dialog>
     </Stack>
