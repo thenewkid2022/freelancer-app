@@ -44,6 +44,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { SwipeableList, SwipeableListItem, Type as ListType, LeadingActions, TrailingActions, SwipeAction } from 'react-swipeable-list';
 import 'react-swipeable-list/dist/styles.css';
 import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface Project {
   _id: string;
@@ -138,7 +139,7 @@ const TimeEntries: React.FC = () => {
   console.log('Geladene timeEntries:', timeEntries);
 
   // --- NEU: Zusammengeführte Zeiteinträge für den gewählten Tag ---
-  const selectedDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
+  const selectedDateStr = selectedDate ? formatInTimeZone(selectedDate, 'Europe/Zurich', 'yyyy-MM-dd') : null;
 
   const { data: mergedEntries = [], isLoading: isLoadingMerged } = useQuery({
     queryKey: ['mergedTimeEntries', selectedDateStr],
@@ -150,6 +151,14 @@ const TimeEntries: React.FC = () => {
     },
     enabled: !!selectedDateStr,
   });
+
+  // Sortierte Einträge nach Startzeit für die Tagesansicht
+  const sortedMergedEntries = Array.isArray(mergedEntries)
+    ? [...mergedEntries].sort((a, b) => {
+        if (!a.startTime || !b.startTime) return 0;
+        return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+      })
+    : [];
 
   // Zeiteintrag erstellen/aktualisieren
   const saveTimeEntry = useMutation({
@@ -546,7 +555,7 @@ const TimeEntries: React.FC = () => {
             >
               {formatDuration(totalDuration)}
             </Box>
-            {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
+            {typeof entry.correctedDuration === 'number' && entry.correctedDuration > 0 && entry.correctedDuration !== entry.totalDuration && (
               <Box
                 sx={{
                   bgcolor: 'warning.main',
@@ -694,15 +703,15 @@ const TimeEntries: React.FC = () => {
       {/* Gemergte Zeiteinträge Tabelle */}
       {isMobile ? (
         <Stack spacing={1.5} sx={{ width: '100%', mb: 2 }}>
-          {mergedEntries.length === 0 ? (
+          {sortedMergedEntries.length === 0 ? (
             <Typography color="text.secondary" align="center">Keine Zeiteinträge für diesen Tag.</Typography>
           ) : (
-            mergedEntries.map(renderMergeCard)
+            sortedMergedEntries.map(renderMergeCard)
           )}
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={mergedEntries.length}
+            count={sortedMergedEntries.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -733,7 +742,7 @@ const TimeEntries: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {mergedEntries.map((entry) => (
+                {sortedMergedEntries.map((entry) => (
                   <TableRow key={`${entry.projectNumber || 'kein-projekt'}-${entry.date}`}
                     sx={{
                       '&:hover': { backgroundColor: 'action.hover', transition: 'background-color 0.2s' },
@@ -785,7 +794,7 @@ const TimeEntries: React.FC = () => {
                       >
                         {formatDuration(entry.totalDuration)}
                       </Box>
-                      {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
+                      {typeof entry.correctedDuration === 'number' && entry.correctedDuration > 0 && entry.correctedDuration !== entry.totalDuration && (
                         <Box
                           sx={{
                             bgcolor: 'warning.main',
@@ -834,7 +843,7 @@ const TimeEntries: React.FC = () => {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={mergedEntries.length}
+            count={sortedMergedEntries.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
