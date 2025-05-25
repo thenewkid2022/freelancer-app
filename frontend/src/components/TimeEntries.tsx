@@ -530,11 +530,41 @@ const TimeEntries: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <AccessTimeIcon fontSize="small" color="primary" />
-            <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
+            <Box
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                borderRadius: 2,
+                px: 2,
+                py: 0.5,
+                minWidth: 60,
+                display: 'inline-block',
+                fontWeight: 700,
+                fontSize: '1rem',
+                textAlign: 'center',
+              }}
+            >
               {formatDuration(totalDuration)}
-            </Typography>
-            {entriesForMerge.some(e => e.correctedDuration && e.correctedDuration !== e.duration) && (
-              <Chip label="korrigiert" size="small" color="warning" sx={{ ml: 1 }} />
+            </Box>
+            {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
+              <Box
+                sx={{
+                  bgcolor: 'warning.main',
+                  color: 'warning.contrastText',
+                  borderRadius: 2,
+                  px: 2,
+                  py: 0.5,
+                  minWidth: 60,
+                  display: 'inline-block',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  textAlign: 'center',
+                  ml: 1,
+                }}
+                title="Korrigierte Zeit durch Tagesausgleich"
+              >
+                {formatDuration(entry.correctedDuration)}
+              </Box>
             )}
           </Box>
           <Box>
@@ -739,25 +769,41 @@ const TimeEntries: React.FC = () => {
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Box sx={{
-                        bgcolor: 'primary.main',
-                        color: 'primary.contrastText',
-                        borderRadius: 2,
-                        px: 2,
-                        py: 0.5,
-                        minWidth: 60,
-                        display: 'inline-block',
-                        fontWeight: 700,
-                        fontSize: '1rem',
-                        textAlign: 'center',
-                      }}>
+                      <Box
+                        sx={{
+                          bgcolor: 'primary.main',
+                          color: 'primary.contrastText',
+                          borderRadius: 2,
+                          px: 2,
+                          py: 0.5,
+                          minWidth: 60,
+                          display: 'inline-block',
+                          fontWeight: 700,
+                          fontSize: '1rem',
+                          textAlign: 'center',
+                        }}
+                      >
                         {formatDuration(entry.totalDuration)}
                       </Box>
                       {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
-                        <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ ml: 1, fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center' }} title="Korrigierte Zeit durch Tagesausgleich" />
-                      )}
-                      {entry.hasCorrectedDuration && !entry.correctedDuration && (
-                        <Chip label="korrigiert" size="small" color="warning" sx={{ ml: 1, fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center' }} />
+                        <Box
+                          sx={{
+                            bgcolor: 'warning.main',
+                            color: 'warning.contrastText',
+                            borderRadius: 2,
+                            px: 2,
+                            py: 0.5,
+                            minWidth: 60,
+                            display: 'inline-block',
+                            fontWeight: 700,
+                            fontSize: '1rem',
+                            textAlign: 'center',
+                            ml: 1,
+                          }}
+                          title="Korrigierte Zeit durch Tagesausgleich"
+                        >
+                          {formatDuration(entry.correctedDuration)}
+                        </Box>
                       )}
                     </TableCell>
                     <TableCell sx={{ maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
