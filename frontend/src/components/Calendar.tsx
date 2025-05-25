@@ -159,11 +159,11 @@ const Calendar: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Paper sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
           <Typography variant="h5" component="h1">
             Kalender
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
             <IconButton onClick={handlePreviousMonth}>
               <ChevronLeftIcon />
             </IconButton>
@@ -173,6 +173,18 @@ const Calendar: React.FC = () => {
             <IconButton onClick={handleNextMonth}>
               <ChevronRightIcon />
             </IconButton>
+            <Button
+              variant="outlined"
+              size="small"
+              sx={{ ml: 1, minWidth: 64, mt: { xs: 1, sm: 0 } }}
+              onClick={() => setCurrentDate(new Date())}
+              disabled={
+                currentDate.getFullYear() === new Date().getFullYear() &&
+                currentDate.getMonth() === new Date().getMonth()
+              }
+            >
+              Heute
+            </Button>
           </Box>
         </Box>
 

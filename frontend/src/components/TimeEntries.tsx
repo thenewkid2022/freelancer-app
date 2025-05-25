@@ -126,6 +126,7 @@ const TimeEntries: React.FC = () => {
   const [roundedDifference, setRoundedDifference] = useState<number | null>(null);
   const [adjustedEntries, setAdjustedEntries] = useState<Array<{id: string, duration: number}>>([]);
   const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
+  const [expandedMergeId, setExpandedMergeId] = useState<string | null>(null);
 
   // Zeiteinträge abrufen
   const { data: timeEntries = [], isLoading } = useQuery({
@@ -456,105 +457,102 @@ const TimeEntries: React.FC = () => {
   };
 
   // Hilfsfunktion: Render Card für einen Merge-Eintrag
-  const renderMergeCard = (entry: MergedEntry) => (
-    <Paper
-      elevation={3}
-      sx={{
-        width: '100%',
-        borderRadius: 3,
-        boxShadow: '0 4px 20px 0 rgba(0,0,0,0.07)',
-        p: 2,
-        mb: 1.5,
-        bgcolor: 'background.paper',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        '&:hover': {
-          transform: 'translateY(-3px)',
-          boxShadow: '0 8px 32px 0 rgba(0,0,0,0.10)'
-        },
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2
-      }}
-    >
-      {/* Projektnummer-Box */}
-      <Box sx={{
-        bgcolor: 'info.main',
-        color: 'info.contrastText',
-        borderRadius: 2,
-        minWidth: 48,
-        height: 48,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontWeight: 700,
-        fontSize: '1.1rem',
-        mr: 2
-      }}>
-              {entry.projectNumber || 'Kein Projekt'}
-          </Box>
-      <Box sx={{ flex: 1 }}>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Stack spacing={0.5} sx={{ flex: 1 }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              {entry.startTime ? formatTime(entry.startTime) : '-'} – {entry.endTime ? formatTime(entry.endTime) : '-'}
-            </Typography>
-            {entry.comments && entry.comments.length > 0 && (
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <DescriptionIcon fontSize="small" color="action" />
-                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                  {entry.comments.join(' | ')}
-                </Typography>
-              </Stack>
-            )}
-          </Stack>
-          {/* Dauer prominent */}
-          <Box sx={{
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-            borderRadius: 2,
-            px: 2.5,
-            py: 1,
-            minWidth: 70,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1 }}>
-              {formatDuration(entry.totalDuration)}
-            </Typography>
-              {entry.correctedDuration && entry.correctedDuration !== entry.totalDuration && (
-              <Chip label={formatDuration(entry.correctedDuration)} size="small" color="warning" sx={{ fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center', mt: 0.5 }} title="Korrigierte Zeit durch Tagesausgleich" />
-              )}
-              {entry.hasCorrectedDuration && !entry.correctedDuration && (
-              <Chip label="korrigiert" size="small" color="warning" sx={{ fontSize: '0.8rem', height: 22, minWidth: 64, textAlign: 'center', mt: 0.5 }} />
-              )}
-            </Box>
-        </Stack>
-        {/* Aktionen */}
-          <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1 }}>
-            <IconButton
-              size="small"
-              onClick={() => {
-                const entryId = entry.entryIds[0];
-                const found = timeEntries.find((e: any) => e._id === entryId);
-                if (handleOpenDialog && found) handleOpenDialog(found);
+  const renderMergeCard = (entry: MergedEntry) => {
+    const isExpanded = expandedMergeId === entry.projectNumber + entry.date;
+    const commentsText = entry.comments.filter(Boolean).join(' | ');
+    const maxChars = 120;
+    const shouldTruncate = commentsText.length > maxChars;
+
+    // Dauer aus den zugehörigen Einträgen berechnen (wie früher)
+    const entriesForMerge = timeEntries.filter(e => entry.entryIds.includes(e._id));
+    const totalDuration = entriesForMerge.reduce((sum, e) => sum + (e.correctedDuration ?? e.duration ?? 0), 0);
+
+    return (
+      <Card
+        elevation={3}
+        sx={{
+          width: '100%',
+          borderRadius: 3,
+          boxShadow: 2,
+          p: 2,
+          mb: 2,
+          bgcolor: 'background.paper',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1.5,
+        }}
+        key={entry.projectNumber + entry.date}
+      >
+        {/* Header: Projekt + Zeitspanne */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Chip
+            label={entry.projectNumber || 'Kein Projekt'}
+            color="primary"
+            sx={{ fontWeight: 700, fontSize: '1rem' }}
+          />
+          <Typography variant="body2" color="text.secondary">
+            {entry.startTime ? formatTime(entry.startTime) : '-'} – {entry.endTime ? formatTime(entry.endTime) : '-'}
+          </Typography>
+        </Box>
+
+        {/* Body: Kommentare */}
+        {commentsText && (
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+            <DescriptionIcon fontSize="small" color="action" sx={{ mt: 0.5 }} />
+            <Typography
+              variant="body2"
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: isExpanded ? 'unset' : 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                wordBreak: 'break-word',
+                fontSize: '1rem',
+                flex: 1,
               }}
-            sx={{ '&:hover': { backgroundColor: 'primary.light', color: 'primary.contrastText' }, transition: 'background 0.2s' }}
             >
-              <EditIcon fontSize="small" />
+              {commentsText}
+            </Typography>
+            {shouldTruncate && (
+              <Button
+                size="small"
+                onClick={() => setExpandedMergeId(isExpanded ? null : entry.projectNumber + entry.date)}
+                sx={{ minWidth: 0, ml: 1 }}
+              >
+                {isExpanded ? 'Weniger' : 'Mehr'}
+              </Button>
+            )}
+          </Box>
+        )}
+
+        {/* Footer: Dauer + Aktionen */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AccessTimeIcon fontSize="small" color="primary" />
+            <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
+              {formatDuration(totalDuration)}
+            </Typography>
+            {entriesForMerge.some(e => e.correctedDuration && e.correctedDuration !== e.duration) && (
+              <Chip label="korrigiert" size="small" color="warning" sx={{ ml: 1 }} />
+            )}
+          </Box>
+          <Box>
+            <IconButton size="small" onClick={() => {
+              const entryId = entry.entryIds[0];
+              const found = timeEntries.find((e: any) => e._id === entryId);
+              if (handleOpenDialog && found) handleOpenDialog(found);
+            }}>
+              <EditIcon />
             </IconButton>
-            <IconButton
-              size="small"
-              onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry.entryIds[0])}
-            sx={{ '&:hover': { backgroundColor: 'error.light', color: 'error.contrastText' }, transition: 'background 0.2s' }}
-            >
-              <DeleteIcon fontSize="small" />
+            <IconButton size="small" onClick={() => deleteTimeEntry.mutate && deleteTimeEntry.mutate(entry.entryIds[0])}>
+              <DeleteIcon />
             </IconButton>
-          </Stack>
-      </Box>
-    </Paper>
-  );
+          </Box>
+        </Box>
+      </Card>
+    );
+  };
 
   // Laufende Zeitmessung im localStorage persistieren
   useEffect(() => {
@@ -657,7 +655,11 @@ const TimeEntries: React.FC = () => {
       {/* Gemergte Zeiteinträge Tabelle */}
       {isMobile ? (
         <Stack spacing={1.5} sx={{ width: '100%', mb: 2 }}>
-          {mergedEntries.map(renderMergeCard)}
+          {mergedEntries.length === 0 ? (
+            <Typography color="text.secondary" align="center">Keine Zeiteinträge für diesen Tag.</Typography>
+          ) : (
+            mergedEntries.map(renderMergeCard)
+          )}
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
