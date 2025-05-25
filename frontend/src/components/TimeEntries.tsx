@@ -619,6 +619,15 @@ const TimeEntries: React.FC = () => {
           onChange={setSelectedDate}
           slotProps={{ textField: { fullWidth: false, sx: { minWidth: 180 } } }}
         />
+        <Button
+          variant="outlined"
+          size="small"
+          sx={{ ml: 2, height: 40 }}
+          onClick={() => setSelectedDate(new Date())}
+          disabled={!!selectedDate && new Date(selectedDate).toDateString() === new Date().toDateString()}
+        >
+          Heute
+        </Button>
       </Box>
 
       {/* Buttons für Tagesausgleich und Rückgängig */}
