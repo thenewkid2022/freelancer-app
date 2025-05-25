@@ -44,7 +44,6 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { SwipeableList, SwipeableListItem, Type as ListType, LeadingActions, TrailingActions, SwipeAction } from 'react-swipeable-list';
 import 'react-swipeable-list/dist/styles.css';
 import { format } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
 
 interface Project {
   _id: string;
