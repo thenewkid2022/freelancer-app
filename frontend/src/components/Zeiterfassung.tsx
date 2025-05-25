@@ -97,38 +97,11 @@ const Timer = ({ seconds, isRunning }: { seconds: number; isRunning: boolean }) 
   );
 };
 
-// Info-Banner Komponente
-const InfoBanner = ({ open, onClose }: { open: boolean; onClose: () => void }) => (
-  <Fade in={open}>
-    <Paper
-      sx={{
-        p: 2,
-        mb: 2,
-        borderRadius: 2,
-        bgcolor: 'info.light',
-        color: 'info.contrastText',
-        boxShadow: 3,
-      }}
-    >
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <InfoIcon />
-        <Typography variant="body2" sx={{ flex: 1 }}>
-          Erfasse deine täglichen Projektzeiten. Führe am Ende des Tages einen Tagesausgleich durch.
-        </Typography>
-        <IconButton size="small" onClick={onClose} sx={{ color: 'inherit' }}>
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Stack>
-    </Paper>
-  </Fade>
-);
-
 // Hauptkomponente
 const Zeiterfassung: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const queryClient = useQueryClient();
-  const [showInfo, setShowInfo] = useState(true);
   const [projectNumber, setProjectNumber] = useState('');
   const [description, setDescription] = useState('');
   const [activeTimeEntry, setActiveTimeEntry] = useState<{ id: string; startTime: string } | null>(null);
@@ -138,6 +111,21 @@ const Zeiterfassung: React.FC = () => {
 
   // Scroll-Trigger für AppBar
   const trigger = useScrollTrigger();
+
+  // Laufende Zeitmessung aus localStorage wiederherstellen
+  useEffect(() => {
+    // Prüfe, ob ein laufender Eintrag im localStorage existiert
+    const runningEntry = localStorage.getItem('runningTimeEntry');
+    if (runningEntry) {
+      try {
+        const parsed = JSON.parse(runningEntry);
+        if (parsed.projectNumber) setProjectNumber(parsed.projectNumber);
+        if (parsed.description) setDescription(parsed.description);
+      } catch (e) {
+        // Fehler ignorieren
+      }
+    }
+  }, []);
 
   // Starten der Zeiterfassung
   const startTimeEntry = useMutation({
@@ -165,6 +153,12 @@ const Zeiterfassung: React.FC = () => {
         setTimer((prev) => prev + 1);
       }, 1000);
       setIntervalId(id);
+      // Speichere laufenden Eintrag im localStorage
+      localStorage.setItem('runningTimeEntry', JSON.stringify({
+        projectNumber,
+        description,
+        startTime: data.startTime
+      }));
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
     },
   });
@@ -192,6 +186,8 @@ const Zeiterfassung: React.FC = () => {
       setTimer(0);
       setProjectNumber('');
       setDescription('');
+      // Entferne laufenden Eintrag aus localStorage
+      localStorage.removeItem('runningTimeEntry');
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
     },
   });
@@ -245,13 +241,6 @@ const Zeiterfassung: React.FC = () => {
         bgcolor: 'background.default',
       }}
     >
-      {/* Info-Banner als normaler Block */}
-      {showInfo && (
-        <Box sx={{ mb: 2 }}>
-          <InfoBanner open={showInfo} onClose={() => setShowInfo(false)} />
-        </Box>
-      )}
-
       {/* Hauptinhalt */}
       <Stack
         spacing={3}

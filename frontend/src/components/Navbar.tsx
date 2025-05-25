@@ -21,6 +21,11 @@ import { useAuth } from '../contexts/AuthContext';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Link } from 'react-router-dom';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 
 const pages = [
   { name: 'Zeiterfassung', path: '/dashboard' },
@@ -39,6 +44,7 @@ const Navbar: React.FC = () => {
   const [anchorElNotifications, setAnchorElNotifications] = useState<null | HTMLElement>(null);
   const [notifications] = useState<string[]>([]);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const handleCloseNotifications = () => {
     setAnchorElNotifications(null);
@@ -187,6 +193,14 @@ const Navbar: React.FC = () => {
               </Avatar>
             </IconButton>
 
+            <IconButton
+              onClick={() => setHelpOpen(true)}
+              sx={{ p: 0, ml: 1, order: 3 }}
+              aria-label="Hilfe anzeigen"
+            >
+              <HelpOutlineIcon />
+            </IconButton>
+
             <Menu
               sx={{ mt: '45px' }}
               id="menu-notifications"
@@ -244,7 +258,50 @@ const Navbar: React.FC = () => {
                 </ListItemIcon>
                 <Typography>Abmelden</Typography>
               </MenuItem>
+              <MenuItem onClick={() => { setHelpOpen(true); handleCloseUserMenu(); }}>
+                <ListItemIcon>
+                  <HelpOutlineIcon fontSize="small" />
+                </ListItemIcon>
+                <Typography>Hilfe</Typography>
+              </MenuItem>
             </Menu>
+
+            <Dialog open={helpOpen} onClose={() => setHelpOpen(false)} maxWidth="sm" fullWidth>
+              <DialogTitle>Hilfe &amp; Erklärung</DialogTitle>
+              <DialogContent dividers>
+                <Typography variant="body1" gutterBottom>
+                  Willkommen zur Freelancer App!<br /><br />
+                  Mit dieser App kannst du deine Projektzeiten einfach erfassen, verwalten und auswerten. <br /><br />
+                  <b>Kurzanleitung:</b><br />
+                  <ul>
+                    <li>Starte die Zeitmessung für ein Projekt mit "Start".</li>
+                    <li>Stoppe sie, wenn du fertig bist.</li>
+                    <li>Alle Einträge findest du unter "Zeiteinträge".</li>
+                    <li>Statistiken und Export findest du in den jeweiligen Menüpunkten.</li>
+                  </ul>
+                  <br />
+                  <b>Tagesausgleich:</b><br />
+                  <ul>
+                    <li>Mit dem Tagesausgleich kannst du am Ende des Tages deine erfassten Zeiten auf deine tatsächliche Arbeitszeit anpassen. So kannst du z.B. Pausen abziehen oder kleine Rundungen vornehmen, damit die Summe deiner Zeiteinträge genau zu deinem Arbeitstag passt.</li>
+                  </ul>
+                  <br />
+                  <b>Tipps:</b><br />
+                  <ul>
+                    <li>Du kannst im Profil Darkmode und Sprache einstellen.</li>
+                    <li>Die App funktioniert auch als PWA (auf dem Handy installierbar).</li>
+                  </ul>
+                  <br />
+                  <b>FAQ:</b><br />
+                  <ul>
+                    <li><b>Was passiert, wenn ich die App schließe?</b> – Die laufende Zeitmessung bleibt erhalten.</li>
+                    <li><b>Wie kann ich meine Daten exportieren?</b> – Über den Menüpunkt "Export".</li>
+                  </ul>
+                </Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setHelpOpen(false)}>Schließen</Button>
+              </DialogActions>
+            </Dialog>
           </Box>
         </Toolbar>
       </Container>

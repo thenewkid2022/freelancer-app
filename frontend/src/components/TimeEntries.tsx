@@ -70,6 +70,7 @@ interface TimeEntryFormData {
   startTime: string;
   endTime: string;
   description: string;
+  projectNumber: string;
 }
 
 interface MergedEntry {
@@ -151,6 +152,7 @@ const TimeEntries: React.FC = () => {
     startTime: '',
     endTime: '',
     description: '',
+    projectNumber: '',
   });
   const [error, setError] = useState('');
   const theme = useTheme();
@@ -224,14 +226,15 @@ const TimeEntries: React.FC = () => {
         ? `/time-entries/${selectedEntry._id}`
         : '/time-entries';
       const method = selectedEntry ? 'put' : 'post';
-      
+      // Projektnummer trimmen
+      const trimmedProjectNumber = entryData.projectNumber ? entryData.projectNumber.trim() : '';
       // Zeitfelder korrekt umwandeln
       const payload = {
         ...entryData,
+        projectNumber: trimmedProjectNumber,
         startTime: localInputToUTC(entryData.startTime),
         endTime: localInputToUTC(entryData.endTime),
       };
-
       const response: AxiosResponse<TimeEntry> = await apiClient[method](url, payload);
       return response.data;
     },
@@ -294,6 +297,7 @@ const TimeEntries: React.FC = () => {
         startTime: toLocalInputValue(entry.startTime),
         endTime: toLocalInputValue(entry.endTime),
         description: entry.description,
+        projectNumber: entry.projectNumber || '',
       });
     } else {
       setSelectedEntry(null);
@@ -301,6 +305,7 @@ const TimeEntries: React.FC = () => {
         startTime: '',
         endTime: '',
         description: '',
+        projectNumber: '',
       });
     }
     setIsDialogOpen(true);
@@ -313,6 +318,7 @@ const TimeEntries: React.FC = () => {
       startTime: '',
       endTime: '',
       description: '',
+      projectNumber: '',
     });
     setError('');
   };
@@ -660,13 +666,14 @@ const TimeEntries: React.FC = () => {
         startTime: parsed.startTime,
         endTime: '',
         description: parsed.description || '',
+        projectNumber: parsed.projectNumber || '',
       });
     }
   }, []);
 
   const handleStartTimeEntry = (projectNumber: string, description: string) => {
     const startTime = new Date().toISOString();
-    setFormData({ startTime, endTime: '', description });
+    setFormData({ startTime, endTime: '', description, projectNumber });
     localStorage.setItem('runningTimeEntry', JSON.stringify({
       projectNumber,
       description,
@@ -880,11 +887,20 @@ const TimeEntries: React.FC = () => {
                         </Box>
                       )}
                     </TableCell>
-                    <TableCell sx={{ maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <DescriptionIcon fontSize="small" color="action" />
-                        <span>{entry.comments.filter(c => !!c && c !== '0').join(' | ')}</span>
-                      </Stack>
+                    <TableCell>
+                      <Tooltip title={entry.comments.filter(Boolean).join(' | ')} placement="top" arrow>
+                        <span style={{
+                          display: 'inline-block',
+                          maxWidth: 220,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          verticalAlign: 'middle',
+                          cursor: entry.comments && entry.comments.join(' | ').length > 30 ? 'pointer' : 'default',
+                        }}>
+                          {entry.comments.filter(Boolean).join(' | ')}
+                        </span>
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1}>
@@ -969,7 +985,8 @@ const TimeEntries: React.FC = () => {
                 <TextField
                   fullWidth
                   multiline
-                  rows={3}
+                  minRows={5}
+                  maxRows={12}
                   label="Beschreibung"
                   id="dialog-description"
                   value={formData.description}
