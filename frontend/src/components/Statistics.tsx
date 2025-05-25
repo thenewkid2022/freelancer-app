@@ -165,7 +165,7 @@ const Statistics: React.FC = () => {
     const dailyMap: Record<string, { hours: number; entries: number }> = {};
     
     filteredTimeEntries.forEach(entry => {
-      const day = new Date(entry.startTime).toLocaleDateString('de-DE', { timeZone: 'Europe/Zurich' });
+      const day = new Date(entry.startTime).toLocaleDateString(undefined);
       if (!dailyMap[day]) {
         dailyMap[day] = { hours: 0, entries: 0 };
       }
@@ -443,6 +443,18 @@ const Statistics: React.FC = () => {
       </LineChart>
     );
   };
+
+  // Hilfsfunktion: UTC-Grenzen für lokalen Zeitraum berechnen
+  function getUTCRangeForLocalPeriod(start: Date, end: Date) {
+    const startCopy = new Date(start);
+    startCopy.setHours(0, 0, 0, 0);
+    const endCopy = new Date(end);
+    endCopy.setHours(23, 59, 59, 999);
+    return {
+      startUTC: startCopy.toISOString(),
+      endUTC: endCopy.toISOString()
+    };
+  }
 
   if (isLoadingTimeEntries) {
     return (

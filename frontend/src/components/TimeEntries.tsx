@@ -101,6 +101,47 @@ export function formatDuration(seconds: number): string {
   }
 }
 
+// Hilfsfunktion für die lokale Zeit-Formatierung
+function formatDateTimeLocal(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleString(undefined, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function formatTimeLocal(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+// Hilfsfunktion: UTC-String in local datetime-local-String für Input-Felder
+function toLocalInputValue(dateString: string) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  const localISO = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  return localISO;
+}
+
+// Hilfsfunktion: UTC-Grenzen für lokalen Tag berechnen
+function getUTCRangeForLocalDay(localDate: Date) {
+  const start = new Date(localDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(localDate);
+  end.setHours(23, 59, 59, 999);
+  return {
+    startUTC: start.toISOString(),
+    endUTC: end.toISOString()
+  };
+}
+
 const TimeEntries: React.FC = () => {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
@@ -138,18 +179,18 @@ const TimeEntries: React.FC = () => {
   }) as { data: TimeEntry[]; isLoading: boolean };
   console.log('Geladene timeEntries:', timeEntries);
 
-  // --- NEU: Zusammengeführte Zeiteinträge für den gewählten Tag ---
-  const selectedDateStr = selectedDate ? formatInTimeZone(selectedDate, 'Europe/Zurich', 'yyyy-MM-dd') : null;
+  // Für mergedEntries Query: UTC-Grenzen berechnen und verwenden
+  const selectedDateRange = selectedDate ? getUTCRangeForLocalDay(selectedDate) : null;
 
   const { data: mergedEntries = [], isLoading: isLoadingMerged } = useQuery({
-    queryKey: ['mergedTimeEntries', selectedDateStr],
+    queryKey: ['mergedTimeEntries', selectedDateRange],
     queryFn: async () => {
-      if (!selectedDateStr) return [];
+      if (!selectedDateRange) return [];
       return await apiClient.get<MergedEntry[]>('/time-entries/merged', {
-        params: { startDate: selectedDateStr, endDate: selectedDateStr },
+        params: { startDate: selectedDateRange.startUTC, endDate: selectedDateRange.endUTC },
       });
     },
-    enabled: !!selectedDateStr,
+    enabled: !!selectedDateRange,
   });
 
   // Sortierte Einträge nach Startzeit für die Tagesansicht
@@ -159,6 +200,23 @@ const TimeEntries: React.FC = () => {
         return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
       })
     : [];
+
+  // Filtere mergedEntries nach lokalem Tag
+  const filteredMergedEntries = useMemo(() =>
+    Array.isArray(sortedMergedEntries)
+      ? sortedMergedEntries.filter(entry => {
+          if (!entry.startTime) return false;
+          const entryDate = new Date(entry.startTime);
+          return (
+            selectedDate &&
+            entryDate.getFullYear() === selectedDate.getFullYear() &&
+            entryDate.getMonth() === selectedDate.getMonth() &&
+            entryDate.getDate() === selectedDate.getDate()
+          );
+        })
+      : [],
+    [sortedMergedEntries, selectedDate]
+  );
 
   // Zeiteintrag erstellen/aktualisieren
   const saveTimeEntry = useMutation({
@@ -171,8 +229,8 @@ const TimeEntries: React.FC = () => {
       // Zeitfelder korrekt umwandeln
       const payload = {
         ...entryData,
-        startTime: new Date(entryData.startTime).toISOString(),
-        endTime: new Date(entryData.endTime).toISOString(),
+        startTime: localInputToUTC(entryData.startTime),
+        endTime: localInputToUTC(entryData.endTime),
       };
 
       const response: AxiosResponse<TimeEntry> = await apiClient[method](url, payload);
@@ -234,8 +292,8 @@ const TimeEntries: React.FC = () => {
     if (entry) {
       setSelectedEntry(entry);
       setFormData({
-        startTime: new Date(entry.startTime).toISOString().slice(0, 16),
-        endTime: new Date(entry.endTime).toISOString().slice(0, 16),
+        startTime: toLocalInputValue(entry.startTime),
+        endTime: toLocalInputValue(entry.endTime),
         description: entry.description,
       });
     } else {
@@ -500,7 +558,7 @@ const TimeEntries: React.FC = () => {
             sx={{ fontWeight: 700, fontSize: '1rem' }}
           />
           <Typography variant="body2" color="text.secondary">
-            {entry.startTime ? formatTime(entry.startTime) : '-'} – {entry.endTime ? formatTime(entry.endTime) : '-'}
+            {entry.startTime ? formatTimeLocal(entry.startTime) : '-'} – {entry.endTime ? formatTimeLocal(entry.endTime) : '-'}
           </Typography>
         </Box>
 
@@ -624,6 +682,14 @@ const TimeEntries: React.FC = () => {
     // Hier ggf. saveTimeEntry.mutate() aufrufen
   };
 
+  // Beim Absenden: lokale Zeit wieder in UTC umwandeln
+  function localInputToUTC(dateString: string) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() + tzOffset).toISOString();
+  }
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
@@ -703,15 +769,15 @@ const TimeEntries: React.FC = () => {
       {/* Gemergte Zeiteinträge Tabelle */}
       {isMobile ? (
         <Stack spacing={1.5} sx={{ width: '100%', mb: 2 }}>
-          {sortedMergedEntries.length === 0 ? (
+          {filteredMergedEntries.length === 0 ? (
             <Typography color="text.secondary" align="center">Keine Zeiteinträge für diesen Tag.</Typography>
           ) : (
-            sortedMergedEntries.map(renderMergeCard)
+            filteredMergedEntries.map(renderMergeCard)
           )}
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={sortedMergedEntries.length}
+            count={filteredMergedEntries.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -742,7 +808,7 @@ const TimeEntries: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {sortedMergedEntries.map((entry) => (
+                {filteredMergedEntries.map((entry) => (
                   <TableRow key={`${entry.projectNumber || 'kein-projekt'}-${entry.date}`}
                     sx={{
                       '&:hover': { backgroundColor: 'action.hover', transition: 'background-color 0.2s' },
@@ -768,13 +834,13 @@ const TimeEntries: React.FC = () => {
                     <TableCell>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <AccessTimeIcon fontSize="small" color="action" />
-                        <span>{entry.startTime ? formatTime(entry.startTime) : '-'}</span>
+                        <span>{entry.startTime ? formatTimeLocal(entry.startTime) : '-'}</span>
                       </Stack>
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <AccessTimeIcon fontSize="small" color="action" />
-                        <span>{entry.endTime ? formatTime(entry.endTime) : '-'}</span>
+                        <span>{entry.endTime ? formatTimeLocal(entry.endTime) : '-'}</span>
                       </Stack>
                     </TableCell>
                     <TableCell>
@@ -843,7 +909,7 @@ const TimeEntries: React.FC = () => {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={sortedMergedEntries.length}
+            count={filteredMergedEntries.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

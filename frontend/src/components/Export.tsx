@@ -21,6 +21,18 @@ interface MergedEntry {
   entryIds: string[];
 }
 
+// Hilfsfunktion: UTC-Grenzen für lokalen Tag berechnen
+function getUTCRangeForLocalDay(localDate: Date) {
+  const start = new Date(localDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(localDate);
+  end.setHours(23, 59, 59, 999);
+  return {
+    startUTC: start.toISOString(),
+    endUTC: end.toISOString()
+  };
+}
+
 const Export: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -29,16 +41,19 @@ const Export: React.FC = () => {
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(new Date());
   const selectedDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
 
+  // Für mergedEntries Query: UTC-Grenzen berechnen und verwenden
+  const selectedDateRange = selectedDate ? getUTCRangeForLocalDay(selectedDate) : null;
+
   const { data: mergedEntries = [], isLoading: isLoadingMerged } = useQuery({
-    queryKey: ['mergedTimeEntries', selectedDateStr],
+    queryKey: ['mergedTimeEntries', selectedDateRange],
     queryFn: async () => {
-      if (!selectedDateStr) return [];
+      if (!selectedDateRange) return [];
       const response = await axios.get<MergedEntry[]>('/time-entries/merged', {
-        params: { startDate: selectedDateStr, endDate: selectedDateStr },
+        params: { startDate: selectedDateRange.startUTC, endDate: selectedDateRange.endUTC },
       });
       return response.data;
     },
-    enabled: !!selectedDateStr,
+    enabled: !!selectedDateRange,
   });
 
   // CSV-Export-Handler
