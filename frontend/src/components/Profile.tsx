@@ -149,6 +149,7 @@ const Profile: React.FC = () => {
     }));
     if (field === 'language' && typeof value === 'string') {
       i18n.changeLanguage(value);
+      localStorage.setItem('language', value);
     }
   };
 
@@ -273,6 +274,8 @@ const Profile: React.FC = () => {
                   <MenuItem value="de">Deutsch</MenuItem>
                   <MenuItem value="en">English</MenuItem>
                   <MenuItem value="es">Español</MenuItem>
+                  <MenuItem value="fr">Français</MenuItem>
+                  <MenuItem value="it">Italiano</MenuItem>
                 </TextField>
               </Grid>
             </Grid>

@@ -10,15 +10,25 @@ const resources = {
   es: { translation: es },
 };
 
+// Sprache aus localStorage lesen, sonst 'de'
+const savedLang = localStorage.getItem('language') || 'de';
+
 i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'de',
+    lng: savedLang,
     fallbackLng: 'de',
     interpolation: {
       escapeValue: false,
     },
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
   });
+
+// Sprache bei Wechsel in localStorage speichern
+// (Das muss im Profil/Settings beim Wechsel gemacht werden)
 
 export default i18n; 

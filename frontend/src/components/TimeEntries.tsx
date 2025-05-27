@@ -47,6 +47,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { SwipeableList, SwipeableListItem, Type as ListType, LeadingActions, TrailingActions, SwipeAction } from 'react-swipeable-list';
 import 'react-swipeable-list/dist/styles.css';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface Project {
   _id: string;
@@ -174,6 +175,7 @@ const TimeEntries: React.FC = () => {
   const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
   const [expandedMergeId, setExpandedMergeId] = useState<string | null>(null);
   const [entrySelectionList, setEntrySelectionList] = useState<TimeEntry[] | null>(null);
+  const { t } = useTranslation();
 
   // Zeiteinträge abrufen
   const { data: timeEntries = [], isLoading } = useQuery({
@@ -459,20 +461,20 @@ const TimeEntries: React.FC = () => {
   const handleAdjustmentSubmit = async () => {
     try {
       if (!selectedDate) {
-        setError('Bitte wählen Sie ein Datum aus');
+        setError(t('timeEntries.pleaseSelectDate'));
         return;
       }
 
       if (!adjustmentData.workStart || !adjustmentData.workEnd) {
-        setError('Bitte geben Sie Arbeitsbeginn und Arbeitsende ein');
+        setError(t('timeEntries.pleaseEnterWorkStartAndEnd'));
         return;
       }
 
       // Überprüfe, ob der User die Differenz akzeptiert
       if (roundedDifference !== null && Math.abs(roundedDifference) > 0.01) {
         const confirmMessage = roundedDifference > 0
-          ? `Nach der Rundung fehlen noch ${roundedDifference.toFixed(2)}h. Möchten Sie fortfahren?`
-          : `Nach der Rundung sind ${Math.abs(roundedDifference).toFixed(2)}h zu viel. Möchten Sie fortfahren?`;
+          ? t('timeEntries.afterRoundingMissing', { amount: roundedDifference.toFixed(2) })
+          : t('timeEntries.afterRoundingTooMuch', { amount: Math.abs(roundedDifference).toFixed(2) });
         
         if (!window.confirm(confirmMessage)) {
           return;
@@ -495,7 +497,7 @@ const TimeEntries: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
       handleAdjustmentDialogClose();
     } catch (error) {
-      setError('Fehler beim Speichern der korrigierten Zeiten');
+      setError(t('timeEntries.errorSavingAdjustments'));
       console.error('Fehler beim Tagesausgleich:', error);
     }
   };
@@ -507,7 +509,7 @@ const TimeEntries: React.FC = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
     } catch (error) {
-      setError('Fehler beim Rückgängig-Machen des Tagesausgleichs');
+      setError(t('timeEntries.errorUndoing'));
       console.error('Fehler beim Undo:', error);
     }
   };
@@ -527,7 +529,7 @@ const TimeEntries: React.FC = () => {
       await Promise.all(undoPromises);
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
     } catch (error) {
-      setError('Fehler beim Rückgängig-Machen des Tagesausgleichs');
+      setError(t('timeEntries.errorUndoing'));
       console.error('Fehler beim Undo:', error);
     }
   };
@@ -637,7 +639,7 @@ const TimeEntries: React.FC = () => {
                   textAlign: 'center',
                   ml: 1,
                 }}
-                title="Korrigierte Zeit durch Tagesausgleich"
+                title={t('timeEntries.correctedTimeThroughAdjustment')}
               >
                 {formatDuration(entry.correctedDuration)}
               </Box>
@@ -744,7 +746,7 @@ const TimeEntries: React.FC = () => {
         }}
       >
         <DatePicker
-          label="Tag auswählen"
+          label={t('timeEntries.selectDate')}
           value={selectedDate}
           onChange={setSelectedDate}
           slotProps={{ textField: { fullWidth: false, sx: { minWidth: 180 } } }}
@@ -756,7 +758,7 @@ const TimeEntries: React.FC = () => {
           onClick={() => setSelectedDate(new Date())}
           disabled={!!selectedDate && new Date(selectedDate).toDateString() === new Date().toDateString()}
         >
-          Heute
+          {t('timeEntries.today')}
         </Button>
       </Box>
 
@@ -769,7 +771,7 @@ const TimeEntries: React.FC = () => {
           onClick={handleAdjustmentDialogOpen}
           sx={{ borderRadius: 3, fontWeight: 600, px: 4, minWidth: 160 }}
         >
-          Tagesausgleich
+          {t('timeEntries.adjustment')}
         </Button>
         {hasCorrectionsForDay && (
           <Button
@@ -780,7 +782,7 @@ const TimeEntries: React.FC = () => {
             onClick={() => setIsUndoDialogOpen(true)}
             sx={{ borderRadius: 3, fontWeight: 600, px: 4, minWidth: 160 }}
           >
-            Zurücksetzen
+            {t('timeEntries.reset')}
           </Button>
         )}
       </Stack>
@@ -795,7 +797,7 @@ const TimeEntries: React.FC = () => {
       {isMobile ? (
         <Stack spacing={1.5} sx={{ width: '100%', mb: 2 }}>
           {filteredMergedEntries.length === 0 ? (
-            <Typography color="text.secondary" align="center">Keine Zeiteinträge für diesen Tag.</Typography>
+            <Typography color="text.secondary" align="center">{t('timeEntries.noEntriesForThisDate')}</Typography>
           ) : (
             filteredMergedEntries.map(renderMergeCard)
           )}
@@ -807,7 +809,7 @@ const TimeEntries: React.FC = () => {
             page={page}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Einträge pro Seite"
+            labelRowsPerPage={t('timeEntries.entriesPerPage')}
             sx={{
               borderTop: '1px solid',
               borderColor: 'divider',
@@ -824,12 +826,12 @@ const TimeEntries: React.FC = () => {
             <Table size="small" sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default', borderTopLeftRadius: 12 }}>Projekt</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>Startzeit</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>Endzeit</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>Dauer</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>Beschreibung</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default', borderTopRightRadius: 12 }}>Aktionen</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default', borderTopLeftRadius: 12 }}>{t('timeEntries.project')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>{t('timeEntries.startTime')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>{t('timeEntries.endTime')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>{t('timeEntries.duration')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default' }}>{t('timeEntries.description')}</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '1rem', bgcolor: 'background.default', borderTopRightRadius: 12 }}>{t('timeEntries.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -900,7 +902,7 @@ const TimeEntries: React.FC = () => {
                             textAlign: 'center',
                             ml: 1,
                           }}
-                          title="Korrigierte Zeit durch Tagesausgleich"
+                          title={t('timeEntries.correctedTimeThroughAdjustment')}
                         >
                           {formatDuration(entry.correctedDuration)}
                         </Box>
@@ -947,7 +949,7 @@ const TimeEntries: React.FC = () => {
             page={page}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Einträge pro Seite"
+            labelRowsPerPage={t('timeEntries.entriesPerPage')}
             sx={{
               borderTop: '1px solid',
               borderColor: 'divider',
@@ -970,7 +972,7 @@ const TimeEntries: React.FC = () => {
         }}
       >
         <DialogTitle sx={{ pb: 1 }}>
-          Zeiteintrag bearbeiten
+          {t('timeEntries.editEntry')}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
@@ -979,7 +981,7 @@ const TimeEntries: React.FC = () => {
                 <TextField
                   fullWidth
                   type="datetime-local"
-                  label="Startzeit"
+                  label={t('timeEntries.startTime')}
                   id="dialog-starttime"
                   value={formData.startTime}
                   onChange={(e) => handleFormChange('startTime', e.target.value)}
@@ -991,7 +993,7 @@ const TimeEntries: React.FC = () => {
                 <TextField
                   fullWidth
                   type="datetime-local"
-                  label="Endzeit"
+                  label={t('timeEntries.endTime')}
                   id="dialog-endtime"
                   value={formData.endTime}
                   onChange={(e) => handleFormChange('endTime', e.target.value)}
@@ -1005,7 +1007,7 @@ const TimeEntries: React.FC = () => {
                   multiline
                   minRows={5}
                   maxRows={12}
-                  label="Beschreibung"
+                  label={t('timeEntries.description')}
                   id="dialog-description"
                   value={formData.description}
                   onChange={(e) => handleFormChange('description', e.target.value)}
@@ -1021,14 +1023,14 @@ const TimeEntries: React.FC = () => {
             onClick={handleCloseDialog}
             sx={{ borderRadius: 2 }}
           >
-            Abbrechen
+            {t('timeEntries.cancel')}
           </Button>
           <Button
             variant="contained"
             onClick={() => saveTimeEntry.mutate(formData)}
             sx={{ borderRadius: 2 }}
           >
-            Speichern
+            {t('timeEntries.save')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1043,14 +1045,14 @@ const TimeEntries: React.FC = () => {
         }}
       >
         <DialogTitle sx={{ pb: 1 }}>
-          Tagesausgleich
+          {t('timeEntries.adjustment')}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <DatePicker
-                  label="Tag auswählen"
+                  label={t('timeEntries.selectDate')}
                   value={selectedDate}
                   onChange={setSelectedDate}
                   slotProps={{ textField: { fullWidth: true } }}
@@ -1060,7 +1062,7 @@ const TimeEntries: React.FC = () => {
                 <TextField
                   fullWidth
                   type="time"
-                  label="Arbeitsbeginn"
+                  label={t('timeEntries.workStart')}
                   value={adjustmentData.workStart}
                   onChange={(e) => handleAdjustmentDataChange('workStart', e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -1071,7 +1073,7 @@ const TimeEntries: React.FC = () => {
                 <TextField
                   fullWidth
                   type="time"
-                  label="Arbeitsende"
+                  label={t('timeEntries.workEnd')}
                   value={adjustmentData.workEnd}
                   onChange={(e) => handleAdjustmentDataChange('workEnd', e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -1082,7 +1084,7 @@ const TimeEntries: React.FC = () => {
                 <TextField
                   fullWidth
                   type="number"
-                  label="Mittagspause (Minuten)"
+                  label={t('timeEntries.lunchBreak')}
                   value={adjustmentData.lunchBreak}
                   onChange={(e) => handleAdjustmentDataChange('lunchBreak', parseInt(e.target.value))}
                   InputLabelProps={{ shrink: true }}
@@ -1093,7 +1095,7 @@ const TimeEntries: React.FC = () => {
                 <TextField
                   fullWidth
                   type="number"
-                  label="Weitere Pausen (Minuten)"
+                  label={t('timeEntries.otherBreaks')}
                   value={adjustmentData.otherBreaks}
                   onChange={(e) => handleAdjustmentDataChange('otherBreaks', parseInt(e.target.value))}
                   InputLabelProps={{ shrink: true }}
@@ -1107,11 +1109,11 @@ const TimeEntries: React.FC = () => {
                     sx={{ borderRadius: 2 }}
                   >
                     {Math.abs(timeDifference) < 0.01 ? (
-                      "Die Zeiterfassung ist bereits ausgeglichen."
+                      t('timeEntries.timesheetAlreadyBalanced')
                     ) : timeDifference > 0 ? (
-                      `Es fehlen noch ${timeDifference.toFixed(2)}h zum Tagessoll.`
+                      t('timeEntries.missingTimeForDay', { amount: timeDifference.toFixed(2) })
                     ) : (
-                      `Du hast ${Math.abs(timeDifference).toFixed(2)}h zu viel erfasst.`
+                      t('timeEntries.excessTime', { amount: Math.abs(timeDifference).toFixed(2) })
                     )}
                   </Alert>
                 </Grid>
@@ -1123,12 +1125,12 @@ const TimeEntries: React.FC = () => {
                     sx={{ borderRadius: 2 }}
                   >
                     {roundedDifference > 0 ? (
-                      `Nach der Rundung auf 0,25h fehlen noch ${roundedDifference.toFixed(2)}h.`
+                      t('timeEntries.afterRoundingMissing', { amount: roundedDifference.toFixed(2) })
                     ) : (
-                      `Nach der Rundung auf 0,25h sind ${Math.abs(roundedDifference).toFixed(2)}h zu viel.`
+                      t('timeEntries.afterRoundingTooMuch', { amount: Math.abs(roundedDifference).toFixed(2) })
                     )}
                     <br />
-                    Sie können die Differenz manuell anpassen oder die Änderungen übernehmen.
+                    {t('timeEntries.adjustmentOptions')}
                   </Alert>
                 </Grid>
               )}
@@ -1140,14 +1142,14 @@ const TimeEntries: React.FC = () => {
             onClick={handleAdjustmentDialogClose}
             sx={{ borderRadius: 2 }}
           >
-            Abbrechen
+            {t('timeEntries.cancel')}
           </Button>
           <Button
             variant="contained"
             onClick={handleAdjustmentSubmit}
             sx={{ borderRadius: 2 }}
           >
-            Ausgleichen
+            {t('timeEntries.balance')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1156,23 +1158,23 @@ const TimeEntries: React.FC = () => {
         open={isUndoDialogOpen}
         onClose={() => setIsUndoDialogOpen(false)}
       >
-        <DialogTitle>Tagesausgleich rückgängig machen</DialogTitle>
+        <DialogTitle>{t('timeEntries.undoAdjustment')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Möchten Sie wirklich alle Korrekturen für diesen Tag entfernen?
+            {t('timeEntries.confirmUndoAllAdjustments')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsUndoDialogOpen(false)}>Abbrechen</Button>
+          <Button onClick={() => setIsUndoDialogOpen(false)}>{t('timeEntries.cancel')}</Button>
           <Button color="warning" variant="contained" onClick={handleUndoAllAdjustments}>
-            Ja, Korrekturen entfernen
+            {t('timeEntries.yesUndo')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Dialog für die Auswahl-Liste */}
       <Dialog open={!!entrySelectionList} onClose={handleCloseEntrySelection} maxWidth="xs" fullWidth>
-        <DialogTitle>Eintrag auswählen</DialogTitle>
+        <DialogTitle>{t('timeEntries.selectEntry')}</DialogTitle>
         <DialogContent dividers>
           <List>
             {entrySelectionList?.map((e) => (
@@ -1186,7 +1188,7 @@ const TimeEntries: React.FC = () => {
           </List>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseEntrySelection}>Abbrechen</Button>
+          <Button onClick={handleCloseEntrySelection}>{t('timeEntries.cancel')}</Button>
         </DialogActions>
       </Dialog>
     </Stack>

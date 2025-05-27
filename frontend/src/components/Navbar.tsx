@@ -26,13 +26,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-
-const pages = [
-  { name: 'Zeiterfassung', path: '/dashboard' },
-  { name: 'Zeiteinträge', path: '/time-entries' },
-  { name: 'Statistiken', path: '/statistics' },
-  { name: 'Export', path: '/export' },
-];
+import { useTranslation } from 'react-i18next';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -40,6 +34,7 @@ const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { t } = useTranslation();
 
   const [anchorElNotifications, setAnchorElNotifications] = useState<null | HTMLElement>(null);
   const [notifications] = useState<string[]>([]);
@@ -100,13 +95,20 @@ const Navbar: React.FC = () => {
                 textDecoration: 'none',
               }}
             >
-              Zeitrapportierung
+              {t('navbar.title')}
             </Typography>
           </Toolbar>
         </Container>
       </AppBar>
     );
   }
+
+  const pages = [
+    { name: t('navbar.timeTracking'), path: '/dashboard' },
+    { name: t('navbar.timeEntries'), path: '/time-entries' },
+    { name: t('navbar.statistics'), path: '/statistics' },
+    { name: t('navbar.export'), path: '/export' },
+  ];
 
   return (
     <AppBar 
@@ -134,7 +136,7 @@ const Navbar: React.FC = () => {
               textDecoration: 'none',
             }}
           >
-            Zeitrapportierung
+            {t('navbar.title')}
           </Typography>
 
           {!isMobile && (
@@ -219,7 +221,7 @@ const Navbar: React.FC = () => {
             >
               {notifications.length === 0 ? (
                 <MenuItem disabled>
-                  <Typography>Keine neuen Benachrichtigungen</Typography>
+                  <Typography>{t('navbar.noNotifications')}</Typography>
                 </MenuItem>
               ) : (
                 notifications.map((notification, index) => (
@@ -250,56 +252,58 @@ const Navbar: React.FC = () => {
                 <ListItemIcon>
                   <PersonIcon fontSize="small" />
                 </ListItemIcon>
-                <Typography>Profil</Typography>
+                <Typography>{t('navbar.profile')}</Typography>
               </MenuItem>
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon>
                   <LogoutIcon fontSize="small" />
                 </ListItemIcon>
-                <Typography>Abmelden</Typography>
+                <Typography>{t('navbar.logout')}</Typography>
               </MenuItem>
               <MenuItem onClick={() => { setHelpOpen(true); handleCloseUserMenu(); }}>
                 <ListItemIcon>
                   <HelpOutlineIcon fontSize="small" />
                 </ListItemIcon>
-                <Typography>Hilfe</Typography>
+                <Typography>{t('navbar.help')}</Typography>
               </MenuItem>
             </Menu>
 
             <Dialog open={helpOpen} onClose={() => setHelpOpen(false)} maxWidth="sm" fullWidth>
-              <DialogTitle>Hilfe &amp; Erklärung</DialogTitle>
+              <DialogTitle>{t('help.title')}</DialogTitle>
               <DialogContent dividers>
                 <Typography variant="body1" gutterBottom>
-                  Willkommen zur Freelancer App!<br /><br />
-                  Mit dieser App kannst du deine Projektzeiten einfach erfassen, verwalten und auswerten. <br /><br />
-                  <b>Kurzanleitung:</b><br />
+                  {t('help.welcome')}
+                  <br /><br />
+                  {t('help.instructions')}
+                  <br /><br />
+                  <b>{t('help.quickGuide')}:</b><br />
                   <ul>
-                    <li>Starte die Zeitmessung für ein Projekt mit "Start".</li>
-                    <li>Stoppe sie, wenn du fertig bist.</li>
-                    <li>Alle Einträge findest du unter "Zeiteinträge".</li>
-                    <li>Statistiken und Export findest du in den jeweiligen Menüpunkten.</li>
+                    <li>{t('help.quickGuide.start')}</li>
+                    <li>{t('help.quickGuide.stop')}</li>
+                    <li>{t('help.quickGuide.timeEntries')}</li>
+                    <li>{t('help.quickGuide.statistics')}</li>
                   </ul>
                   <br />
-                  <b>Tagesausgleich:</b><br />
+                  <b>{t('help.dayAdjustment')}:</b><br />
                   <ul>
-                    <li>Mit dem Tagesausgleich kannst du am Ende des Tages deine erfassten Zeiten auf deine tatsächliche Arbeitszeit anpassen. So kannst du z.B. Pausen abziehen oder kleine Rundungen vornehmen, damit die Summe deiner Zeiteinträge genau zu deinem Arbeitstag passt.</li>
+                    <li>{t('help.dayAdjustment.explanation')}</li>
                   </ul>
                   <br />
-                  <b>Tipps:</b><br />
+                  <b>{t('help.tips')}:</b><br />
                   <ul>
-                    <li>Du kannst im Profil Darkmode und Sprache einstellen.</li>
-                    <li>Die App funktioniert auch als PWA (auf dem Handy installierbar).</li>
+                    <li>{t('help.tips.darkMode')}</li>
+                    <li>{t('help.tips.pwa')}</li>
                   </ul>
                   <br />
-                  <b>FAQ:</b><br />
+                  <b>{t('help.faq')}:</b><br />
                   <ul>
-                    <li><b>Was passiert, wenn ich die App schließe?</b> – Die laufende Zeitmessung bleibt erhalten.</li>
-                    <li><b>Wie kann ich meine Daten exportieren?</b> – Über den Menüpunkt "Export".</li>
+                    <li><b>{t('help.faq.closingApp')}:</b> {t('help.faq.closingApp.explanation')}</li>
+                    <li><b>{t('help.faq.exportData')}:</b> {t('help.faq.exportData.explanation')}</li>
                   </ul>
                 </Typography>
               </DialogContent>
               <DialogActions>
-                <Button onClick={() => setHelpOpen(false)}>Schließen</Button>
+                <Button onClick={() => setHelpOpen(false)}>{t('help.close')}</Button>
               </DialogActions>
             </Dialog>
           </Box>

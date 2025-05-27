@@ -22,6 +22,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import InfoIcon from '@mui/icons-material/Info';
 import CloseIcon from '@mui/icons-material/Close';
+import { useTranslation } from 'react-i18next';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -108,6 +109,7 @@ const Zeiterfassung: React.FC = () => {
   const [timer, setTimer] = useState(0);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   // Scroll-Trigger für AppBar
   const trigger = useScrollTrigger();
@@ -261,8 +263,8 @@ const Zeiterfassung: React.FC = () => {
         <Paper sx={{ p: 2, mb: 2 }}>
           <Stack spacing={2}>
             <TextField
-              label="Projektnummer"
-              placeholder="z.B. PRJ-001"
+              label={t('zeiterfassung.projectNumber')}
+              placeholder={t('zeiterfassung.projectNumberPlaceholder')}
               fullWidth
               value={projectNumber}
               onChange={(e) => setProjectNumber(e.target.value)}
@@ -278,8 +280,8 @@ const Zeiterfassung: React.FC = () => {
               }}
             />
             <TextField
-              label="Beschreibung"
-              placeholder="Kurze Beschreibung der Tätigkeit"
+              label={t('zeiterfassung.description')}
+              placeholder={t('zeiterfassung.descriptionPlaceholder')}
               fullWidth
               multiline
               minRows={3}
@@ -314,7 +316,7 @@ const Zeiterfassung: React.FC = () => {
               boxShadow: 2,
             }}
           >
-            Start
+            {t('zeiterfassung.start')}
           </Button>
           <Button
             variant="contained"
@@ -332,7 +334,7 @@ const Zeiterfassung: React.FC = () => {
               boxShadow: 2,
             }}
           >
-            Stop
+            {t('zeiterfassung.stop')}
           </Button>
         </Stack>
       </Stack>

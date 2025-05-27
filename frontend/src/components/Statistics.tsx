@@ -50,6 +50,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/api/client';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears, addWeeks, addMonths, addYears } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 interface TimeEntry {
   _id: string;
@@ -69,6 +70,7 @@ const Statistics: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { t } = useTranslation();
 
   const handleTimeRangeChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -543,9 +545,9 @@ const Statistics: React.FC = () => {
               }}
               fullWidth={true}
             >
-              <ToggleButton value="week">Woche</ToggleButton>
-              <ToggleButton value="month">Monat</ToggleButton>
-              <ToggleButton value="year">Jahr</ToggleButton>
+              <ToggleButton value="week">{t('statistics.week')}</ToggleButton>
+              <ToggleButton value="month">{t('statistics.month')}</ToggleButton>
+              <ToggleButton value="year">{t('statistics.year')}</ToggleButton>
             </ToggleButtonGroup>
           </Paper>
         </Grid>
@@ -599,15 +601,15 @@ const Statistics: React.FC = () => {
               >
                 <ToggleButton value="pie">
                   <PieChartIcon />
-                  {isMobile ? 'Projekte' : 'Projektverteilung'}
+                  {isMobile ? t('statistics.projects') : t('statistics.projectDistribution')}
                 </ToggleButton>
                 <ToggleButton value="bar">
                   <BarChartIcon />
-                  {isMobile ? 'Tage' : 'Tagesübersicht'}
+                  {isMobile ? t('statistics.days') : t('statistics.dailyOverview')}
                 </ToggleButton>
                 <ToggleButton value="line">
                   <ShowChartIcon />
-                  {isMobile ? 'Verlauf' : 'Wochenverlauf'}
+                  {isMobile ? t('statistics.trend') : t('statistics.weeklyTrend')}
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
@@ -666,7 +668,7 @@ const Statistics: React.FC = () => {
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
-                    Gesamtstunden
+                    {t('statistics.totalHours')}
                   </Typography>
                   <Typography variant="h4" sx={{ 
                     fontWeight: 600,
@@ -705,7 +707,7 @@ const Statistics: React.FC = () => {
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
-                    Ø pro Tag
+                    {t('statistics.avgPerDay')}
                   </Typography>
                   <Typography variant="h4" sx={{ 
                     fontWeight: 600,
@@ -715,7 +717,7 @@ const Statistics: React.FC = () => {
                     {stats.avgHoursPerDay.toFixed(1)}h
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {stats.daysWithEntries} Tage mit Einträgen
+                    {t('statistics.daysWithCount', { count: stats.daysWithEntries })}
                   </Typography>
                 </Box>
               </Stack>
@@ -747,7 +749,7 @@ const Statistics: React.FC = () => {
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
-                    Zeiteinträge
+                    {t('statistics.timeEntries')}
                   </Typography>
                   <Typography variant="h4" sx={{ 
                     fontWeight: 600,
@@ -757,7 +759,7 @@ const Statistics: React.FC = () => {
                     {totalEntries}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Ø {avgPerEntry.toFixed(1)}h pro Eintrag
+                    Ø {avgPerEntry.toFixed(1)}{t('statistics.hoursShort')} {t('statistics.perEntry')}
                   </Typography>
                 </Box>
               </Stack>
@@ -794,7 +796,7 @@ const Statistics: React.FC = () => {
                     </Box>
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary">
-                        Produktivster Tag
+                        {t('statistics.mostProductiveDay')}
                       </Typography>
                       <Typography variant="h6" sx={{ 
                         color: 'success.main',
@@ -812,7 +814,7 @@ const Statistics: React.FC = () => {
                         </Typography>
                         <Chip 
                           size="small"
-                          label={`${stats.productiveDay.entries} Einträge`}
+                          label={`${stats.productiveDay.entries} ${t('statistics.entriesShort')}`}
                           color="success"
                           variant="outlined"
                         />
@@ -844,7 +846,7 @@ const Statistics: React.FC = () => {
                     </Box>
                     <Box>
                       <Typography variant="subtitle2" color="text.secondary">
-                        Produktivster Wochentag
+                        {t('statistics.mostProductiveWeekday')}
                       </Typography>
                       <Typography variant="h6" sx={{ 
                         color: 'warning.main',
@@ -878,7 +880,7 @@ const Statistics: React.FC = () => {
       >
         <Box sx={{ width: 280, p: 2 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Zusätzliche Informationen
+            {t('statistics.additionalInformation')}
           </Typography>
           <List>
             <ListItem>
@@ -886,7 +888,7 @@ const Statistics: React.FC = () => {
                 <TrendingUpIcon color="warning" />
               </ListItemIcon>
               <ListItemText 
-                primary="Produktivster Wochentag"
+                primary={t('statistics.mostProductiveWeekday')}
                 secondary={`${stats.productiveWeekday.day} (${stats.productiveWeekday.hours.toFixed(1)}h)`}
               />
             </ListItem>
@@ -896,7 +898,7 @@ const Statistics: React.FC = () => {
                 <CalendarTodayIcon color="info" />
               </ListItemIcon>
               <ListItemText 
-                primary="Aktive Tage"
+                primary={t('statistics.activeDays')}
                 secondary={`${stats.daysWithEntries} Tage mit Einträgen`}
               />
             </ListItem>
@@ -906,7 +908,7 @@ const Statistics: React.FC = () => {
                 <AssignmentIcon color="primary" />
               </ListItemIcon>
               <ListItemText 
-                primary="Durchschnitt pro Eintrag"
+                primary={t('statistics.averagePerEntry')}
                 secondary={`${avgPerEntry.toFixed(1)} Stunden`}
               />
             </ListItem>
