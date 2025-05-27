@@ -23,13 +23,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useResponsive } from './hooks/useResponsive';
 import { PageContainer } from './components/layout/Container';
 import { useAuth } from './contexts/AuthContext';
-
-const pages = [
-  { name: 'Zeiterfassung', path: '/dashboard', icon: <DashboardIcon /> },
-  { name: 'Zeiteinträge', path: '/time-entries', icon: <ListAltIcon /> },
-  { name: 'Statistiken', path: '/statistics', icon: <BarChartIcon /> },
-  { name: 'Export', path: '/export', icon: <FileDownloadIcon /> },
-];
+import { useTranslation } from 'react-i18next';
 
 const App: React.FC = () => {
   const { darkMode } = useThemeContext();
@@ -37,6 +31,14 @@ const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
+
+  const pages = [
+    { name: t('navbar.timeTracking'), path: '/dashboard', icon: <DashboardIcon /> },
+    { name: t('navbar.timeEntries'), path: '/time-entries', icon: <ListAltIcon /> },
+    { name: t('navbar.statistics'), path: '/statistics', icon: <BarChartIcon /> },
+    { name: t('navbar.export'), path: '/export', icon: <FileDownloadIcon /> },
+  ];
 
   const MainComponent = React.memo(() => (
     <Routes>
