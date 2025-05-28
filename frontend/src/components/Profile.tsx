@@ -148,7 +148,14 @@ const Profile: React.FC = () => {
       } as UserProfile['settings'],
     }));
     if (field === 'language' && typeof value === 'string') {
-      i18n.changeLanguage(value);
+      if (i18n.language !== value) {
+        i18n.changeLanguage(value);
+      } else {
+        // Workaround: Sprache kurz auf eine andere setzen und dann zurück
+        i18n.changeLanguage('en').then(() => {
+          i18n.changeLanguage('de');
+        });
+      }
       localStorage.setItem('language', value);
     }
   };
@@ -266,7 +273,7 @@ const Profile: React.FC = () => {
                   select
                   fullWidth
                   label={t('profile.language')}
-                  value={profile.settings?.language}
+                  value={i18n.language}
                   onChange={(e) => handleSettingsChange('language', e.target.value)}
                   disabled={!isEditing}
                   size={isMobile ? 'small' : 'medium'}

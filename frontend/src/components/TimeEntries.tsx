@@ -39,6 +39,8 @@ import {
   AccessTime as AccessTimeIcon,
   Description as DescriptionIcon,
   Undo as UndoIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api/client';
@@ -495,6 +497,7 @@ const TimeEntries: React.FC = () => {
 
       await Promise.all(updatePromises);
       queryClient.invalidateQueries({ queryKey: ['timeEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['mergedTimeEntries', selectedDateRange] });
       handleAdjustmentDialogClose();
     } catch (error) {
       setError(t('timeEntries.errorSavingAdjustments'));
@@ -738,19 +741,43 @@ const TimeEntries: React.FC = () => {
       <Box 
         sx={{ 
           display: 'flex', 
-          justifyContent: 'center', 
           alignItems: 'center', 
+          gap: 1, 
           mb: 2, 
           mt: { xs: 2, sm: 3 },
           pt: 3
         }}
       >
+        <IconButton
+          onClick={() => setSelectedDate(prev => {
+            if (!prev) return null;
+            const d = new Date(prev);
+            d.setDate(d.getDate() - 1);
+            return d;
+          })}
+          size="small"
+          aria-label="Vorheriger Tag"
+        >
+          <ChevronLeftIcon />
+        </IconButton>
         <DatePicker
           label={t('timeEntries.selectDate')}
           value={selectedDate}
           onChange={setSelectedDate}
           slotProps={{ textField: { fullWidth: false, sx: { minWidth: 180 } } }}
         />
+        <IconButton
+          onClick={() => setSelectedDate(prev => {
+            if (!prev) return null;
+            const d = new Date(prev);
+            d.setDate(d.getDate() + 1);
+            return d;
+          })}
+          size="small"
+          aria-label="Nächster Tag"
+        >
+          <ChevronRightIcon />
+        </IconButton>
         <Button
           variant="outlined"
           size="small"
