@@ -12,7 +12,7 @@ import exportRoutes from './routes/export';
 import { config } from './config';
 
 const app = express();
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 // Trust Proxy für Render
 app.set('trust proxy', 1);
@@ -20,7 +20,8 @@ app.set('trust proxy', 1);
 // KORREKTE CORS-KONFIGURATION
 const allowedOrigins = [
   'https://freelancer-app-chi.vercel.app',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'http://localhost:3001'
 ];
 
 app.use(cors({
@@ -78,12 +79,110 @@ app.get("/api/health", (_, res) => {
   res.status(200).json({ status: "ok" });
 });
 
+// Debug-Route für Benutzer (nur in Entwicklung)
+if (process.env.NODE_ENV === 'development') {
+  app.get('/api/debug/users', async (req, res) => {
+    try {
+      // Direkte MongoDB-Abfrage über mongoose.connection
+      const db = mongoose.connection.db;
+      if (!db) {
+        return res.status(500).json({ error: 'Datenbank nicht verbunden' });
+      }
+      
+      // Alle Collections auflisten
+      const collections = await db.listCollections().toArray();
+      
+      // Verschiedene Collection-Namen testen
+      let users: any[] = [];
+      let collectionName = '';
+      
+      // Teste verschiedene mögliche Collection-Namen
+      const possibleNames = ['users', 'user', 'Users', 'User'];
+      
+      for (const name of possibleNames) {
+        try {
+          const collection = db.collection(name);
+          const count = await collection.countDocuments();
+          if (count > 0) {
+            users = await collection.find({}, { 
+              projection: { email: 1, firstName: 1, lastName: 1, role: 1, createdAt: 1, _id: 1 } 
+            }).toArray();
+            collectionName = name;
+            break;
+          }
+        } catch (e) {
+          console.log(`Collection ${name} nicht gefunden`);
+        }
+      }
+      
+      res.json({ 
+        users, 
+        count: users.length, 
+        collectionName,
+        allCollections: collections.map(c => c.name),
+        dbName: db.databaseName
+      });
+    } catch (error) {
+      console.error('Debug-Route Fehler:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      res.status(500).json({ error: 'Fehler beim Abrufen der Benutzer', details: errorMessage });
+    }
+  });
+
+  // Temporäre Route zum Aktualisieren des Passworts (nur in Entwicklung)
+  app.post('/api/debug/update-password', async (req, res) => {
+    try {
+      const { email, newPassword } = req.body;
+      
+      if (!email || !newPassword) {
+        return res.status(400).json({ error: 'Email und neues Passwort erforderlich' });
+      }
+
+      const db = mongoose.connection.db;
+      if (!db) {
+        return res.status(500).json({ error: 'Datenbank nicht verbunden' });
+      }
+
+      // Passwort hashen
+      const bcrypt = require('bcryptjs');
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      // Passwort in der Datenbank aktualisieren
+      const result = await db.collection('users').updateOne(
+        { email: email },
+        { $set: { password: hashedPassword } }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+      }
+
+      // Überprüfung: Hash mit dem neuen Passwort testen
+      const testMatch = await bcrypt.compare(newPassword, hashedPassword);
+      
+      res.json({ 
+        success: true, 
+        message: 'Passwort erfolgreich aktualisiert',
+        updatedCount: result.modifiedCount,
+        hashTest: testMatch,
+        newHash: hashedPassword.substring(0, 20) + '...'
+      });
+    } catch (error) {
+      console.error('Passwort-Update Fehler:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      res.status(500).json({ error: 'Fehler beim Aktualisieren des Passworts', details: errorMessage });
+    }
+  });
+}
+
 // Error Handler
 app.use(errorHandler);
 
 // MongoDB-Verbindung und Serverstart
 if (process.env.NODE_ENV !== 'test') {
   mongoose.connect(process.env.MONGODB_URI || '', {
+    dbName: 'freelancer-app', // Expliziter Datenbankname (mit Bindestrich)
     serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 45000,
     heartbeatFrequencyMS: 10000,   // 10 Sekunden

@@ -209,8 +209,10 @@ router.get('/',
         }
       }));
 
+      console.log(`GET /time-entries: ${timeEntries.length} Einträge gefunden für User ${req.user._id}`);
       res.json(mappedEntries);
     } catch (error) {
+      console.error('Fehler beim Abrufen der Zeiteinträge:', error);
       next(error);
     }
   }

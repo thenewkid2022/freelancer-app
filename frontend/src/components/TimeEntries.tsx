@@ -183,10 +183,13 @@ const TimeEntries: React.FC = () => {
   const { data: timeEntries = [], isLoading } = useQuery({
     queryKey: ['timeEntries'],
     queryFn: async () => {
-      return await apiClient.get('/time-entries');
+      const response = await apiClient.get('/time-entries');
+      return response;
     },
+    // Verhindert mehrfache API-Calls
+    staleTime: 30000, // 30 Sekunden
+    cacheTime: 300000, // 5 Minuten
   }) as { data: TimeEntry[]; isLoading: boolean };
-  console.log('Geladene timeEntries:', timeEntries);
 
   // Für mergedEntries Query: UTC-Grenzen berechnen und verwenden
   const selectedDateRange = selectedDate ? getUTCRangeForLocalDay(selectedDate) : null;
@@ -457,8 +460,11 @@ const TimeEntries: React.FC = () => {
 
   // Aktualisiere die Berechnung bei Änderungen
   useEffect(() => {
-    calculateTimeDifference();
-  }, [calculateTimeDifference]);
+    // Nur ausführen, wenn alle erforderlichen Daten vorhanden sind
+    if (selectedDate && adjustmentData.workStart && adjustmentData.workEnd && abgeschlosseneEintraege.length > 0) {
+      calculateTimeDifference();
+    }
+  }, [selectedDate, adjustmentData.workStart, adjustmentData.workEnd, calculateTimeDifference]);
 
   const handleAdjustmentSubmit = async () => {
     try {

@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { toast } from 'react-toastify';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://freelancer-app-1g8o.onrender.com/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 interface RetryConfig {
   retries: number;
@@ -103,8 +103,13 @@ class ApiClient {
   }
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.get<T>(url, config);
-    return response.data;
+    try {
+      const response = await this.instance.get<T>(url, config);
+      return response.data;
+    } catch (error) {
+      console.error(`GET ${url} failed:`, error);
+      throw error;
+    }
   }
 
   public async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {

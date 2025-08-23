@@ -106,14 +106,10 @@ router.post('/register',
         throw new ValidationError('E-Mail-Adresse wird bereits verwendet');
       }
 
-      // Hash Passwort
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      // Erstelle neuen Benutzer
+      // Erstelle neuen Benutzer (Passwort wird automatisch im User-Model gehasht)
       const user = await User.create({
         email,
-        password: hashedPassword,
+        password,
         firstName,
         lastName,
         role
