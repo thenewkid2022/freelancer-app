@@ -1,173 +1,206 @@
-# 🚀 Freelancer App
+# Freelancer App
 
-> **Eine moderne Webanwendung für Freelancer und ihre Kunden zur Verwaltung von Zeiterfassung, Abrechnungen und Projekten.**
+Eine vollständige Freelancer-Management-Anwendung mit Web- und Mobile-Interfaces.
 
-![Vercel](https://img.shields.io/badge/Frontend-Vercel-blue?logo=vercel)
-![Render](https://img.shields.io/badge/Backend-Render-green?logo=render)
-![TypeScript](https://img.shields.io/badge/TypeScript-Frontend%20%26%20Backend-blue?logo=typescript)
-![MUI](https://img.shields.io/badge/UI-Material--UI-blueviolet?logo=mui)
-![MongoDB](https://img.shields.io/badge/DB-MongoDB-brightgreen?logo=mongodb)
+## 🏗️ Projektstruktur
 
----
-
-## ✨ Features
-
-- ⏱️ **Zeiterfassung** für Projekte
-- 📁 Verwaltung von **Kunden & Projekten**
-- 🧾 **Rechnungsstellung** & Export
-- 👤 **Benutzerprofil** mit Bearbeitungsfunktion (Name, E-Mail, Sprache, Passwort)
-- 🌙 **Darkmode** (umschaltbar im Profil, systemweit gespeichert)
-- 🔔 **E-Mail-Benachrichtigungen** (optional)
-- 🌐 **Mehrsprachigkeit** (Deutsch/Englisch)
-- 📱 **Responsive Design** (optimiert für Desktop & Mobile)
-- 🔒 **Sichere Authentifizierung** (JWT)
-- 📖 **API-Dokumentation** via Swagger
-
----
-
-## 🗂️ Projektstruktur
-
-```text
+```
 freelancer-app/
-├── frontend/                 # React Frontend (TypeScript, MUI)
-│   ├── src/
-│   │   ├── components/      # UI-Komponenten (inkl. Profile, Settings, Navbar)
-│   │   ├── contexts/        # Globale Contexts (z.B. Auth, Theme)
-│   │   ├── hooks/           # Custom React Hooks
-│   │   ├── services/        # API Services
-│   │   ├── types/           # Typdefinitionen
-│   │   └── utils/           # Hilfsfunktionen
-│   └── public/              # Statische Dateien
-│   └── package.json         # Frontend Dependencies
-│
-├── server/                  # Node.js Backend (Express, TypeScript)
-│   ├── src/
-│   │   ├── config/          # Konfiguration
-│   │   ├── controllers/     # API Controller
-│   │   ├── middleware/      # Express Middleware
-│   │   ├── models/          # Mongoose Modelle
-│   │   ├── routes/          # API Routen
-│   │   ├── services/        # Business Logic
-│   │   ├── tests/           # Integrationstests
-│   │   ├── types/           # Typdefinitionen
-│   │   └── utils/           # Hilfsfunktionen
-│   └── package.json         # Backend Dependencies
-│
-├── .github/                 # GitHub Actions Workflows
-├── .gitignore
-├── package.json             # Root Dependencies
-├── tsconfig.json            # TypeScript Konfiguration
-├── vercel.json              # Vercel Deployment Konfiguration (Frontend)
-└── render.yaml              # Render Deployment Konfiguration (Backend)
+├── web/                    # Web-Anwendung (React + Express)
+│   ├── frontend/          # React Web-App
+│   └── server/            # Express Backend
+├── mobile/                 # Mobile-Anwendung (React Native + Expo)
+│   └── FreelancerApp/     # Expo React Native App
+├── shared/                 # Gemeinsame Logik (API, Types, etc.)
+└── deployment/             # Deployment-Konfigurationen
 ```
 
----
+## 🚀 Features
 
-## 🛠️ Technologien
+### Web-App
+- **Authentifizierung** - JWT-basierte Anmeldung
+- **Zeiterfassung** - Start/Stop Timer für Projekte
+- **Projektverwaltung** - Projekte erstellen und verwalten
+- **Statistiken** - Detaillierte Arbeitszeit-Übersichten
+- **Export-Funktionen** - PDF und Excel Export
+- **Responsive Design** - Optimiert für alle Bildschirmgrößen
 
-### Frontend
-- ⚛️ React mit TypeScript
-- 🎨 Material-UI (MUI) für das UI
-- 🔄 React Query für Datenverwaltung
-- 🧭 React Router für Navigation
-- 🧩 Context API (u.a. für Auth und Theme/Darkmode)
-- 🧪 Jest & React Testing Library für Tests
-- 💾 file-saver für Datei-Downloads
+### Mobile-App (iOS/Android)
+- **Native Mobile-Experience** - Vollständig native App
+- **Offline-Funktionalität** - Funktioniert auch ohne Internet
+- **TestFlight-kompatibel** - Für iOS-Testing bereit
+- **Gemeinsame API** - Nutzt dieselbe Backend-API
+- **Touch-optimiert** - Für mobile Geräte optimiert
+
+## 🛠️ Technologie-Stack
 
 ### Backend
-- 🟩 Node.js mit Express
-- 🟦 TypeScript
-- 🍃 MongoDB mit Mongoose
-- 🔑 JWT für Authentifizierung
-- 🧪 Jest für Tests
-- 📖 Swagger für API Dokumentation
+- **Node.js** - Server-Runtime
+- **Express.js** - Web-Framework
+- **MongoDB** - Datenbank
+- **Mongoose** - ODM
+- **JWT** - Authentifizierung
+- **bcryptjs** - Passwort-Hashing
 
----
+### Web-Frontend
+- **React 18** - UI-Framework
+- **TypeScript** - Typsicherheit
+- **Material-UI** - UI-Komponenten
+- **React Query** - Datenverwaltung
+- **React Router** - Navigation
 
-## ⚡ Schnellstart
+### Mobile-App
+- **React Native** - Cross-Platform Mobile
+- **Expo** - Development Platform
+- **TypeScript** - Typsicherheit
+- **React Navigation** - Mobile Navigation
+- **AsyncStorage** - Lokale Datenspeicherung
 
-1. **Repository klonen:**
-    ```bash
-    git clone https://github.com/your-username/freelancer-app.git
-    cd freelancer-app
-    ```
+## 📱 Plattformen
 
-2. **Dependencies installieren:**
-    ```bash
-    # Root Dependencies
-    npm install
+| Plattform | Status | Features |
+|-----------|--------|----------|
+| **Web** | ✅ Produktionsbereit | Vollständige Funktionalität |
+| **iOS** | 🚧 In Entwicklung | TestFlight-kompatibel |
+| **Android** | 🚧 In Entwicklung | Play Store bereit |
 
-    # Frontend Dependencies
-    cd frontend
-    npm install
+## 🚀 Schnellstart
 
-    # Backend Dependencies
-    cd ../server
-    npm install
-    ```
-
-3. **Umgebungsvariablen konfigurieren:**
-    ```bash
-    # Server .env
-    cp server/.env.example server/.env
-
-    # Frontend .env
-    cp frontend/.env.example frontend/.env
-    ```
-
-4. **Entwicklungsserver starten:**
-    ```bash
-    # Backend
-    cd server
-    npm run dev
-
-    # Frontend
-    cd frontend
-    npm start
-    ```
-
----
-
-## 🧪 Tests
-
+### 1. Repository klonen
 ```bash
-# Backend Tests
-cd server
-npm test
-
-# Frontend Tests
-cd frontend
-npm test
+git clone https://github.com/thenewkid2022/freelancer-app.git
+cd freelancer-app
 ```
 
----
+### 2. Web-App starten
+```bash
+# Backend starten
+cd web/server
+npm install
+npm run dev
+
+# Frontend starten (neues Terminal)
+cd web/frontend
+npm install
+npm start
+```
+
+### 3. Mobile-App starten
+```bash
+cd mobile/FreelancerApp
+npm install
+npx expo start
+```
+
+## 🔧 Konfiguration
+
+### Umgebungsvariablen
+
+#### Backend (web/server/.env)
+```env
+PORT=3001
+MONGODB_URI=mongodb://localhost:27017/freelancer-app
+JWT_SECRET=ihr_jwt_secret
+NODE_ENV=development
+```
+
+#### Frontend (web/frontend/.env)
+```env
+REACT_APP_API_URL=http://localhost:3001/api
+```
+
+#### Mobile (mobile/FreelancerApp/.env)
+```env
+EXPO_PUBLIC_API_URL=http://localhost:3001/api
+```
+
+## 📱 Mobile-Entwicklung
+
+### iOS (TestFlight)
+```bash
+cd mobile/FreelancerApp
+npx eas build --platform ios
+npx eas submit --platform ios
+```
+
+### Android
+```bash
+cd mobile/FreelancerApp
+npx eas build --platform android
+```
+
+## 🧪 Testing
+
+### Web-App
+- **Backend:** `npm test` im server-Ordner
+- **Frontend:** `npm test` im frontend-Ordner
+
+### Mobile-App
+- **Expo Go App** - Für schnelle Tests
+- **iOS Simulator** - Für iOS-spezifische Tests
+- **Android Emulator** - Für Android-spezifische Tests
+
+## 📊 API-Dokumentation
+
+### Authentifizierung
+- `POST /api/auth/login` - Benutzer anmelden
+- `POST /api/auth/register` - Benutzer registrieren
+- `GET /api/auth/me` - Benutzerprofil abrufen
+
+### Zeiterfassung
+- `GET /api/time-entries` - Alle Zeiteinträge abrufen
+- `POST /api/time-entries` - Neuen Zeiteintrag erstellen
+- `PUT /api/time-entries/:id` - Zeiteintrag aktualisieren
+- `DELETE /api/time-entries/:id` - Zeiteintrag löschen
+
+### Statistiken
+- `GET /api/stats` - Arbeitszeit-Statistiken abrufen
+
+### Export
+- `GET /api/export` - Zeiteinträge exportieren
+
+## 🔒 Sicherheit
+
+- **JWT-Token** - Sichere Authentifizierung
+- **bcrypt-Hashing** - Sichere Passwort-Speicherung
+- **CORS-Konfiguration** - Geschützte API-Zugriffe
+- **Input-Validierung** - Zod-Schema-Validierung
+- **Rate-Limiting** - Schutz vor Missbrauch
 
 ## 🚀 Deployment
 
-- **Frontend:** Automatisches Deployment über [Vercel](https://vercel.com/) (`vercel.json`)
-- **Backend:** Automatisches Deployment über [Render](https://render.com/) (`render.yaml`)
+### Web-App
+- **Backend:** Render, Heroku, DigitalOcean
+- **Frontend:** Vercel, Netlify, GitHub Pages
 
----
+### Mobile-App
+- **iOS:** App Store Connect (TestFlight)
+- **Android:** Google Play Console
 
-## 📖 API Dokumentation
+## 🤝 Beitragen
 
-Die API-Dokumentation ist über Swagger verfügbar:
-- Entwicklung: [`http://localhost:3000/api-docs`](http://localhost:3000/api-docs)
-- Produktion: [`https://api.freelancer-app.com/api-docs`](https://api.freelancer-app.com/api-docs)
-
----
-
-## 🖼️ Screenshots
-
-> **Tipp:** Füge hier aktuelle Screenshots der wichtigsten Ansichten ein (z.B. Profil mit Darkmode, Dashboard, Zeiterfassung).
-
----
+1. Fork des Repositories
+2. Feature-Branch erstellen (`git checkout -b feature/AmazingFeature`)
+3. Änderungen committen (`git commit -m 'Add some AmazingFeature'`)
+4. Branch pushen (`git push origin feature/AmazingFeature`)
+5. Pull Request erstellen
 
 ## 📄 Lizenz
 
-MIT
+Dieses Projekt steht unter der ISC-Lizenz. Siehe [LICENSE](LICENSE) für Details.
 
----
+## 📞 Support
 
-> **Hinweis:**
-> Diese README ist auf dem Stand nach den letzten größeren Änderungen (Darkmode, Profil-Update, Layout). Bitte bei weiteren Features oder Änderungen regelmäßig aktualisieren! 
+Bei Fragen oder Problemen:
+- **Issues:** GitHub Issues öffnen
+- **Dokumentation:** Siehe [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
+- **Mobile-App:** Siehe [mobile/FreelancerApp/README.md](mobile/FreelancerApp/README.md)
+
+## 🎯 Roadmap
+
+- [ ] **Mobile-App vervollständigen** - Alle Features implementieren
+- [ ] **Push-Benachrichtigungen** - Für wichtige Events
+- [ ] **Offline-Synchronisation** - Automatische Daten-Sync
+- [ ] **Dark Mode** - Für bessere Benutzerfreundlichkeit
+- [ ] **Mehrsprachigkeit** - Internationale Unterstützung
+- [ ] **Analytics** - Benutzer-Verhalten verstehen 
