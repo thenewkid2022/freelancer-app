@@ -1,0 +1,104 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.app = void 0;
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const helmet_1 = __importDefault(require("helmet"));
+const morgan_1 = __importDefault(require("morgan"));
+const mongoose_1 = __importDefault(require("mongoose"));
+const errorHandler_1 = require("./middleware/errorHandler");
+const security_1 = require("./middleware/security");
+const auth_1 = __importDefault(require("./routes/auth"));
+const timeEntries_1 = __importDefault(require("./routes/timeEntries"));
+const stats_1 = __importDefault(require("./routes/stats"));
+const export_1 = __importDefault(require("./routes/export"));
+const app = (0, express_1.default)();
+exports.app = app;
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+// Trust Proxy für Render
+app.set('trust proxy', 1);
+// KORREKTE CORS-KONFIGURATION
+const allowedOrigins = [
+    'https://freelancer-app-chi.vercel.app',
+    'http://localhost:3000'
+];
+app.use((0, cors_1.default)({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, origin);
+        }
+        else {
+            callback(new Error('Nicht erlaubte Origin: ' + origin), false);
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
+    maxAge: 86400
+}));
+app.use(express_1.default.json());
+app.use(express_1.default.urlencoded({ extended: true }));
+// Helmet Konfiguration
+app.use((0, helmet_1.default)({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "unsafe-none" },
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            connectSrc: ["'self'", "https://freelancer-app-1g8o.onrender.com", "https://freelancer-app-chi.vercel.app"],
+            frameSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'"]
+        }
+    }
+}));
+// Logging
+app.use((0, morgan_1.default)('dev'));
+// Security Middleware
+app.use(security_1.securityMiddleware);
+// Routen
+app.use('/api/auth', auth_1.default);
+app.use('/api/time-entries', timeEntries_1.default);
+app.use('/api/stats', stats_1.default);
+app.use('/api/export', export_1.default);
+// Health Check Endpunkte
+app.head("/api/ping", (_, res) => {
+    res.status(200).end();
+});
+// Render Health Check
+app.get("/api/health", (_, res) => {
+    res.status(200).json({ status: "ok" });
+});
+// Error Handler
+app.use(errorHandler_1.errorHandler);
+// MongoDB-Verbindung und Serverstart
+if (process.env.NODE_ENV !== 'test') {
+    mongoose_1.default.connect(process.env.MONGODB_URI || '', {
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        heartbeatFrequencyMS: 10000, // 10 Sekunden
+        maxPoolSize: 10,
+        minPoolSize: 5
+    })
+        .then(() => {
+        console.log('MongoDB verbunden!');
+        // Verbindungsüberwachung
+        mongoose_1.default.connection.on('disconnected', () => {
+            console.log('MongoDB Verbindung getrennt - Versuche erneut zu verbinden...');
+        });
+        mongoose_1.default.connection.on('error', (err) => {
+            console.error('MongoDB Verbindungsfehler:', err);
+        });
+        app.listen(port, '0.0.0.0', () => {
+            console.log(`Server is running on port ${port}`);
+        });
+    })
+        .catch(err => {
+        console.error('MongoDB Fehler beim Start:', err);
+        process.exit(1);
+    });
+}
