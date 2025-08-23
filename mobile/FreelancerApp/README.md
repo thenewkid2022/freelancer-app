@@ -4,11 +4,20 @@ React Native Mobile-App für iOS und Android, entwickelt mit Expo.
 
 ## 🚀 Features
 
-- **Authentifizierung** - Login/Register mit JWT
-- **Zeiterfassung** - Start/Stop Timer für Projekte
-- **Statistiken** - Übersicht über Arbeitszeiten
-- **Projektverwaltung** - Projekte verwalten
-- **Offline-Funktionalität** - Funktioniert auch ohne Internet
+### ✅ Implementiert
+- **Authentifizierung** - Login/Register mit JWT-Token
+- **Zeiterfassung** - Vollständige CRUD-Operationen für Zeiteinträge
+- **Statistiken** - Detaillierte Übersicht über Arbeitszeiten und Projekte
+- **Projektverwaltung** - Projektübersicht mit Statistiken
+- **Benutzerprofil** - Profil bearbeiten und Passwort ändern
+- **Responsive UI** - Optimiert für iOS und Android
+- **Gemeinsame Komponenten** - Button, Input, Card, LoadingSpinner
+
+### 🔄 In Entwicklung
+- **Offline-Funktionalität** - Lokale Datenspeicherung
+- **Push-Benachrichtigungen** - Erinnerungen und Updates
+- **Dark Mode** - Dunkles Theme
+- **Mehrsprachigkeit** - Deutsch/Englisch/Weitere
 
 ## 📱 Plattformen
 
