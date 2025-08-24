@@ -15,7 +15,7 @@ freelancer-app/
 │       ├── package.json   # Backend Dependencies
 │       └── ...
 ├── mobile/                 # Mobile-Anwendung (React Native + Expo)
-│   └── FreelancerApp/     # Expo React Native App
+│   └── mobile-app/         # Expo React Native App
 │       ├── src/           # React Native Source Code
 │       │   ├── screens/   # App-Bildschirme
 │       │   ├── navigation/ # Navigation
@@ -81,7 +81,7 @@ npm start
 
 ### Mobile-App starten:
 ```bash
-cd mobile/FreelancerApp
+cd mobile/mobile-app
 npm install
 npx expo start
 ```

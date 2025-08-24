@@ -20,7 +20,7 @@
 
 ### 1. EAS Login
 ```bash
-cd mobile/FreelancerApp
+cd mobile/mobile-app
 eas login
 ```
 

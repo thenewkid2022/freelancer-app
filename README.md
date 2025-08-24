@@ -10,7 +10,7 @@ freelancer-app/
 │   ├── frontend/          # React Web-App
 │   └── server/            # Express Backend
 ├── mobile/                 # Mobile-Anwendung (React Native + Expo)
-│   └── FreelancerApp/     # Expo React Native App
+│   └── mobile-app/         # Expo React Native App
 ├── shared/                 # Gemeinsame Logik (API, Types, etc.)
 └── deployment/             # Deployment-Konfigurationen
 ```
@@ -87,7 +87,7 @@ npm start
 
 ### 3. Mobile-App starten
 ```bash
-cd mobile/FreelancerApp
+cd mobile/mobile-app
 npm install
 npx expo start
 ```
@@ -109,7 +109,7 @@ NODE_ENV=development
 REACT_APP_API_URL=http://localhost:3001/api
 ```
 
-#### Mobile (mobile/FreelancerApp/.env)
+#### Mobile (mobile/mobile-app/.env)
 ```env
 EXPO_PUBLIC_API_URL=http://localhost:3001/api
 ```
@@ -118,14 +118,14 @@ EXPO_PUBLIC_API_URL=http://localhost:3001/api
 
 ### iOS (TestFlight)
 ```bash
-cd mobile/FreelancerApp
+cd mobile/mobile-app
 npx eas build --platform ios
 npx eas submit --platform ios
 ```
 
 ### Android
 ```bash
-cd mobile/FreelancerApp
+cd mobile/mobile-app
 npx eas build --platform android
 ```
 
@@ -194,7 +194,7 @@ Dieses Projekt steht unter der ISC-Lizenz. Siehe [LICENSE](LICENSE) für Details
 Bei Fragen oder Problemen:
 - **Issues:** GitHub Issues öffnen
 - **Dokumentation:** Siehe [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
-- **Mobile-App:** Siehe [mobile/FreelancerApp/README.md](mobile/FreelancerApp/README.md)
+- **Mobile-App:** Siehe [mobile/mobile-app/README.md](mobile/mobile-app/README.md)
 
 ## 🎯 Roadmap
 

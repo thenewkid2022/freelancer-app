@@ -2,7 +2,9 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthResponse, TimeEntry, TimeEntryFormData, User, Statistics, MergedEntry } from '../types';
 
-const API_URL = 'http://192.168.1.113:3001/api'; // Für lokale Entwicklung
+const API_URL = __DEV__ 
+  ? 'http://192.168.1.113:3001/api'  // Lokale Entwicklung
+  : 'https://freelancer-app-1g8o.onrender.com/api'; // Produktion
 
 class ApiClient {
   private instance: AxiosInstance;

@@ -31,11 +31,11 @@ deployment/
 ## 📱 Mobile-App Deployment
 
 ### EAS Build (Expo)
-- **Datei:** `mobile/FreelancerApp/eas.json`
+- **Datei:** `mobile/mobile-app/eas.json`
 - **Zweck:** iOS/Android Builds für TestFlight/Play Store
 
 ### App Store Connect
-- **Konfiguration:** In `mobile/FreelancerApp/app.config.js`
+- **Konfiguration:** In `mobile/mobile-app/app.config.js`
 - **Deployment:** Über EAS CLI
 
 ## 🔧 Deployment-Befehle
@@ -54,11 +54,11 @@ vercel --prod
 ### Mobile-App
 ```bash
 # iOS Build für TestFlight
-cd mobile/FreelancerApp
+cd mobile/mobile-app
 npm run deploy:ios
 
 # Android Build für Play Store
-cd mobile/FreelancerApp
+cd mobile/mobile-app
 npm run deploy:android
 ```
 

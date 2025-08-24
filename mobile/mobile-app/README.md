@@ -96,7 +96,7 @@ EXPO_PUBLIC_API_URL=http://localhost:3001/api
 
 ### 1. EAS Build konfigurieren
 ```bash
-cd mobile/FreelancerApp
+cd mobile/mobile-app
 eas login
 eas project:init
 ```
@@ -104,7 +104,7 @@ eas project:init
 ### 2. Bundle ID anpassen
 In `app.config.js` ändern:
 ```javascript
-bundleIdentifier: "com.ihrecompany.freelancerapp"
+bundleIdentifier: "com.chrigel.freelancerapp"
 ```
 
 ### 3. iOS Build erstellen
@@ -141,6 +141,8 @@ npm run deploy:ios
 3. **TestFlight** für Tester freigeben
 
 **📖 Detaillierte Anleitung:** [TESTFLIGHT_DEPLOYMENT.md](TESTFLIGHT_DEPLOYMENT.md)
+
+**📋 Versionshistorie:** [CHANGELOG.md](CHANGELOG.md)
 
 ## 🔄 Entwicklung
 
