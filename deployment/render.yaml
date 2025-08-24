@@ -2,8 +2,9 @@ services:
   - type: web
     name: freelancer-app-backend
     env: node
-    buildCommand: cd web/server && npm install && npm run build
-    startCommand: cd web/server && npm start
+    rootDir: web/server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
