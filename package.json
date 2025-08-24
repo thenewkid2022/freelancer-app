@@ -19,6 +19,8 @@
     "test": "npm run test:backend && npm run test:e2e"
   },
   "dependencies": {
-    "date-fns-tz": "^3.2.0"
+    "date-fns-tz": "^3.2.0",
+    "expo": "^53.0.20",
+    "metro": "^0.80.12"
   }
 }

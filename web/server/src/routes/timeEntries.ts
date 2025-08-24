@@ -15,8 +15,14 @@ const createTimeEntrySchema = z.object({
   body: z.object({
     projectNumber: z.string().min(1, 'Projektnummer ist erforderlich'),
     description: z.string().optional(),
-    startTime: z.string().datetime(),
-    endTime: z.string().datetime().optional(),
+    startTime: z.string().refine((val) => {
+      const date = new Date(val);
+      return !isNaN(date.getTime());
+    }, 'Startzeit muss ein gültiges Datum sein'),
+    endTime: z.string().refine((val) => {
+      const date = new Date(val);
+      return !isNaN(date.getTime());
+    }, 'Endzeit muss ein gültiges Datum sein').optional(),
     tags: z.array(z.string()).optional()
   })
 });
@@ -28,8 +34,14 @@ const updateTimeEntrySchema = z.object({
   body: z.object({
     projectNumber: z.string().min(1).optional(),
     description: z.string().min(1).optional(),
-    startTime: z.string().datetime().optional(),
-    endTime: z.string().datetime().optional(),
+    startTime: z.string().refine((val) => {
+      const date = new Date(val);
+      return !isNaN(date.getTime());
+    }, 'Startzeit muss ein gültiges Datum sein').optional(),
+    endTime: z.string().refine((val) => {
+      const date = new Date(val);
+      return !isNaN(date.getTime());
+    }, 'Endzeit muss ein gültiges Datum sein').optional(),
     correctedDuration: z.number().nullable().optional(),
     tags: z.array(z.string()).optional()
   })

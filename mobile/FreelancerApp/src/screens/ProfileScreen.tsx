@@ -30,7 +30,7 @@ const ProfileScreen = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && user.firstName && user.lastName && user.email) {
       setProfileData({
         firstName: user.firstName,
         lastName: user.lastName,
@@ -38,6 +38,20 @@ const ProfileScreen = () => {
       });
     }
   }, [user]);
+
+  // Sicherheitsprüfung: Nur rendern wenn User geladen ist
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Profil</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Lade Profil...</Text>
+        </View>
+      </View>
+    );
+  }
 
   const handleSaveProfile = async () => {
     if (!profileData.firstName || !profileData.lastName || !profileData.email) {
@@ -142,14 +156,6 @@ const ProfileScreen = () => {
     },
   ];
 
-  if (!user) {
-    return (
-      <View style={styles.container}>
-        <Text>Laden...</Text>
-      </View>
-    );
-  }
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -160,15 +166,15 @@ const ProfileScreen = () => {
       <View style={styles.userCard}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+            {user?.firstName?.charAt(0) || ''}{user?.lastName?.charAt(0) || ''}
           </Text>
         </View>
         <Text style={styles.userName}>
-          {user.firstName} {user.lastName}
+          {user?.firstName || ''} {user?.lastName || ''}
         </Text>
-        <Text style={styles.userEmail}>{user.email}</Text>
+        <Text style={styles.userEmail}>{user?.email || ''}</Text>
         <Text style={styles.userRole}>
-          {user.role === 'freelancer' ? 'Freelancer' : user.role}
+          {user?.role === 'freelancer' ? 'Freelancer' : user?.role || ''}
         </Text>
       </View>
 
@@ -474,6 +480,16 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: 'white',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#666',
   },
 });
 

@@ -52,6 +52,44 @@ const StatisticsScreen = () => {
     setRefreshing(false);
   };
 
+  // Hilfsfunktionen VOR dem useMemo definieren
+  const getWeekNumber = (date: Date) => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  };
+
+  const getWorkingDaysInPeriod = (period: 'week' | 'month' | 'year') => {
+    const now = new Date();
+    switch (period) {
+      case 'week':
+        return 7;
+      case 'month':
+        return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      case 'year':
+        return 365;
+      default:
+        return 30;
+    }
+  };
+
+  const getDayStatistics = (entries: TimeEntry[]) => {
+    const dayMap = new Map<string, number>();
+    
+    entries.forEach(entry => {
+      const day = new Date(entry.startTime).toLocaleDateString('de-DE', { weekday: 'long' });
+      const currentHours = dayMap.get(day) || 0;
+      dayMap.set(day, currentHours + (entry.duration / 3600));
+    });
+
+    return Array.from(dayMap.entries()).map(([day, hours]) => ({
+      day,
+      hours: Math.round(hours * 10) / 10,
+    }));
+  };
+
   const statistics = useMemo(() => {
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -105,43 +143,6 @@ const StatisticsScreen = () => {
       totalEntries: filteredEntries.length.toString(),
     };
   }, [timeEntries, selectedPeriod]);
-
-  const getWeekNumber = (date: Date) => {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  };
-
-  const getWorkingDaysInPeriod = (period: 'week' | 'month' | 'year') => {
-    const now = new Date();
-    switch (period) {
-      case 'week':
-        return 7;
-      case 'month':
-        return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-      case 'year':
-        return 365;
-      default:
-        return 30;
-    }
-  };
-
-  const getDayStatistics = (entries: TimeEntry[]) => {
-    const dayMap = new Map<string, number>();
-    
-    entries.forEach(entry => {
-      const day = new Date(entry.startTime).toLocaleDateString('de-DE', { weekday: 'long' });
-      const currentHours = dayMap.get(day) || 0;
-      dayMap.set(day, currentHours + (entry.duration / 3600));
-    });
-
-    return Array.from(dayMap.entries()).map(([day, hours]) => ({
-      day,
-      hours: Math.round(hours * 10) / 10,
-    }));
-  };
 
   const getProjectStatistics = () => {
     const projectMap = new Map<string, { hours: number; entries: number }>();

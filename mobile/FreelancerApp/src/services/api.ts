@@ -1,8 +1,8 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthResponse, TimeEntry, TimeEntryFormData, User, Statistics } from '../types';
+import { AuthResponse, TimeEntry, TimeEntryFormData, User, Statistics, MergedEntry } from '../types';
 
-const API_URL = 'http://localhost:3001/api'; // Für lokale Entwicklung
+const API_URL = 'http://192.168.1.113:3001/api'; // Für lokale Entwicklung
 
 class ApiClient {
   private instance: AxiosInstance;
@@ -95,6 +95,22 @@ class ApiClient {
       params: { startDate, endDate },
       responseType: 'blob',
     });
+    return response.data;
+  }
+
+  // Tagesausgleich und Merge-Funktionen
+  async getMergedTimeEntries(startDate: string, endDate: string): Promise<MergedEntry[]> {
+    const response = await this.instance.get(`/time-entries/merged?startDate=${startDate}&endDate=${endDate}`);
+    return response.data;
+  }
+
+  async updateTimeEntryDuration(entryId: string, correctedDuration: number): Promise<TimeEntry> {
+    const response = await this.instance.put(`/time-entries/${entryId}`, { correctedDuration });
+    return response.data;
+  }
+
+  async resetTimeEntryDuration(entryId: string): Promise<TimeEntry> {
+    const response = await this.instance.put(`/time-entries/${entryId}`, { correctedDuration: null });
     return response.data;
   }
 }

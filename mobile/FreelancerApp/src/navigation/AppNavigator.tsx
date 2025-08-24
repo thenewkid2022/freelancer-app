@@ -10,6 +10,7 @@ import TimeEntriesScreen from '../screens/TimeEntriesScreen';
 import StatisticsScreen from '../screens/StatisticsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ProjectsScreen from '../screens/ProjectsScreen';
+import ExportScreen from '../screens/ExportScreen';
 
 // Icons
 import { Ionicons } from '@expo/vector-icons';
@@ -22,18 +23,21 @@ const MainTabs = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
+          let iconName: keyof typeof Ionicons.glyphMap = 'help-outline'; // Fallback
 
-          if (route.name === 'Zeiterfassung') {
-            iconName = focused ? 'time' : 'time-outline';
-          } else if (route.name === 'Statistiken') {
-            iconName = focused ? 'bar-chart' : 'bar-chart-outline';
-          } else if (route.name === 'Projekte') {
-            iconName = focused ? 'folder' : 'folder-outline';
-          } else if (route.name === 'Profil') {
-            iconName = focused ? 'person' : 'person-outline';
-          } else {
-            iconName = 'help-outline';
+          // Sicherheitsprüfung für route.name
+          if (route?.name) {
+            if (route.name === 'Zeiterfassung') {
+              iconName = focused ? 'time' : 'time-outline';
+            } else if (route.name === 'Statistiken') {
+              iconName = focused ? 'bar-chart' : 'bar-chart-outline';
+            } else if (route.name === 'Projekte') {
+              iconName = focused ? 'folder' : 'folder-outline';
+            } else if (route.name === 'Profil') {
+              iconName = focused ? 'person' : 'person-outline';
+            } else if (route.name === 'Export') {
+              iconName = focused ? 'download' : 'download-outline';
+            }
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -62,6 +66,11 @@ const MainTabs = () => {
         name="Profil" 
         component={ProfileScreen}
         options={{ title: 'Profil' }}
+      />
+      <Tab.Screen 
+        name="Export" 
+        component={ExportScreen}
+        options={{ title: 'Export' }}
       />
     </Tab.Navigator>
   );

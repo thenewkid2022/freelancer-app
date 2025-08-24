@@ -10,6 +10,8 @@ React Native Mobile-App für iOS und Android, entwickelt mit Expo.
 - **Statistiken** - Detaillierte Übersicht über Arbeitszeiten und Projekte
 - **Projektverwaltung** - Projektübersicht mit Statistiken
 - **Benutzerprofil** - Profil bearbeiten und Passwort ändern
+- **Tagesausgleich** - Vollständige Logik für Arbeitszeit-Korrekturen
+- **Export-Funktionen** - PDF, Excel und CSV Export
 - **Responsive UI** - Optimiert für iOS und Android
 - **Gemeinsame Komponenten** - Button, Input, Card, LoadingSpinner
 
@@ -32,6 +34,7 @@ React Native Mobile-App für iOS und Android, entwickelt mit Expo.
 - Node.js 18+
 - npm oder yarn
 - Expo CLI: `npm install -g @expo/cli`
+- EAS CLI: `npm install -g eas-cli`
 - iOS: Xcode (nur für iOS-Builds)
 - Android: Android Studio (nur für Android-Builds)
 
@@ -91,20 +94,37 @@ EXPO_PUBLIC_API_URL=http://localhost:3001/api
 
 ## 📱 iOS Build für TestFlight
 
-1. **EAS Build konfigurieren:**
-   ```bash
-   npx eas build:configure
-   ```
+### 1. EAS Build konfigurieren
+```bash
+cd mobile/FreelancerApp
+eas login
+eas project:init
+```
 
-2. **iOS Build erstellen:**
-   ```bash
-   npx eas build --platform ios
-   ```
+### 2. Bundle ID anpassen
+In `app.config.js` ändern:
+```javascript
+bundleIdentifier: "com.ihrecompany.freelancerapp"
+```
 
-3. **App Store Connect hochladen:**
-   ```bash
-   npx eas submit --platform ios
-   ```
+### 3. iOS Build erstellen
+```bash
+npm run build:ios
+# oder
+eas build --platform ios --profile production
+```
+
+### 4. App Store Connect hochladen
+```bash
+npm run submit:ios
+# oder
+eas submit --platform ios
+```
+
+### 5. Vollständiges Deployment
+```bash
+npm run deploy:ios
+```
 
 ## 🧪 Testing
 
@@ -119,6 +139,8 @@ EXPO_PUBLIC_API_URL=http://localhost:3001/api
 1. **Build erstellen** (siehe oben)
 2. **App Store Connect** hochladen
 3. **TestFlight** für Tester freigeben
+
+**📖 Detaillierte Anleitung:** [TESTFLIGHT_DEPLOYMENT.md](TESTFLIGHT_DEPLOYMENT.md)
 
 ## 🔄 Entwicklung
 
@@ -137,6 +159,7 @@ EXPO_PUBLIC_API_URL=http://localhost:3001/api
 ## 📚 Nützliche Links
 
 - [Expo Dokumentation](https://docs.expo.dev/)
+- [EAS Build Dokumentation](https://docs.expo.dev/build/introduction/)
 - [React Navigation](https://reactnavigation.org/)
 - [React Native](https://reactnative.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
@@ -151,12 +174,22 @@ EXPO_PUBLIC_API_URL=http://localhost:3001/api
    ```
 
 2. **iOS Build schlägt fehl:**
-   - Xcode aktualisieren
-   - iOS-Simulator neu starten
+   ```bash
+   eas build:clean
+   npm run build:ios
+   ```
 
 3. **Android Build schlägt fehl:**
-   - Android Studio aktualisieren
-   - Gradle Cache löschen
+   ```bash
+   eas build:clean
+   npm run build:android
+   ```
+
+4. **EAS Login Probleme:**
+   ```bash
+   eas logout
+   eas login
+   ```
 
 ## 📄 Lizenz
 
